@@ -45,6 +45,10 @@ app.use((req, res) => {
     });
 });
 
-app.listen(PORT_NO, () => {
+const http = require('http');
+const server = http.createServer(app);
+// Initialize Socket.IO
+require('./socket')(server);
+server.listen(PORT_NO, () => {
     console.log(`Server is listening on port ${PORT_NO}`);
 });
