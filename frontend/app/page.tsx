@@ -1,65 +1,120 @@
-import Image from "next/image";
+ 'use client'
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
-}
+ import { useEffect, useState } from 'react'
+ import Link from 'next/link'
+ import { apiGet, apiPost, ApiError } from '@/lib/api'
+
+ type ProfileResponse = {
+   user: {
+     _id: string
+     username: string
+     discriminator: string
+     email: string
+   }
+ }
+
+ export default function Home() {
+   const [loading, setLoading] = useState(true)
+   const [user, setUser] = useState<ProfileResponse['user'] | null>(null)
+   const [error, setError] = useState<string | null>(null)
+
+   const loadProfile = async () => {
+     setLoading(true)
+     setError(null)
+     try {
+       const res = await apiGet<ProfileResponse>('/auth/profile')
+       setUser(res.user)
+     } catch (e) {
+       setUser(null)
+       if (e instanceof ApiError) {
+         if (e.status !== 401) setError(e.message)
+         return
+       }
+       setError('Failed to load profile')
+     } finally {
+       setLoading(false)
+     }
+   }
+
+   useEffect(() => {
+     void loadProfile()
+   }, [])
+
+   const handleLogout = async () => {
+     setError(null)
+     try {
+       await apiPost<unknown>('/auth/logout')
+       await loadProfile()
+     } catch (e) {
+       if (e instanceof ApiError) {
+         setError(e.message)
+         return
+       }
+       setError('Logout failed')
+     }
+   }
+
+   return (
+     <div className="min-h-screen bg-gradient-to-br from-[#04180c] via-[#092414] to-[#04180c] flex items-center justify-center p-6">
+       <div className="w-full max-w-xl rounded-2xl border border-slate-700/50 bg-slate-800/50 backdrop-blur-xl p-8 text-white">
+         <h1 className="text-2xl font-bold">Discord Project</h1>
+         <p className="text-slate-300 mt-1">Auth status</p>
+
+         {error && (
+           <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-200">
+             {error}
+           </div>
+         )}
+
+         <div className="mt-6 rounded-xl border border-slate-700/50 bg-slate-900/30 p-4">
+           {loading ? (
+             <p className="text-slate-300">Loading...</p>
+           ) : user ? (
+             <div className="space-y-3">
+               <div>
+                 <div className="text-slate-400 text-sm">Signed in as</div>
+                 <div className="text-lg font-semibold">
+                   {user.username}
+                   <span className="text-slate-400">#{user.discriminator}</span>
+                 </div>
+                 <div className="text-slate-300 text-sm">{user.email}</div>
+               </div>
+
+               <button
+                 onClick={handleLogout}
+                 className="inline-flex items-center justify-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium hover:bg-red-700 transition-colors"
+               >
+                 Logout
+               </button>
+             </div>
+           ) : (
+             <div className="space-y-3">
+               <p className="text-slate-300">You are not logged in.</p>
+               <div className="flex gap-3">
+                 <Link
+                   href="/login"
+                   className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-primary-500 via-[#76cd00] to-accent-500 px-4 py-2 text-sm font-medium"
+                 >
+                   Login
+                 </Link>
+                 <Link
+                   href="/signup"
+                   className="inline-flex items-center justify-center rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium hover:bg-white/5 transition-colors"
+                 >
+                   Signup
+                 </Link>
+               </div>
+             </div>
+           )}
+         </div>
+
+         <button
+           onClick={loadProfile}
+           className="mt-6 text-sm text-slate-300 hover:text-white transition-colors"
+         >
+           Refresh
+         </button>
+       </div>
+     </div>
+   )
+ }

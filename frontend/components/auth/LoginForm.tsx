@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { apiPost, ApiError } from '@/lib/api'
 
 export default function LoginForm() {
   const router = useRouter()
@@ -43,15 +44,18 @@ export default function LoginForm() {
     setIsLoading(true)
     setErrors({})
 
-    // Simulate API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      // Here you would make your actual API call
-      console.log('Login data:', formData)
-      
-      // Redirect to dashboard or home after successful login
-      // router.push('/dashboard')
+      await apiPost<{ user: unknown; token: string; message?: string }>(
+        '/auth/login',
+        formData
+      )
+      router.push('/')
+      router.refresh()
     } catch (error) {
+      if (error instanceof ApiError) {
+        setErrors({ email: error.message })
+        return
+      }
       setErrors({ email: 'Invalid credentials. Please try again.' })
     } finally {
       setIsLoading(false)

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
+import { apiPost, ApiError } from '@/lib/api'
 
 export default function SignupForm() {
   const router = useRouter()
@@ -68,15 +69,18 @@ export default function SignupForm() {
     setIsLoading(true)
     setErrors({})
 
-    // Simulate API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      // Here you would make your actual API call
-      console.log('Signup data:', formData)
-      
-      // Redirect to login or dashboard after successful signup
-      // router.push('/login')
+      await apiPost<{ success: boolean; message?: string; user?: unknown; token?: string }>(
+        '/auth/register',
+        formData
+      )
+      router.push('/login')
+      router.refresh()
     } catch (error) {
+      if (error instanceof ApiError) {
+        setErrors({ email: error.message })
+        return
+      }
       setErrors({ email: 'An error occurred. Please try again.' })
     } finally {
       setIsLoading(false)
