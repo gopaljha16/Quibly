@@ -49,7 +49,7 @@ export default function LoginForm() {
         '/auth/login',
         formData
       )
-      router.push('/')
+      router.push('/channels/@me')
       router.refresh()
     } catch (error) {
       if (error instanceof ApiError) {

@@ -99,6 +99,11 @@ const getServerById = async (req, res) => {
 const getMembers = async (req, res) => {
     try {
         const { serverId } = req.params;
+        const userId = req.user?._id;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
 
         if (!serverId) {
             return res.status(400).json({
@@ -107,9 +112,22 @@ const getMembers = async (req, res) => {
             })
         }
 
-        const members = await ServerMember.find({ serverId });
+        const server = await Server.findById(serverId).select("ownerId");
+        if (!server) {
+            return res.status(404).json({ success: false, message: "Server not found" });
+        }
+
+        const isMember = await ServerMember.exists({ serverId, userId, isBanned: false });
+        if (!isMember) {
+            return res.status(403).json({ success: false, message: "Not a member of this server" });
+        }
+
+        const members = await ServerMember.find({ serverId, isBanned: false })
+            .populate("userId", "username discriminator avatar status customStatus bio")
+            .sort({ createdAt: 1 });
         return res.status(200).json({
             success: true,
+            ownerId: server.ownerId,
             members,
         });
     } catch (err) {
