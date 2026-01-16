@@ -5,14 +5,14 @@ const messageSchema = new mongoose.Schema(
     channelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Channel",
-      // required: true,
+      required: true,
       index: true,
     },
 
     serverId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Server",
-      // index: true,
+      index: true,
     },
 
     senderId: {
