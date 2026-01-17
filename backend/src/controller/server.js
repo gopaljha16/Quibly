@@ -321,4 +321,80 @@ const deleteServer = async (req, res) => {
     }
 }
 
-module.exports = { createServer, getMyServers, getServerById, deleteServer, leaveServer, getMembers, joinServer }
+//update server
+const updateServer = async (req, res) => {
+    try {
+        const userId = req.user?._id;
+        const { serverId } = req.params;
+        const { name, description, icon, banner, isPublic, verificationLevel } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        const server = await Server.findById(serverId);
+        if (!server) {
+            return res.status(404).json({ success: false, message: "Server not found" });
+        }
+
+        // Only owner can update server settings
+        if (server.ownerId.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Only server owner can update server settings",
+            });
+        }
+
+        const updateData = {};
+        
+        if (name !== undefined) {
+            if (!name || typeof name !== "string" || !name.trim()) {
+                return res.status(400).json({ success: false, message: "Server name is required" });
+            }
+            updateData.name = name.trim();
+        }
+
+        if (description !== undefined) {
+            updateData.description = typeof description === "string" ? description : "";
+        }
+
+        if (icon !== undefined) {
+            updateData.icon = typeof icon === "string" ? icon : null;
+        }
+
+        if (banner !== undefined) {
+            updateData.banner = typeof banner === "string" ? banner : null;
+        }
+
+        if (isPublic !== undefined) {
+            updateData.isPublic = Boolean(isPublic);
+        }
+
+        if (verificationLevel !== undefined) {
+            const validLevels = ["none", "low", "medium", "high"];
+            if (validLevels.includes(verificationLevel)) {
+                updateData.verificationLevel = verificationLevel;
+            }
+        }
+
+        const updatedServer = await Server.findByIdAndUpdate(
+            serverId,
+            updateData,
+            { new: true, runValidators: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            server: updatedServer,
+            message: "Server updated successfully"
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message,
+        });
+    }
+};
+
+module.exports = { createServer, getMyServers, getServerById, deleteServer, leaveServer, getMembers, joinServer, updateServer }

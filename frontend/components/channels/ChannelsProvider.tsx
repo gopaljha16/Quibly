@@ -8,6 +8,12 @@ type Server = {
   _id: string
   name?: string
   icon?: string
+  description?: string
+  banner?: string
+  isPublic?: boolean
+  verificationLevel?: 'none' | 'low' | 'medium' | 'high'
+  ownerId?: string
+  membersCount?: number
 }
 
 type Channel = {
@@ -102,6 +108,7 @@ type ChannelsContextValue = {
   updateChannel: (channelId: string, updates: { name?: string; type?: string; topic?: string }) => Promise<void>
   deleteChannel: (channelId: string) => Promise<void>
   reorderChannels: (serverId: string, channelIds: string[]) => Promise<void>
+  updateServer: (serverId: string, updates: { name?: string; description?: string; icon?: string; banner?: string; isPublic?: boolean; verificationLevel?: string }) => Promise<void>
 }
 
 const ChannelsContext = createContext<ChannelsContextValue | null>(null)
@@ -543,6 +550,30 @@ export function ChannelsProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const updateServer = async (
+    serverId: string,
+    updates: { name?: string; description?: string; icon?: string; banner?: string; isPublic?: boolean; verificationLevel?: string }
+  ) => {
+    try {
+      const res = await apiRequest<{ success: boolean; server: Server }>(`/server/${serverId}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      })
+      const updatedServer = res.server
+      setServers((prev) => prev.map((s) => (s._id === serverId ? updatedServer : s)))
+    } catch (e) {
+      if (e instanceof ApiError) {
+        if (e.status === 401) {
+          router.replace('/login')
+          return
+        }
+        setError(e.message)
+        return
+      }
+      setError('Failed to update server')
+    }
+  }
+
   const value: ChannelsContextValue = {
     route,
     serversLoading,
@@ -577,6 +608,7 @@ export function ChannelsProvider({ children }: { children: React.ReactNode }) {
     updateChannel,
     deleteChannel,
     reorderChannels,
+    updateServer,
   }
 
   return <ChannelsContext.Provider value={value}>{children}</ChannelsContext.Provider>

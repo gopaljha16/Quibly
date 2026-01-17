@@ -37,5 +37,9 @@ module.exports = (httpServer) => {
 
     require("./message.socket")(io, socket);
     require("./presence.socket")(io, socket);
+
+    socket.on("disconnect", () => {
+      console.log("🔴 Disconnected:", socket.user?._id || socket.user?.id);
+    });
   });
 };
