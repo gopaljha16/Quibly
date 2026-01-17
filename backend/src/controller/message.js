@@ -66,7 +66,7 @@ const getMessages = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not a member of this server" });
     }
 
-    const query = { channelId };
+    const query = { channelId, isDeleted: { $ne: true } };
     if (cursor) {
       query.createdAt = { $lt: new Date(cursor) };
     }
@@ -120,19 +120,31 @@ const deleteMessage = async (req, res) => {
 
     const { id } = req.params;
 
-    const updated = await Message.findOneAndUpdate(
-      { _id: id, senderId: userId },
-      { isDeleted: true, content: "This message was deleted" },
-      { new: true }
-    ).populate("senderId", "username avatar")
-
-    if (!updated) {
-      return res.status(404).json({ success: false, message: "Message not found (or not owned by you)" })
+    // Find the message first to check ownership
+    const message = await Message.findOne({ _id: id, senderId: userId });
+    
+    if (!message) {
+      return res.status(404).json({ success: false, message: "Message not found or not owned by you" });
     }
 
-    return res.status(200).json({ success: true, message: "Message deleted", data: updated })
+    // Actually delete the message from the database
+    await Message.findByIdAndDelete(id);
+
+    // Emit socket event to remove message from all clients
+    if (global.io) {
+      global.io.to(message.channelId.toString()).emit("message_deleted", { messageId: id });
+    }
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Message deleted permanently",
+      messageId: id 
+    });
   } catch (err) {
-    return res.status(401).json({ message: err.message })
+    return res.status(500).json({ 
+      success: false, 
+      message: err.message 
+    });
   }
 };
 

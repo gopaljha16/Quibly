@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { authenticateToken } = require("../middleware/auth");
 
-const { createServer, getMyServers, getServerById, deleteServer, leaveServer, getMembers, joinServer } = require("../controller/server");
+const { createServer, getMyServers, getServerById, deleteServer, leaveServer, getMembers, joinServer, updateServer } = require("../controller/server");
 const { createChannel, getChannels, getChannelById, updateChannel, deleteChannel, reorderChannels } = require("../controller/channel");
 
 
@@ -11,6 +11,10 @@ const { createChannel, getChannels, getChannelById, updateChannel, deleteChannel
 router.post("/create", authenticateToken, createServer);
 router.post("/:serverId/join", authenticateToken, joinServer);
 router.post("/:serverId/leave", authenticateToken, leaveServer);
+
+//put routes
+//server routes
+router.put("/:serverId", authenticateToken, updateServer);
 
 //channel routes
 router.post("/:serverId/create-channel", authenticateToken, createChannel );
