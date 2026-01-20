@@ -4,7 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChannels } from '@/components/channels/ChannelsProvider'
 import { apiGet, apiPost, apiRequest, ApiError } from '@/lib/api'
-import { io, type Socket } from 'socket.io-client'
+import { type Socket } from 'socket.io-client'
+import { connectSocket } from '@/lib/socket'
 import { useLinkPreviews } from '@/lib/useLinkPreviews'
 import LinkPreview from '@/components/LinkPreview'
 import LinkifiedText from '@/components/LinkifiedText'
@@ -265,11 +266,7 @@ export default function EnhancedChannelsPage() {
 
   // Socket connection
   useEffect(() => {
-    const SOCKET_URL = (process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000').replace(/\/$/, '')
-    const socket = io(SOCKET_URL, {
-      transports: ['websocket'],
-      withCredentials: true,
-    })
+    const socket = connectSocket()
     socketRef.current = socket
 
     const onReceiveMessage = (incoming: unknown) => {
@@ -307,7 +304,6 @@ export default function EnhancedChannelsPage() {
       try {
         socket.off('receive_message', onReceiveMessage)
         socket.off('message_deleted', onMessageDeleted)
-        socket.disconnect()
       } finally {
         socketRef.current = null
         joinedChannelIdRef.current = null

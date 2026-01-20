@@ -1,85 +1,124 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/user");
-const redisWrapper = require("../config/redis");
+const jwt = require('jsonwebtoken');
+const db = require('../config/db');
 
-const authenticateToken = async (req, res, next) => {
+// Authenticate user middleware
+exports.authenticate = async (req, res, next) => {
     try {
-        const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-        
+        // Get token from cookie or header
+        let token = req.cookies.token; // Check cookie first
+
         if (!token) {
-            return res.status(401).json({ success: false, message: "Access token required" });
+            // Fall back to Authorization header
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7); // Remove 'Bearer ' prefix
+            }
         }
 
-        // Check if token is blacklisted in Redis
-        const isBlacklisted = await redisWrapper.get(`token:${token}`);
-        if (isBlacklisted) {
-            return res.status(401).json({ success: false, message: "Token has been invalidated" });
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: 'No token provided'
+            });
         }
 
-        // Verify JWT token
+        // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
+
         // Get user from database
-        const user = await User.findById(decoded._id).select('-password');
+        const user = await db.user.findUnique({
+            where: { id: decoded.userId },
+            select: {
+                id: true,
+                username: true,
+                discriminator: true,
+                email: true,
+                avatar: true,
+                banner: true,
+                bio: true,
+                status: true,
+                customStatus: true,
+                isVerified: true,
+                isBanned: true
+            }
+        });
+
         if (!user) {
-            return res.status(401).json({ success: false, message: "User not found" });
+            return res.status(401).json({
+                success: false,
+                message: 'User not found'
+            });
         }
 
-        // Check if user is banned
         if (user.isBanned) {
-            return res.status(403).json({ success: false, message: "User account is banned" });
+            return res.status(403).json({
+                success: false,
+                message: 'Account has been banned'
+            });
         }
 
+        // Attach user to request
         req.user = user;
-        req.token = token;
         next();
     } catch (error) {
         if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ success: false, message: "Invalid token" });
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid token'
+            });
         }
         if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({ success: false, message: "Token expired" });
+            return res.status(401).json({
+                success: false,
+                message: 'Token expired'
+            });
         }
-        res.status(500).json({ success: false, message: "Authentication error" });
+
+        console.error('Authentication error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error during authentication'
+        });
     }
 };
 
-const optionalAuth = async (req, res, next) => {
+// Optional auth - doesn't fail if no token
+exports.optionalAuth = async (req, res, next) => {
     try {
-        const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-        
+        // Get token from cookie or header
+        let token = req.cookies.token; // Check cookie first
+
+        if (!token) {
+            // Fall back to Authorization header
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7);
+            }
+        }
+
         if (!token) {
             req.user = null;
             return next();
         }
-
-        // Check if token is blacklisted in Redis
-        const isBlacklisted = await redisWrapper.get(`token:${token}`);
-        if (isBlacklisted) {
-            req.user = null;
-            return next();
-        }
-
-        // Verify JWT token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Get user from database
-        const user = await User.findById(decoded._id).select('-password');
-        if (user && !user.isBanned) {
-            req.user = user;
-            req.token = token;
-        } else {
-            req.user = null;
-        }
-        
+
+        const user = await db.user.findUnique({
+            where: { id: decoded.userId },
+            select: {
+                id: true,
+                username: true,
+                discriminator: true,
+                email: true,
+                avatar: true,
+                isVerified: true,
+                isBanned: true
+            }
+        });
+
+        req.user = user || null;
         next();
     } catch (error) {
         req.user = null;
         next();
     }
-};
-
-module.exports = {
-    authenticateToken,
-    optionalAuth
 };

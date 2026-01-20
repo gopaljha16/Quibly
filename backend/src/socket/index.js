@@ -20,8 +20,9 @@ module.exports = (httpServer) => {
       const token = socket.handshake.auth?.token || cookieTokenMatch?.[1];
       if (!token) return next(new Error("Unauthorized"));
 
-      const user = jwt.verify(token, process.env.JWT_SECRET);
-      socket.user = user;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      // The JWT payload has { userId: '...' }
+      socket.user = { id: decoded.userId };
       next();
     } catch (err) {
       next(new Error("Invalid token"));
@@ -33,13 +34,13 @@ module.exports = (httpServer) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("🟢 Connected:", socket.user?._id || socket.user?.id);
+    console.log("🟢 Connected:", socket.user?.id);
 
     require("./message.socket")(io, socket);
     require("./presence.socket")(io, socket);
 
     socket.on("disconnect", () => {
-      console.log("🔴 Disconnected:", socket.user?._id || socket.user?.id);
+      console.log("🔴 Disconnected:", socket.user?.id);
     });
   });
 };

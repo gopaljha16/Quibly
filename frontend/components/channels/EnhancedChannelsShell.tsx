@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useChannels } from './ChannelsProvider'
 import { usePresenceContext } from '@/components/PresenceProvider'
+import { apiGet, apiPost, ApiError } from '@/lib/api'
 import CreateServerModal from './CreateServerModal'
 import MemberProfileModal from './MemberProfileModal'
 import CreateChannelModal from './CreateChannelModal'
@@ -85,7 +87,20 @@ const UserAvatar = ({
   )
 }
 
+type CurrentUser = {
+  _id: string
+  username: string
+  discriminator: string
+  email: string
+  avatar?: string | null
+  bio?: string
+  status?: 'online' | 'idle' | 'dnd' | 'offline'
+  customStatus?: string
+}
+
 export default function EnhancedChannelsShell({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [serverMenuOpen, setServerMenuOpen] = useState(false)
   const serverMenuRef = useRef<HTMLDivElement | null>(null)
@@ -218,6 +233,37 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [userMenuOpen])
+
+  // Load current user profile
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const res = await apiGet<{ user: any }>('/auth/profile')
+        if (res.user) {
+          const { id, ...rest } = res.user
+          setCurrentUser({ _id: id || res.user._id, ...rest })
+        }
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 401) {
+          router.replace('/login')
+        }
+      }
+    }
+    void loadUser()
+  }, [])
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      const { disconnectSocket } = await import('@/lib/socket')
+      disconnectSocket()
+      await apiPost('/auth/logout')
+      router.replace('/login')
+      router.refresh()
+    } catch (e) {
+      console.error('Logout error:', e)
+    }
+  }
 
   // Load server online users when server changes
   useEffect(() => {
@@ -562,10 +608,20 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
         {/* User Panel */}
         <div className="h-14 bg-[#292b2f] px-2 flex items-center gap-2" ref={userMenuRef}>
-          <UserAvatar username="You" size="md" status={myStatus} showStatus />
+          <UserAvatar 
+            username={currentUser?.username || 'User'} 
+            avatar={currentUser?.avatar}
+            size="md" 
+            status={myStatus} 
+            showStatus 
+          />
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-white truncate">Your Username</div>
-            <div className="text-xs text-white/60 truncate">#0001</div>
+            <div className="text-sm font-medium text-white truncate">
+              {currentUser?.username || 'Loading...'}
+            </div>
+            <div className="text-xs text-white/60 truncate">
+              #{currentUser?.discriminator || '0000'}
+            </div>
           </div>
           <button
             type="button"
@@ -581,10 +637,20 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             <div className="absolute bottom-16 left-2 w-56 rounded border border-black/20 bg-[#18191c] shadow-lg z-50 overflow-hidden">
               <div className="p-3 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <UserAvatar username="You" size="lg" status={myStatus} showStatus />
+                  <UserAvatar 
+                    username={currentUser?.username || 'User'} 
+                    avatar={currentUser?.avatar}
+                    size="lg" 
+                    status={myStatus} 
+                    showStatus 
+                  />
                   <div>
-                    <div className="font-medium text-white">Your Username</div>
-                    <div className="text-sm text-white/60">#0001</div>
+                    <div className="font-medium text-white">
+                      {currentUser?.username || 'Loading...'}
+                    </div>
+                    <div className="text-sm text-white/60">
+                      #{currentUser?.discriminator || '0000'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -622,7 +688,13 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   Settings
                 </button>
                 <div className="h-px bg-white/10 mx-2" />
-                <button className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10">
+                <button 
+                  onClick={() => {
+                    setUserMenuOpen(false)
+                    void handleLogout()
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10"
+                >
                   Log Out
                 </button>
               </div>

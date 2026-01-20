@@ -255,12 +255,17 @@ export function ChannelsProvider({ children }: { children: React.ReactNode }) {
       setMembersError(null)
       try {
         const res = await apiGet<MembersResponse>(`/server/${sid}/members`)
+        console.log('Members API Response:', res)
+        console.log('First member:', res.members?.[0])
         setOwnerId(res.ownerId || null)
         setMembers(
-          (res.members || []).map((m) => ({
-            _id: m._id,
-            user: m.userId,
-          }))
+          (res.members || []).map((m) => {
+            console.log('Mapping member:', m)
+            return {
+              _id: m._id,
+              user: m.userId,
+            }
+          })
         )
       } catch (e) {
         setOwnerId(null)
@@ -531,7 +536,10 @@ export function ChannelsProvider({ children }: { children: React.ReactNode }) {
 
   const reorderChannels = async (serverId: string, channelIds: string[]) => {
     try {
-      await apiPost<{ success: boolean }>(`/server/${serverId}/reorder-channels`, { channelIds })
+      await apiRequest<{ success: boolean }>(`/server/${serverId}/reorder-channels`, {
+        method: 'PATCH',
+        body: JSON.stringify({ channelIds })
+      })
       const ordered = [...channels].sort(
         (a, b) => channelIds.indexOf(a._id) - channelIds.indexOf(b._id)
       )

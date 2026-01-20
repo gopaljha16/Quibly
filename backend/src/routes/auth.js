@@ -1,51 +1,27 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
-const {
-    register,
-    login,
-    logout,
-    getProfile,
-    updateProfile,
-    deleteProfile,
-    activeUsers,
-    googleLogin,
-    getAllUsers,
-    getPlatformStats,
-    verifyEmail,
-    resendVerificationEmail,
-    forgotPassword,
-    resetPassword,
-    changePassword,
-    testEmailVerification
-} = require('../controller/auth');
+const authController = require('../controllers/authController');
+const { authenticate } = require('../middleware/auth');
 
-// Public routes
-router.post('/register', register);
-router.post('/login', login);
-router.post('/google-login', googleLogin);
+// Public routes (no authentication required)
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.post('/google-login', authController.googleLogin);
+router.post('/resend-verification', authController.resendVerificationEmail);
+router.post('/test-email', authController.testEmailVerification);
+router.post('/forgot-password', authController.forgotPassword);
 
-// Email verification routes
-router.post('/verify-email', verifyEmail);
-router.post('/resend-verification', resendVerificationEmail);
-
-// Test route for development
-router.post('/test-email', testEmailVerification);
-
-// Password reset routes
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
-
-// Protected routes (require authentication)
-router.post('/logout', authenticateToken, logout);
-router.get('/profile', authenticateToken, getProfile);
-router.put('/profile', authenticateToken, updateProfile);
-router.delete('/profile', authenticateToken, deleteProfile);
-router.post('/change-password', authenticateToken, changePassword);
-
-//admin route--pending..
-router.get('/users/count', activeUsers);
-router.get('/users', getAllUsers);
-router.get('/stats', getPlatformStats);
+// Protected routes (require authentication - user must be logged in)
+router.post('/verify-email', authenticate, authController.verifyEmail);
+router.post('/reset-password', authenticate, authController.resetPassword);
+router.post('/logout', authenticate, authController.logout);
+router.get('/profile', authenticate, authController.getProfile);
+router.put('/profile', authenticate, authController.updateProfile);
+router.get('/settings', authenticate, authController.getSettings);
+router.patch('/settings', authenticate, authController.updateSettings);
+router.patch('/account/username', authenticate, authController.changeUsername);
+router.patch('/account/email', authenticate, authController.changeEmail);
+router.delete('/profile', authenticate, authController.deleteProfile);
+router.post('/change-password', authenticate, authController.changePassword);
 
 module.exports = router;

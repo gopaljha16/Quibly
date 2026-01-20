@@ -43,8 +43,12 @@
    const handleLogout = async () => {
      setError(null)
      try {
+       // Disconnect socket first
+       const { disconnectSocket } = await import('@/lib/socket')
+       disconnectSocket()
+       
        await apiPost<unknown>('/auth/logout')
-       await loadProfile()
+       setUser(null)
      } catch (e) {
        if (e instanceof ApiError) {
          setError(e.message)

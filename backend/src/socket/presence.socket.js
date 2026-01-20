@@ -1,4 +1,4 @@
-const User = require("../models/user");
+const db = require("../config/db");
 const redis = require("../config/redis");
 
 // Store active connections in memory for this server instance
@@ -15,9 +15,12 @@ module.exports = (io, socket) => {
   const handleUserOnline = async (userId) => {
     try {
       // Update user status in database
-      await User.findByIdAndUpdate(userId, {
-        status: "online",
-        lastSeen: new Date()
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          status: "online",
+          lastSeen: new Date()
+        }
       });
 
       // Store in Redis with expiration (for distributed systems)
@@ -58,9 +61,12 @@ module.exports = (io, socket) => {
           activeConnections.delete(userId);
           
           // Update database
-          await User.findByIdAndUpdate(userId, {
-            status: "offline",
-            lastSeen: new Date()
+          await db.user.update({
+            where: { id: userId },
+            data: {
+              status: "offline",
+              lastSeen: new Date()
+            }
           });
 
           // Update Redis
@@ -99,9 +105,12 @@ module.exports = (io, socket) => {
       }
 
       // Update database
-      await User.findByIdAndUpdate(userId, {
-        status: newStatus,
-        lastSeen: new Date()
+      await db.user.update({
+        where: { id: userId },
+        data: {
+          status: newStatus,
+          lastSeen: new Date()
+        }
       });
 
       // Update Redis
@@ -131,15 +140,29 @@ module.exports = (io, socket) => {
       if (!userId) return;
 
       // Get all members of the server
-      const { ServerMember } = require("../models/server");
-      const members = await ServerMember.find({ serverId, isBanned: false })
-        .populate("userId", "username discriminator avatar status lastSeen")
-        .lean();
+      const members = await db.serverMember.findMany({
+        where: { 
+          serverId: serverId, 
+          isBanned: false 
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              discriminator: true,
+              avatar: true,
+              status: true,
+              lastSeen: true
+            }
+          }
+        }
+      });
 
       const onlineUsers = [];
       
       for (const member of members) {
-        const user = member.userId;
+        const user = member.user;
         if (!user) continue;
 
         let status = user.status || "offline";
@@ -148,8 +171,8 @@ module.exports = (io, socket) => {
         // Check Redis for more recent status
         if (redis.client && redis.client.isReady) {
           try {
-            const redisStatus = await redis.client.get(`user:${user._id}:status`);
-            const redisLastSeen = await redis.client.get(`user:${user._id}:lastSeen`);
+            const redisStatus = await redis.client.get(`user:${user.id}:status`);
+            const redisLastSeen = await redis.client.get(`user:${user.id}:lastSeen`);
             
             if (redisStatus) status = redisStatus;
             if (redisLastSeen) lastSeen = new Date(redisLastSeen);
@@ -159,7 +182,7 @@ module.exports = (io, socket) => {
         }
 
         onlineUsers.push({
-          userId: user._id,
+          userId: user.id,
           username: user.username,
           discriminator: user.discriminator,
           avatar: user.avatar,

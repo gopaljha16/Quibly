@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useChannels } from './ChannelsProvider'
+import { usePresenceContext } from '@/components/PresenceProvider'
+import { apiGet } from '@/lib/api'
 import CreateServerModal from './CreateServerModal'
 import MemberProfileModal from './MemberProfileModal'
 import CreateChannelModal from './CreateChannelModal'
@@ -62,6 +64,21 @@ const UserAvatar = ({
 }
 
 export default function ChannelsShell({ children }: { children: React.ReactNode }) {
+  const { myStatus, changeStatus } = usePresenceContext()
+  const [currentUser, setCurrentUser] = useState<{
+    _id: string
+    username: string
+    discriminator: string
+    avatar?: string | null
+  } | null>(null)
+
+  useEffect(() => {
+    apiGet<any>('/auth/profile').then(res => {
+      if (res?.user) setCurrentUser(res.user)
+      else if (res?.username) setCurrentUser(res)
+    }).catch(() => {})
+  }, [])
+
   const [createOpen, setCreateOpen] = useState(false)
   const [serverMenuOpen, setServerMenuOpen] = useState(false)
   const serverMenuRef = useRef<HTMLDivElement | null>(null)
@@ -580,10 +597,16 @@ export default function ChannelsShell({ children }: { children: React.ReactNode 
 
         {/* User Panel */}
         <div className="h-14 bg-[#0d1117] border-t border-white/5 px-2 flex items-center gap-2" ref={userMenuRef}>
-          <UserAvatar username="You" size="md" status="online" showStatus />
+          <UserAvatar 
+            username={currentUser?.username || "You"} 
+            avatar={currentUser?.avatar} 
+            size="md" 
+            status={myStatus} 
+            showStatus 
+          />
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate">Your Username</div>
-            <div className="text-xs text-white/60 truncate">#1234</div>
+            <div className="text-sm font-medium truncate">{currentUser?.username || "You"}</div>
+            <div className="text-xs text-white/60 truncate">#{currentUser?.discriminator || "0000"}</div>
           </div>
           <button
             onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -599,19 +622,56 @@ export default function ChannelsShell({ children }: { children: React.ReactNode 
             <div className="absolute bottom-16 left-2 w-56 rounded-lg border border-white/10 bg-[#0f1115] shadow-xl z-50 overflow-hidden">
               <div className="p-3 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <UserAvatar username="You" size="lg" status="online" showStatus />
-                  <div>
-                    <div className="font-medium">Your Username</div>
-                    <div className="text-xs text-white/60">#1234</div>
+                  <UserAvatar 
+                    username={currentUser?.username || "You"} 
+                    avatar={currentUser?.avatar} 
+                    size="lg" 
+                    status={myStatus} 
+                    showStatus 
+                  />
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{currentUser?.username || "You"}</div>
+                    <div className="text-xs text-white/60">#{currentUser?.discriminator || "0000"}</div>
                   </div>
                 </div>
               </div>
-              <button className="w-full text-left px-3 py-2 text-sm hover:bg-white/5 flex items-center gap-2">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-                Set Status
+              
+              <div className="px-3 py-2 text-xs font-bold text-white/40 uppercase">Set Status</div>
+              <button 
+                onClick={() => changeStatus('online')}
+                className="w-full text-left px-3 py-1.5 text-sm hover:bg-white/5 flex items-center gap-2"
+              >
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                Online
+                {myStatus === 'online' && <span className="ml-auto text-xs opacity-60">✓</span>}
               </button>
+              <button 
+                onClick={() => changeStatus('idle')}
+                className="w-full text-left px-3 py-1.5 text-sm hover:bg-white/5 flex items-center gap-2"
+              >
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                Idle
+                {myStatus === 'idle' && <span className="ml-auto text-xs opacity-60">✓</span>}
+              </button>
+              <button 
+                onClick={() => changeStatus('dnd')}
+                className="w-full text-left px-3 py-1.5 text-sm hover:bg-white/5 flex items-center gap-2"
+              >
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                Do Not Disturb
+                {myStatus === 'dnd' && <span className="ml-auto text-xs opacity-60">✓</span>}
+              </button>
+              <button 
+                onClick={() => changeStatus('offline')}
+                className="w-full text-left px-3 py-1.5 text-sm hover:bg-white/5 flex items-center gap-2"
+              >
+                <div className="w-2.5 h-2.5 rounded-full bg-gray-500" />
+                Invisible
+                {myStatus === 'offline' && <span className="ml-auto text-xs opacity-60">✓</span>}
+              </button>
+              
+              <div className="h-px bg-white/10 mx-2 my-1" />
+              
               <button className="w-full text-left px-3 py-2 text-sm hover:bg-white/5 flex items-center gap-2">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>

@@ -5,12 +5,14 @@ const authRoutes = require('./auth');
 const serverRoutes = require('./server');
 const messageRoutes = require('./message');
 const linkPreviewRoutes = require('./linkPreview');
+const userRoutes = require('./users');
 
 // Use routes
 router.use('/auth', authRoutes);
 router.use('/server', serverRoutes);
 router.use('/message', messageRoutes);
 router.use('/link-preview', linkPreviewRoutes);
+router.use('/users', userRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {

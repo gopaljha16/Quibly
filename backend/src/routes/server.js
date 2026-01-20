@@ -1,43 +1,28 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require("../middleware/auth");
+const serverController = require('../controllers/serverController');
+const channelController = require('../controllers/channelController');
+const { authenticate } = require('../middleware/auth');
 
-const { createServer, getMyServers, getServerById, deleteServer, leaveServer, getMembers, joinServer, updateServer } = require("../controller/server");
-const { createChannel, getChannels, getChannelById, updateChannel, deleteChannel, reorderChannels } = require("../controller/channel");
+// All routes require authentication
+router.use(authenticate);
 
+// Server management routes
+router.post('/create', serverController.createServer);
+router.get('/getmy-servers', serverController.getMyServers);
+router.get('/:serverId', serverController.getServerById);
+router.put('/:serverId', serverController.updateServer);
+router.delete('/:serverId', serverController.deleteServer);
+router.post('/:serverId/join', serverController.joinServer);
+router.post('/:serverId/leave', serverController.leaveServer);
+router.get('/:serverId/members', serverController.getMembers);
 
-//post routes
-//server routes
-router.post("/create", authenticateToken, createServer);
-router.post("/:serverId/join", authenticateToken, joinServer);
-router.post("/:serverId/leave", authenticateToken, leaveServer);
-
-//put routes
-//server routes
-router.put("/:serverId", authenticateToken, updateServer);
-
-//channel routes
-router.post("/:serverId/create-channel", authenticateToken, createChannel );
-router.patch("/:serverId/reorder-channels", authenticateToken, reorderChannels);
-router.put("/channel/:channelId", authenticateToken, updateChannel);
-
-
-//get routes
-//server routes
-router.get("/getmy-servers" , authenticateToken , getMyServers)
-router.get("/:serverId" , authenticateToken , getServerById)
-router.get("/:serverId/members" , authenticateToken , getMembers)
-
-//channel routes
-router.get("/:serverId/get-channels" , authenticateToken , getChannels)
-router.get("/channel/:channelId" , authenticateToken , getChannelById)
-
-
-//delete routes
-//server routes
-router.delete("/:serverId" , authenticateToken , deleteServer)
-//channel routes
-router.delete("/channel/:channelId" , authenticateToken , deleteChannel)
-
+// Channel management routes
+router.post('/:serverId/create-channel', channelController.createChannel);
+router.get('/:serverId/get-channels', channelController.getChannels);
+router.get('/channel/:channelId', channelController.getChannelById);
+router.put('/channel/:channelId', channelController.updateChannel);
+router.delete('/channel/:channelId', channelController.deleteChannel);
+router.patch('/:serverId/reorder-channels', channelController.reorderChannels);
 
 module.exports = router;

@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { io, Socket } from 'socket.io-client'
+import { Socket } from 'socket.io-client'
+import { connectSocket } from './socket'
 
 type UserStatus = 'online' | 'idle' | 'dnd' | 'offline'
 
@@ -26,32 +27,24 @@ export function usePresence() {
 
   // Initialize socket connection
   useEffect(() => {
-    const SOCKET_URL = (process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000').replace(/\/$/, '')
-    
-    const socketInstance = io(SOCKET_URL, {
-      transports: ['websocket'],
-      withCredentials: true,
-    })
-
+    const socketInstance = connectSocket()
     setSocket(socketInstance)
 
-    // Connection events
-    socketInstance.on('connect', () => {
+    const handleConnect = () => {
       console.log('🟢 Presence connected')
       setIsConnected(true)
       // Automatically mark user as online when connected
       socketInstance.emit('user_online')
       setMyStatus('online')
-    })
+    }
 
-    socketInstance.on('disconnect', () => {
+    const handleDisconnect = () => {
       console.log('🔴 Presence disconnected')
       setIsConnected(false)
       setMyStatus('offline')
-    })
+    }
 
-    // Listen for user status changes
-    socketInstance.on('user_status_change', (data: {
+    const handleUserStatusChange = (data: {
       userId: string
       status: UserStatus
       lastSeen: string
@@ -64,10 +57,9 @@ export function usePresence() {
           lastSeen: data.lastSeen
         }
       }))
-    })
+    }
 
-    // Listen for server online users
-    socketInstance.on('server_online_users', (data: {
+    const handleServerOnlineUsers = (data: {
       serverId: string
       users: UserPresence[]
     }) => {
@@ -76,15 +68,30 @@ export function usePresence() {
         newStatuses[user.userId] = user
       })
       setUserStatuses(prev => ({ ...prev, ...newStatuses }))
-    })
+    }
 
-    // Handle errors
-    socketInstance.on('error', (error: string) => {
+    const handleError = (error: string) => {
       console.error('Presence error:', error)
-    })
+    }
+
+    // Attach listeners
+    socketInstance.on('connect', handleConnect)
+    socketInstance.on('disconnect', handleDisconnect)
+    socketInstance.on('user_status_change', handleUserStatusChange)
+    socketInstance.on('server_online_users', handleServerOnlineUsers)
+    socketInstance.on('error', handleError)
+
+    // Check if already connected
+    if (socketInstance.connected) {
+      handleConnect()
+    }
 
     return () => {
-      socketInstance.disconnect()
+      socketInstance.off('connect', handleConnect)
+      socketInstance.off('disconnect', handleDisconnect)
+      socketInstance.off('user_status_change', handleUserStatusChange)
+      socketInstance.off('server_online_users', handleServerOnlineUsers)
+      socketInstance.off('error', handleError)
     }
   }, [])
 

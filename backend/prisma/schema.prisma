@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                     String         @id @default(cuid())
+  username               String
+  discriminator          String
+  email                  String         @unique
+  pendingEmail           String?
+  password               String
+  avatar                 String?
+  banner                 String?
+  bio                    String?
+  status                 UserStatus     @default(offline)
+  customStatus           String?
+  friends                String[]
+  incomingFriendRequests String[]
+  outgoingFriendRequests String[]
+  servers                Json           @default("[]")
+  settings               Json           @default("{}")
+  isVerified             Boolean        @default(false)
+  isBanned               Boolean        @default(false)
+  lastSeen               DateTime       @default(now())
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  ownedServers           Server[]       @relation("ServerOwner")
+  serverMembers          ServerMember[]
+
+  @@index([email])
+  @@index([username])
+}
+
+model Server {
+  id                String            @id @default(cuid())
+  name              String
+  ownerId           String
+  icon              String?
+  banner            String?
+  description       String?
+  membersCount      Int               @default(1)
+  isPublic          Boolean           @default(false)
+  verificationLevel VerificationLevel @default(none)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  channels          Channel[]
+  roles             Role[]
+  owner             User              @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members           ServerMember[]
+
+  @@index([ownerId])
+}
+
+model ServerMember {
+  id       String   @id @default(cuid())
+  serverId String
+  userId   String
+  roleIds  String[]
+  joinedAt DateTime @default(now())
+  isMuted  Boolean  @default(false)
+  isBanned Boolean  @default(false)
+  server   Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, userId])
+  @@index([serverId])
+  @@index([userId])
+}
+
+model Channel {
+  id                   String      @id @default(cuid())
+  serverId             String
+  name                 String
+  type                 ChannelType @default(TEXT)
+  topic                String?
+  position             Int         @default(0)
+  permissionOverwrites Json        @default("[]")
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  server               Server      @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages             Message[]
+
+  @@index([serverId])
+}
+
+model Message {
+  id          String      @id @default(cuid())
+  channelId   String
+  serverId    String?
+  senderId    String
+  content     String
+  type        MessageType @default(TEXT)
+  attachments Json        @default("[]")
+  mentions    String[]
+  isDeleted   Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  channel     Channel     @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([channelId, createdAt(sort: Desc)])
+  @@index([senderId])
+  @@index([serverId])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  serverId    String
+  name        String
+  color       String?
+  permissions Int      @default(0)
+  position    Int      @default(0)
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  server      Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@index([serverId])
+}
+
+enum ChannelType {
+  TEXT
+  VOICE
+}
+
+enum MessageType {
+  TEXT
+  FILE
+  SYSTEM
+}
+
+enum UserStatus {
+  online
+  idle
+  dnd
+  offline
+}
+
+enum VerificationLevel {
+  none
+  low
+  medium
+  high
+}
