@@ -27,68 +27,76 @@ export default function CreateChannelModal({
   return (
     <div className="fixed inset-0 z-50">
       <div
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/70"
         onClick={() => {
           if (!loading) onClose()
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-2xl bg-[#1f232a] border border-white/10 shadow-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-            <div>
-              <div className="text-lg font-bold text-white">Create Channel</div>
-              <div className="text-sm text-white/60">Add a new text channel</div>
-            </div>
+        <div className="w-full max-w-[460px] rounded-[4px] bg-[#313338] shadow-2xl overflow-hidden animate-scale-in">
+          <div className="flex items-center justify-between px-4 py-4">
+            <div className="text-lg font-bold text-[#F2F3F5] px-2">Create Channel</div>
             <button
               type="button"
               onClick={() => {
                 if (!loading) onClose()
               }}
-              className="w-9 h-9 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center text-white/70"
+              className="text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors"
               aria-label="Close"
             >
-              ×
+              <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                <path fillRule="evenodd" clipRule="evenodd" d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z" />
+              </svg>
             </button>
           </div>
 
-          <div className="px-5 py-4">
+          <div className="px-4 pb-4">
             {error && (
-              <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              <div className="mb-4 rounded bg-[#F23F43] p-2 text-xs font-medium text-white shadow-sm">
                 {error}
               </div>
             )}
 
-            <label className="block text-xs font-semibold text-white/60 mb-2">
-              CHANNEL NAME
-            </label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg bg-black/20 border border-white/10 px-3 py-2 text-white outline-none focus:border-[#5865f2]"
-              placeholder="general"
-              disabled={loading}
-            />
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!loading) onClose()
-                }}
-                className="px-4 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 transition-colors"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => onCreate(name.trim())}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-[#5865f2] hover:bg-[#4752c4] transition-colors disabled:opacity-50"
-                disabled={loading || !name.trim()}
-              >
-                {loading ? 'Creating…' : 'Create'}
-              </button>
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+                Channel Name
+              </label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B5BAC1]">
+                  <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39657 3.41262C8.43914 3.17316 8.63877 3 8.87663 3H9.87663C10.1877 3 10.4233 3.28107 10.3689 3.58738L9.76001 7H15.76L16.3966 3.41262C16.4391 3.17316 16.6388 3 16.8766 3H17.8766C18.1877 3 18.4233 3.28107 18.3689 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3634 20.5874C15.3209 20.8268 15.1212 21 14.8834 21H13.8834C13.5723 21 13.3367 20.7189 13.3911 20.4126L14 17H8.00001L7.36343 20.5874C7.32086 20.8268 7.12123 21 6.88337 21H5.88657ZM9.41001 15H15.41L16.47 9H10.47L9.41001 15Z" />
+                  </svg>
+                </div>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                  className="w-full rounded-[3px] bg-[#1E1F22] p-2.5 pl-10 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
+                  placeholder="new-channel"
+                  disabled={loading}
+                />
+              </div>
             </div>
+          </div>
+
+          <div className="bg-[#2B2D31] p-4 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (!loading) onClose()
+              }}
+              className="px-4 py-2.5 text-sm font-medium text-white hover:underline transition-colors"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => onCreate(name.trim())}
+              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-[#5865F2] hover:bg-[#4752C4] text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !name.trim()}
+            >
+              {loading ? 'Creating...' : 'Create Channel'}
+            </button>
           </div>
         </div>
       </div>

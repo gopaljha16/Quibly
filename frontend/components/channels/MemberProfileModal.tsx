@@ -15,14 +15,14 @@ type MemberUser = {
 // Status indicator component
 const StatusIndicator = ({ status }: { status?: 'online' | 'idle' | 'dnd' | 'offline' }) => {
   const statusColors = {
-    online: 'bg-green-500',
-    idle: 'bg-yellow-500',
-    dnd: 'bg-red-500',
-    offline: 'bg-gray-500'
+    online: 'bg-[#23a559]',
+    idle: 'bg-[#f0b232]',
+    dnd: 'bg-[#f23f43]',
+    offline: 'bg-[#80848e]'
   }
   
   return (
-    <div className={`w-4 h-4 rounded-full border-2 border-[#2f3136] ${statusColors[status || 'offline']}`} />
+    <div className={`w-4 h-4 rounded-full border-2 border-[#232428] ${statusColors[status || 'offline']}`} />
   )
 }
 
@@ -52,114 +52,99 @@ export default function MemberProfileModal({
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-2xl bg-[#36393f] border border-black/20 shadow-2xl overflow-hidden">
-          {/* Header Banner */}
-          <div className="h-24 bg-gradient-to-r from-blue-500 to-purple-600 relative">
-            <button
+        <div className="w-full max-w-[340px] rounded-[8px] bg-[#232428] shadow-2xl overflow-hidden animate-scale-in relative">
+           {/* Banner */}
+          <div className="h-[60px] bg-[#5865F2] relative">
+             <button
               type="button"
               onClick={onClose}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full hover:bg-black/20 transition-colors flex items-center justify-center text-white"
+              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 transition-colors flex items-center justify-center text-white/80"
               aria-label="Close"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" className="fill-current">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                <path fillRule="evenodd" clipRule="evenodd" d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z" />
               </svg>
             </button>
           </div>
 
-          <div className="px-6 pb-6">
+          <div className="px-4 pb-4">
             {/* Avatar */}
-            <div className="-mt-12 flex items-end justify-between mb-4">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 border-4 border-[#36393f] flex items-center justify-center text-3xl font-bold text-white">
+            <div className="-mt-[40px] mb-3 relative inline-block">
+               <div className="w-[80px] h-[80px] rounded-full border-[6px] border-[#232428] bg-[#1E1F22] flex items-center justify-center text-3xl font-bold text-white overflow-hidden relative">
                   {user.avatar ? (
                     <img 
                       src={user.avatar} 
                       alt={user.username} 
-                      className="w-full h-full rounded-full object-cover" 
+                      className="w-full h-full object-cover" 
                     />
                   ) : (
-                    initials
+                    <div className="w-full h-full bg-[#5865F2] flex items-center justify-center">
+                       {initials}
+                    </div>
                   )}
-                </div>
-                <div className="absolute -bottom-1 -right-1">
+               </div>
+                <div className="absolute bottom-1 right-1 rounded-full bg-[#232428] p-[4px]">
                   <StatusIndicator status={user.status} />
                 </div>
-              </div>
             </div>
 
             {/* User Info */}
-            <div className="mb-4">
+            <div className="mb-4 bg-[#111214] rounded-[8px] p-3 border border-[#1E1F22]">
               <div className="flex items-center gap-2 mb-1">
-                <div className="text-xl font-bold text-white">{user.username}</div>
+                <div className="text-lg font-bold text-[#F2F3F5]">{user.username}</div>
                 {isOwner && (
-                  <div className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs font-semibold rounded uppercase">
-                    Owner
-                  </div>
+                   <svg className="w-4 h-4 text-[#F0B232]" viewBox="0 0 24 24" fill="currentColor">
+                     <path d="M12 2L1 21H23L12 2ZM12 6L19.53 19H4.47L12 6Z" />
+                   </svg>
                 )}
               </div>
-              <div className="text-sm text-white/70">
-                {user.username}
-                {user.discriminator ? `#${user.discriminator}` : '#0001'}
+              <div className="text-sm text-[#B5BAC1] font-medium">#{user.discriminator}</div>
+              
+              {user.customStatus && (
+                 <div className="mt-2 text-sm text-[#DBDEE1]">
+                    {user.customStatus}
+                 </div>
+              )}
+            </div>
+             
+             <div className="h-[1px] bg-[#3F4147] mb-3" />
+
+            {/* About Me Section */}
+            <div className="mb-4">
+              <div className="text-xs font-bold text-[#B5BAC1] uppercase mb-2">About Me</div>
+              <div className="text-sm text-[#DBDEE1] leading-relaxed whitespace-pre-wrap">
+                {user.bio || 'Just another discord user.'}
               </div>
             </div>
 
-            {/* Status & Bio */}
-            {(user.customStatus || user.bio) && (
-              <div className="mb-4 rounded-xl bg-[#2f3136] border border-black/20 p-4">
-                {user.customStatus && (
-                  <div className="mb-2">
-                    <div className="text-xs font-semibold text-white/60 uppercase mb-1">Status</div>
-                    <div className="text-sm text-white/90">{user.customStatus}</div>
+            {/* Roles Section - Placeholder */}
+            <div className="mb-4">
+               <div className="text-xs font-bold text-[#B5BAC1] uppercase mb-2">Roles</div>
+               <div className="flex flex-wrap gap-1">
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]">
+                     <div className="w-3 h-3 rounded-full bg-[#99AAB5]" />
+                     <span className="text-xs font-medium text-[#DBDEE1]">Member</span>
                   </div>
-                )}
-                {user.bio && (
-                  <div>
-                    <div className="text-xs font-semibold text-white/60 uppercase mb-1">About Me</div>
-                    <div className="text-sm text-white/80">{user.bio}</div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Member Since */}
-            <div className="mb-4 rounded-xl bg-[#2f3136] border border-black/20 p-4">
-              <div className="text-xs font-semibold text-white/60 uppercase mb-2">Member Since</div>
-              <div className="text-sm text-white/80">
-                {new Date().toLocaleDateString('en-US', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </div>
+                   {isOwner && (
+                     <div className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]">
+                        <div className="w-3 h-3 rounded-full bg-[#F0B232]" />
+                        <span className="text-xs font-medium text-[#DBDEE1]">Owner</span>
+                     </div>
+                   )}
+               </div>
             </div>
-
-            {/* Actions */}
-            <div className="space-y-2">
-              <button
-                type="button"
-                className="w-full rounded-lg bg-[#5865f2] hover:bg-[#4752c4] transition-colors px-4 py-2.5 text-sm font-medium text-white"
-              >
-                Send Message
-              </button>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className="flex-1 rounded-lg bg-[#2f3136] hover:bg-[#40444b] transition-colors px-4 py-2.5 text-sm font-medium text-white border border-black/20"
-                >
-                  Add Friend
-                </button>
-                <button
-                  type="button"
-                  className="flex-1 rounded-lg bg-[#2f3136] hover:bg-[#40444b] transition-colors px-4 py-2.5 text-sm font-medium text-white border border-black/20"
-                >
-                  Block
-                </button>
-              </div>
-            </div>
+             
+            {/* Note Section */}
+             <div>
+                <div className="text-xs font-bold text-[#B5BAC1] uppercase mb-2">Note</div>
+                 <textarea 
+                   className="w-full bg-[#111214] text-[#DBDEE1] text-xs p-2 rounded-[3px] border-none outline-none resize-none h-[36px] placeholder-[#5C5E66] focus:h-[60px] transition-all duration-200"
+                   placeholder="Click to add a note"
+                 />
+             </div>
           </div>
         </div>
       </div>

@@ -27,68 +27,75 @@ export default function JoinServerModal({
   return (
     <div className="fixed inset-0 z-50">
       <div
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/70"
         onClick={() => {
           if (!loading) onClose()
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-md rounded-2xl bg-[#1f232a] border border-white/10 shadow-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-            <div>
-              <div className="text-lg font-bold text-white">Join a Server</div>
-              <div className="text-sm text-white/60">Enter a server ID to join</div>
-            </div>
+        <div className="w-full max-w-[440px] rounded-[4px] bg-[#313338] shadow-2xl overflow-hidden animate-scale-in text-center">
+          <div className="px-6 pt-6 pb-2">
+            <h2 className="text-2xl font-bold text-[#F2F3F5] mb-2">Join a Server</h2>
+            <p className="text-[#B5BAC1] text-sm mb-4">
+              Enter an invite below to join an existing server
+            </p>
             <button
               type="button"
               onClick={() => {
                 if (!loading) onClose()
               }}
-              className="w-9 h-9 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center text-white/70"
+              className="absolute top-4 right-4 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors"
               aria-label="Close"
             >
-              ×
+              <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                <path fillRule="evenodd" clipRule="evenodd" d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z" />
+              </svg>
             </button>
           </div>
 
-          <div className="px-5 py-4">
+          <div className="px-4 pb-4">
             {error && (
-              <div className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              <div className="mb-4 rounded bg-[#F23F43] p-2 text-xs font-medium text-white shadow-sm text-left">
                 {error}
               </div>
             )}
 
-            <label className="block text-xs font-semibold text-white/60 mb-2">
-              SERVER ID
-            </label>
-            <input
-              value={serverId}
-              onChange={(e) => setServerId(e.target.value)}
-              className="w-full rounded-lg bg-black/20 border border-white/10 px-3 py-2 text-white outline-none focus:border-[#5865f2]"
-              placeholder="Enter server ID"
-              disabled={loading}
-            />
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!loading) onClose()
-                }}
-                className="px-4 py-2 rounded-lg text-sm text-white/80 hover:bg-white/10 transition-colors"
+            <div className="mb-4 text-left">
+              <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+                Invite Link *
+              </label>
+              <input
+                value={serverId}
+                onChange={(e) => setServerId(e.target.value)}
+                className="w-full rounded-[3px] bg-[#1E1F22] p-2.5 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
+                placeholder="https://discord.gg/hTKzmak"
                 disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => onJoin(serverId.trim())}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-[#5865f2] hover:bg-[#4752c4] transition-colors disabled:opacity-50"
-                disabled={loading || !serverId.trim()}
-              >
-                {loading ? 'Joining…' : 'Join'}
-              </button>
+              />
+              <div className="mt-2 text-xs text-[#949BA4]">
+                Invites should look like <span className="font-mono text-[#DBDEE1]">hTKzmak</span>, <span className="font-mono text-[#DBDEE1]">https://discord.gg/hTKzmak</span>, or <span className="font-mono text-[#DBDEE1]">https://discord.com/invite/hTKzmak</span>.
+              </div>
             </div>
+          </div>
+
+          <div className="bg-[#2B2D31] p-4 flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => {
+                if (!loading) onClose()
+              }}
+              className="text-sm font-medium text-[#DBDEE1] hover:underline transition-colors"
+              disabled={loading}
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              onClick={() => onJoin(serverId.trim())}
+              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-[#5865F2] hover:bg-[#4752C4] text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || !serverId.trim()}
+            >
+              {loading ? 'Joining...' : 'Join Server'}
+            </button>
           </div>
         </div>
       </div>

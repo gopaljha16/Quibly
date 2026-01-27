@@ -98,233 +98,171 @@ export default function ServerSettingsModal({
 
   return (
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/70" onClick={() => { if (!saving) onClose() }} />
       
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-4xl h-[600px] rounded-xl bg-[#36393f] border border-black/20 shadow-2xl overflow-hidden flex">
+        <div className="w-full max-w-[800px] h-[600px] bg-[#313338] rounded-[4px] shadow-2xl overflow-hidden flex animate-scale-in">
+          
           {/* Sidebar */}
-          <div className="w-60 bg-[#2f3136] border-r border-black/20 flex flex-col">
-            <div className="p-4 border-b border-black/20">
-              <h2 className="text-lg font-semibold text-white">{server.name}</h2>
-              <p className="text-sm text-white/60">Server Settings</p>
-            </div>
-            
-            <div className="flex-1 overflow-auto p-2">
-              {tabs.map((tab) => (
+          <div className="w-[218px] bg-[#2B2D31] flex flex-col pt-[60px] pb-4">
+             <div className="px-[10px] mb-2 flex justify-between items-center">
+                <div className="text-xs font-bold text-[#949BA4] px-2 uppercase truncate">{server.name}</div>
+             </div>
+             
+             <div className="flex-1 overflow-y-auto custom-scrollbar px-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-[4px] mb-[2px] text-sm font-medium flex items-center justify-between group transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-[#404249] text-[#F2F3F5]'
+                        : 'text-[#B5BAC1] hover:bg-[#35373C] hover:text-[#DBDEE1]'
+                    }`}
+                  >
+                    {tab.name}
+                  </button>
+                ))}
+                
+                <div className="h-[1px] bg-[#3F4147] my-2 mx-2" />
+                
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full text-left px-3 py-2 rounded text-sm flex items-center gap-3 transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-[#5865f2] text-white'
-                      : 'text-white/70 hover:bg-white/5 hover:text-white'
-                  }`}
+                  className="w-full text-left px-2.5 py-1.5 rounded-[4px] mb-[2px] text-sm font-medium flex items-center justify-between text-[#DA373C] hover:bg-[#DA373C]/10 transition-colors"
                 >
-                  <span>{tab.icon}</span>
-                  {tab.name}
+                  Delete Server
                 </button>
-              ))}
-            </div>
-            
-            <div className="p-4 border-t border-black/20">
-              <button
-                onClick={onClose}
-                className="w-full px-3 py-2 rounded bg-white/5 hover:bg-white/10 text-sm text-white transition-colors"
-              >
-                Close
-              </button>
-            </div>
+             </div>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col">
-            <div className="p-6 border-b border-black/20">
-              <h3 className="text-xl font-semibold text-white capitalize">{activeTab}</h3>
-            </div>
-            
-            <div className="flex-1 overflow-auto p-6">
-              {error && (
-                <div className="mb-4 p-3 rounded bg-red-500/10 border border-red-500/30 text-red-200 text-sm">
-                  {error}
-                </div>
-              )}
-
-              {activeTab === 'overview' && (
-                <div className="space-y-6">
-                  {/* Server Icon */}
-                  <div>
-                    <label className="block text-sm font-semibold text-white/80 mb-2">Server Icon</label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-2xl font-bold text-white">
-                        {formData.icon ? (
-                          <img src={formData.icon} alt="Server icon" className="w-full h-full rounded-full object-cover" />
-                        ) : (
-                          (server.name || 'S').slice(0, 1).toUpperCase()
-                        )}
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          placeholder="Icon URL"
-                          value={formData.icon}
-                          onChange={(e) => setFormData(prev => ({ ...prev, icon: e.target.value }))}
-                          className="w-64 px-3 py-2 rounded bg-[#40444b] border border-black/20 text-white text-sm outline-none focus:border-[#5865f2]"
-                        />
-                        <p className="text-xs text-white/60 mt-1">Recommended size: 128x128px</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Server Name */}
-                  <div>
-                    <label className="block text-sm font-semibold text-white/80 mb-2">Server Name</label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full px-3 py-2 rounded bg-[#40444b] border border-black/20 text-white outline-none focus:border-[#5865f2]"
-                      maxLength={100}
-                    />
-                  </div>
-
-                  {/* Server Description */}
-                  <div>
-                    <label className="block text-sm font-semibold text-white/80 mb-2">Description</label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      className="w-full px-3 py-2 rounded bg-[#40444b] border border-black/20 text-white outline-none focus:border-[#5865f2] resize-none"
-                      rows={3}
-                      maxLength={300}
-                      placeholder="Tell people what your server is about"
-                    />
-                    <p className="text-xs text-white/60 mt-1">{formData.description.length}/300</p>
-                  </div>
-
-                  {/* Server Banner */}
-                  <div>
-                    <label className="block text-sm font-semibold text-white/80 mb-2">Server Banner</label>
-                    <input
-                      type="text"
-                      placeholder="Banner URL"
-                      value={formData.banner}
-                      onChange={(e) => setFormData(prev => ({ ...prev, banner: e.target.value }))}
-                      className="w-full px-3 py-2 rounded bg-[#40444b] border border-black/20 text-white text-sm outline-none focus:border-[#5865f2]"
-                    />
-                    <p className="text-xs text-white/60 mt-1">Recommended size: 960x540px</p>
-                  </div>
-
-                  {/* Privacy Settings */}
-                  <div>
-                    <label className="block text-sm font-semibold text-white/80 mb-2">Privacy Settings</label>
-                    <div className="space-y-3">
-                      <label className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={formData.isPublic}
-                          onChange={(e) => setFormData(prev => ({ ...prev, isPublic: e.target.checked }))}
-                          className="w-4 h-4 rounded border-2 border-white/20 bg-[#40444b] checked:bg-[#5865f2] checked:border-[#5865f2]"
-                        />
-                        <div>
-                          <div className="text-white text-sm">Public Server</div>
-                          <div className="text-white/60 text-xs">Allow anyone to join this server</div>
+          <div className="flex-1 bg-[#313338] flex flex-col relative">
+             <div className="flex-1 overflow-y-auto p-[40px] custom-scrollbar">
+                <div className="max-w-[460px]">
+                  <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Overview</h2>
+                  
+                  <div className="flex gap-8 mb-8">
+                     <div className="flex-1">
+                        {/* Server Name */}
+                        <div className="mb-6">
+                           <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+                              Server Name
+                           </label>
+                           <input
+                              value={formData.name}
+                              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                              className="w-full bg-[#1E1F22] text-[#DBDEE1] p-2.5 rounded-[3px] border-none outline-none font-medium"
+                           />
                         </div>
-                      </label>
+                        
+                        {/* Description */}
+                         <div className="mb-6">
+                           <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+                              Description
+                           </label>
+                           <textarea
+                              value={formData.description}
+                              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                              className="w-full bg-[#1E1F22] text-[#DBDEE1] p-2.5 rounded-[3px] border-none outline-none font-medium h-[100px] resize-none"
+                              placeholder="Tell us about your server!"
+                           />
+                        </div>
+                     </div>
+                     
+                     {/* Icon Upload Placeholder */}
+                     <div className="flex flex-col items-center gap-2">
+                        <div className="w-[100px] h-[100px] rounded-full bg-[#1E1F22] border-2 border-dashed border-[#4E5058] flex items-center justify-center text-[#B5BAC1] text-xs text-center p-2 cursor-pointer hover:border-[#F2F3F5] transition-colors">
+                           {formData.icon ? (
+                              <img src={formData.icon} alt="Server Icon" className="w-full h-full rounded-full object-cover" />
+                           ) : (
+                              <span>Upload Icon</span>
+                           )}
+                        </div>
+                        <div className="text-[10px] text-[#949BA4]">Minimum Size: 128x128</div>
+                     </div>
+                  </div>
+                   
+                   {/* Verification Level */}
+                    <div className="mb-8">
+                        <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+                           Verification Level
+                        </label>
+                         <div className="bg-[#1E1F22] rounded-[3px] p-2">
+                            <select
+                               value={formData.verificationLevel}
+                               onChange={(e) => setFormData({ ...formData, verificationLevel: e.target.value as any })}
+                               className="w-full bg-transparent text-[#DBDEE1] outline-none text-sm"
+                            >
+                               <option value="none">None - Unrestricted</option>
+                               <option value="low">Low - Must have verified email</option>
+                               <option value="medium">Medium - Must be registered for 5 mins</option>
+                               <option value="high">High - Must be member for 10 mins</option>
+                            </select>
+                         </div>
                     </div>
-                  </div>
 
-                  {/* Verification Level */}
-                  <div>
-                    <label className="block text-sm font-semibold text-white/80 mb-2">Verification Level</label>
-                    <select
-                      value={formData.verificationLevel}
-                      onChange={(e) => setFormData(prev => ({ ...prev, verificationLevel: e.target.value as any }))}
-                      className="w-full px-3 py-2 rounded bg-[#40444b] border border-black/20 text-white outline-none focus:border-[#5865f2]"
-                    >
-                      <option value="none">None - No verification required</option>
-                      <option value="low">Low - Must have verified email</option>
-                      <option value="medium">Medium - Must be registered for 5+ minutes</option>
-                      <option value="high">High - Must be a member for 10+ minutes</option>
-                    </select>
-                  </div>
+                   {/* Public Toggle */}
+                   <div className="flex items-center justify-between mb-8">
+                      <div>
+                         <div className="text-sm font-medium text-[#F2F3F5]">Public Server</div>
+                         <div className="text-xs text-[#B5BAC1]">Allow anyone to discover and join your server</div>
+                      </div>
+                      <button
+                         onClick={() => setFormData({ ...formData, isPublic: !formData.isPublic })}
+                         className={`w-10 h-6 rounded-full p-1 transition-colors ${
+                            formData.isPublic ? 'bg-[#23A559]' : 'bg-[#80848E]'
+                         }`}
+                      >
+                         <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+                            formData.isPublic ? 'translate-x-4' : 'translate-x-0'
+                         }`} />
+                      </button>
+                   </div>
+
+                   {error && (
+                     <div className="mb-4 text-xs font-medium text-[#F23F43]">
+                        {error}
+                     </div>
+                   )}
                 </div>
-              )}
+             </div>
 
-              {activeTab === 'moderation' && (
-                <div className="space-y-6">
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🛡️</div>
-                    <h3 className="text-xl font-semibold text-white mb-2">Moderation Settings</h3>
-                    <p className="text-white/60">Configure auto-moderation, filters, and member management</p>
-                    <p className="text-white/40 text-sm mt-2">Coming soon...</p>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'members' && (
-                <div className="space-y-6">
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">👥</div>
-                    <h3 className="text-xl font-semibold text-white mb-2">Member Management</h3>
-                    <p className="text-white/60">View and manage server members, bans, and invites</p>
-                    <p className="text-white/40 text-sm mt-2">Coming soon...</p>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'roles' && (
-                <div className="space-y-6">
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🏷️</div>
-                    <h3 className="text-xl font-semibold text-white mb-2">Roles & Permissions</h3>
-                    <p className="text-white/60">Create and manage roles with custom permissions</p>
-                    <p className="text-white/40 text-sm mt-2">Coming soon...</p>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'channels' && (
-                <div className="space-y-6">
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">#️⃣</div>
-                    <h3 className="text-xl font-semibold text-white mb-2">Channel Management</h3>
-                    <p className="text-white/60">Organize channels into categories and set permissions</p>
-                    <p className="text-white/40 text-sm mt-2">Coming soon...</p>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'integrations' && (
-                <div className="space-y-6">
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">🔗</div>
-                    <h3 className="text-xl font-semibold text-white mb-2">Integrations</h3>
-                    <p className="text-white/60">Connect bots, webhooks, and external services</p>
-                    <p className="text-white/40 text-sm mt-2">Coming soon...</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            {activeTab === 'overview' && (
-              <div className="p-6 border-t border-black/20 flex justify-end gap-3">
+             {/* Close Button */}
+             <div className="absolute top-[36px] right-[40px] flex flex-col items-center gap-1">
                 <button
-                  onClick={onClose}
-                  className="px-4 py-2 rounded bg-transparent hover:bg-white/5 text-white transition-colors"
-                  disabled={saving}
+                   onClick={onClose}
+                   className="w-9 h-9 rounded-full border-2 border-[#B5BAC1] text-[#B5BAC1] flex items-center justify-center hover:bg-[#B5BAC1] hover:text-[#313338] transition-colors"
                 >
-                  Cancel
+                   <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current font-bold">
+                      <path fillRule="evenodd" clipRule="evenodd" d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z" />
+                   </svg>
+                </button>
+                <div className="text-xs font-bold text-[#B5BAC1]">ESC</div>
+             </div>
+
+             {/* Save Changes Bar */}
+             <div className="bg-[#111214] p-4 flex justify-end gap-3 shadow-lg">
+                <button
+                   onClick={() => setFormData({
+                      name: server.name || '',
+                      description: server.description || '',
+                      icon: server.icon || '',
+                      banner: server.banner || '',
+                      isPublic: server.isPublic || false,
+                      verificationLevel: server.verificationLevel || 'none'
+                   })}
+                   className="px-4 py-2 text-sm font-medium text-white hover:underline transition-colors"
+                   disabled={saving}
+                >
+                   Reset
                 </button>
                 <button
-                  onClick={handleSave}
-                  disabled={saving || !formData.name.trim()}
-                  className="px-4 py-2 rounded bg-[#5865f2] hover:bg-[#4752c4] text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                   onClick={handleSave}
+                   className="px-6 py-2 rounded-[3px] text-sm font-medium bg-[#23A559] hover:bg-[#1A8D49] text-white transition-colors disabled:opacity-50"
+                   disabled={saving}
                 >
-                  {saving ? 'Saving...' : 'Save Changes'}
+                   {saving ? 'Saving Changes...' : 'Save Changes'}
                 </button>
-              </div>
-            )}
+             </div>
           </div>
         </div>
       </div>
