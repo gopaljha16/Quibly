@@ -12,6 +12,7 @@ import CreateChannelModal from './CreateChannelModal'
 import JoinServerModal from './JoinServerModal'
 import ServerSettingsModal from './ServerSettingsModal'
 import InviteServerModal from './InviteServerModal'
+import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/components/LoadingSkeletons'
 
 
 
@@ -263,7 +264,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
         {/* Server List */}
         {serversLoading ? (
-          <div className="w-12 h-12 rounded-[24px] bg-[#313338] animate-pulse" />
+          <ServerListSkeleton />
         ) : (
           servers.map((s) => (
             <div key={s._id} className="relative group">
