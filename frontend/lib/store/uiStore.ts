@@ -52,27 +52,27 @@ interface UIState {
 export const useUIStore = create<UIState>()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         // Route state
         route: { isMe: false, serverId: null, channelId: null },
-        setRoute: (route) => set({ route }),
+        setRoute: (route: RouteInfo) => set({ route }),
         
         // Modal state
         activeModal: null,
         modalData: {},
-        openModal: (modal, data = {}) => 
+        openModal: (modal: ModalType, data: Record<string, any> = {}) => 
           set({ activeModal: modal, modalData: data }),
         closeModal: () => 
           set({ activeModal: null, modalData: {} }),
         
         // Message drafts
         drafts: {},
-        setDraft: (channelId, content) =>
-          set((state) => ({
+        setDraft: (channelId: string, content: string) =>
+          set((state: UIState) => ({
             drafts: { ...state.drafts, [channelId]: content },
           })),
-        clearDraft: (channelId) =>
-          set((state) => {
+        clearDraft: (channelId: string) =>
+          set((state: UIState) => {
             const { [channelId]: _, ...rest } = state.drafts
             return { drafts: rest }
           }),
@@ -80,7 +80,7 @@ export const useUIStore = create<UIState>()(
         // Edit message state
         editingMessageId: null,
         editingMessageContent: '',
-        startEditingMessage: (messageId, content) =>
+        startEditingMessage: (messageId: string, content: string) =>
           set({ editingMessageId: messageId, editingMessageContent: content }),
         stopEditingMessage: () =>
           set({ editingMessageId: null, editingMessageContent: '' }),
@@ -88,13 +88,13 @@ export const useUIStore = create<UIState>()(
         // UI preferences
         sidebarCollapsed: false,
         toggleSidebar: () =>
-          set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+          set((state: UIState) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
         
         // Selected items
         selectedServerId: null,
         selectedChannelId: null,
-        setSelectedServer: (serverId) => set({ selectedServerId: serverId }),
-        setSelectedChannel: (channelId) => set({ selectedChannelId: channelId }),
+        setSelectedServer: (serverId: string | null) => set({ selectedServerId: serverId }),
+        setSelectedChannel: (channelId: string | null) => set({ selectedChannelId: channelId }),
       }),
       {
         name: 'discord-ui-store',
