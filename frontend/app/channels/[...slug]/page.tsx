@@ -8,6 +8,7 @@ import { useUIStore } from '@/lib/store'
 import LinkPreview from '@/components/LinkPreview'
 import LinkifiedText from '@/components/LinkifiedText'
 import { Message } from '@/hooks/queries'
+import { MessageListSkeleton } from '@/components/LoadingSkeletons'
 
 // Message Item Component
 const MessageItem = ({ 
@@ -316,12 +317,7 @@ export default function ChannelsPage() {
               )}
 
               {messagesLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="text-[#B5BAC1] flex flex-col items-center gap-2">
-                    <span className="loading-spinner"></span>
-                    <span>Loading messages...</span>
-                  </div>
-                </div>
+                <MessageListSkeleton />
               ) : sortedMessages.length === 0 ? null : (
                 <div className="flex flex-col pb-4">
                   {sortedMessages.map((message) => (
