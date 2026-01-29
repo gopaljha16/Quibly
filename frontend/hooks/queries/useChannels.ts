@@ -8,6 +8,7 @@ export type Channel = {
   name: string
   type?: string
   topic?: string
+  description?: string
 }
 
 type ChannelsResponse = {

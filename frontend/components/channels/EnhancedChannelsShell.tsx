@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useChannels } from './ChannelsProvider'
+import { useChannelsData } from '@/hooks/useChannelsData'
+import { useProfile } from '@/hooks/queries'
 import { usePresenceContext } from '@/components/PresenceProvider'
-import { apiGet, apiPost, ApiError } from '@/lib/api'
+import { apiPost } from '@/lib/api'
 import CreateServerModal from './CreateServerModal'
 import MemberProfileModal from './MemberProfileModal'
 import CreateChannelModal from './CreateChannelModal'
@@ -76,20 +77,9 @@ const UserAvatar = ({
   )
 }
 
-type CurrentUser = {
-  _id: string
-  username: string
-  discriminator: string
-  email: string
-  avatar?: string | null
-  bio?: string
-  status?: 'online' | 'idle' | 'dnd' | 'offline'
-  customStatus?: string
-}
-
 export default function EnhancedChannelsShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
+  const { data: currentUser } = useProfile()
   const [createOpen, setCreateOpen] = useState(false)
   const [serverMenuOpen, setServerMenuOpen] = useState(false)
   const serverMenuRef = useRef<HTMLDivElement | null>(null)
@@ -124,6 +114,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     getServerOnlineUsers
   } = usePresenceContext()
   
+  // Use new hooks instead of ChannelsProvider
   const {
     route,
     serversLoading,
@@ -158,7 +149,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     members,
     ownerId,
     updateServer,
-  } = useChannels()
+  } = useChannelsData()
+  
   const [createChannelOpen, setCreateChannelOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
 
@@ -222,24 +214,6 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [userMenuOpen])
-
-  // Load current user profile
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const res = await apiGet<{ user: any }>('/auth/profile')
-        if (res.user) {
-          const { id, ...rest } = res.user
-          setCurrentUser({ _id: id || res.user._id, ...rest })
-        }
-      } catch (e) {
-        if (e instanceof ApiError && e.status === 401) {
-          router.replace('/login')
-        }
-      }
-    }
-    void loadUser()
-  }, [])
 
   // Logout handler
   const handleLogout = async () => {
@@ -376,7 +350,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
         <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1A1B1E] scrollbar-track-[#2B2D31]">
           {error && (
             <div className="mx-2 mb-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-              {error}
+              {error instanceof Error ? error.message : String(error)}
             </div>
           )}
 
@@ -682,7 +656,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1A1B1E] scrollbar-track-[#2B2D31]">
             {membersError && (
               <div className="mx-2 mb-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-                {membersError}
+                {membersError instanceof Error ? membersError.message : String(membersError)}
               </div>
             )}
             
