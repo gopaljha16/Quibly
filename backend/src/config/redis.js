@@ -1,33 +1,46 @@
 const {createClient} = require("redis");
 require("dotenv").config();
 
-const client = createClient({
-    username: 'default',
-    password: process.env.REDIS_PASSWORD,
-    socket: {
-        host: process.env.REDIS_STRING,
-        port: parseInt(process.env.REDIS_PORT_NO)
-    }
-});
+let client = null;
+let isConnected = false;
 
-client.on('error', err => console.log('Redis Client Error', err));
+// Only create client if Redis credentials are provided
+if (process.env.REDIS_STRING && process.env.REDIS_PASSWORD) {
+    client = createClient({
+        username: 'default',
+        password: process.env.REDIS_PASSWORD,
+        socket: {
+            host: process.env.REDIS_STRING,
+            port: parseInt(process.env.REDIS_PORT_NO),
+            connectTimeout: 5000 // 5 second timeout
+        }
+    });
 
-// Connect to Redis
-const connectRedis = async () => {
-    try {
-        await client.connect();
-        console.log('Connected to Redis successfully');
-    } catch (error) {
-        console.error('Redis connection failed:', error);
-    }
-};
+    client.on('error', err => console.log('Redis Client Error', err));
 
-// Initialize connection
-connectRedis();
+    // Connect to Redis
+    const connectRedis = async () => {
+        try {
+            await client.connect();
+            isConnected = true;
+            console.log('Connected to Redis successfully');
+        } catch (error) {
+            console.error('Redis connection failed:', error);
+            console.log('App will continue without Redis caching');
+            isConnected = false;
+        }
+    };
+
+    // Initialize connection
+    connectRedis();
+} else {
+    console.log('Redis credentials not found, running without cache');
+}
 
 // Redis wrapper with common operations
 const redisWrapper = {
     async get(key) {
+        if (!client || !isConnected) return null;
         try {
             return await client.get(key);
         } catch (error) {
@@ -37,6 +50,7 @@ const redisWrapper = {
     },
 
     async set(key, value, expireInSeconds = null) {
+        if (!client || !isConnected) return null;
         try {
             if (expireInSeconds) {
                 return await client.setEx(key, expireInSeconds, value);
@@ -49,6 +63,7 @@ const redisWrapper = {
     },
 
     async del(key) {
+        if (!client || !isConnected) return null;
         try {
             return await client.del(key);
         } catch (error) {
@@ -58,6 +73,7 @@ const redisWrapper = {
     },
 
     async expireAt(key, timestamp) {
+        if (!client || !isConnected) return null;
         try {
             return await client.expireAt(key, timestamp);
         } catch (error) {
@@ -67,6 +83,7 @@ const redisWrapper = {
     },
 
     async exists(key) {
+        if (!client || !isConnected) return false;
         try {
             return await client.exists(key);
         } catch (error) {
