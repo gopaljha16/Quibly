@@ -4,7 +4,7 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "dev": "docker compose up -d && node src/index.js"
+    "dev": "bun run src/index.js"
   },
   "devDependencies": {
     "@types/bun": "latest"
@@ -13,9 +13,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.2.0",
-    "@prisma/client": "^7.2.0",
-    "@types/pg": "^8.16.0",
+    "@prisma/client": "^5.22.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.1.2",
@@ -26,7 +24,7 @@
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^6.9.8",
     "pg": "^8.17.1",
-    "prisma": "^7.2.0",
+    "prisma": "^5.22.0",
     "redis": "^5.10.0",
     "socket.io": "^4.8.3",
     "tsx": "^4.21.0"
