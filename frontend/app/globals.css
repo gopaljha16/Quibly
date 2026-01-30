@@ -1,98 +1,128 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Override ALL default Tailwind colors with custom theme */
+  --color-primary-*: initial;
+  --color-blue-*: initial;
+  --color-indigo-*: initial;
+
+  /* Custom Theme Colors - Gold, Coral, Dark */
+  --color-primary-50: #fef9f0;
+  --color-primary-100: #fef3e0;
+  --color-primary-200: #fce3b8;
+  --color-primary-300: #fad48f;
+  --color-primary-400: #f8c566;
+  --color-primary-500: #f3c178;
+  --color-primary-600: #e0a850;
+  --color-primary-700: #c8902a;
+  --color-primary-800: #a06f1d;
+  --color-primary-900: #785314;
+
+  --color-accent-50: #fff4f0;
+  --color-accent-100: #ffe8e0;
+  --color-accent-200: #ffc7b8;
+  --color-accent-300: #ffa78f;
+  --color-accent-400: #ff8166;
+  --color-accent-500: #f35e41;
+  --color-accent-600: #e0442a;
+  --color-accent-700: #c82a1a;
+  --color-accent-800: #a01810;
+  --color-accent-900: #78100a;
+
+  --color-dark-50: #e6e4e3;
+  --color-dark-100: #bdb9b6;
+  --color-dark-200: #948e89;
+  --color-dark-300: #6b635c;
+  --color-dark-400: #42382f;
+  --color-dark-500: #0b0500;
+  --color-dark-600: #090400;
+  --color-dark-700: #070300;
+  --color-dark-800: #050200;
+  --color-dark-900: #030100;
+}
 
 :root {
-  --background: #36393f;
-  --foreground: #ffffff;
+  /* Global CSS Variables */
+  --primary-color: #f3c178;
+  --accent-color: #f35e41;
+  --dark-color: #0b0500;
+  --bg-dark: #0b0500;
+  --bg-darker: #050200;
+  --text-light: #fef9f0;
+  --text-muted: #bdb9b6;
+  --border-color: rgba(243, 193, 120, 0.2);
+  --glow-primary: rgba(243, 193, 120, 0.4);
+  --glow-accent: rgba(243, 94, 65, 0.4);
+
+  /* Shadcn UI variables - Override with theme colors */
+  --radius: 0.75rem;
+  --background: #0b0500;
+  --foreground: #fef9f0;
+  --card: #1a1510;
+  --card-foreground: #fef9f0;
+  --popover: #1a1510;
+  --popover-foreground: #fef9f0;
+  --primary: #f3c178;
+  --primary-foreground: #0b0500;
+  --secondary: #42382f;
+  --secondary-foreground: #fef9f0;
+  --muted: #42382f;
+  --muted-foreground: #bdb9b6;
+  --accent: #f35e41;
+  --accent-foreground: #fef9f0;
+  --destructive: #e0442a;
+  --destructive-foreground: #fef9f0;
+  --border: rgba(243, 193, 120, 0.2);
+  --input: rgba(243, 193, 120, 0.15);
+  --ring: #f3c178;
+  --chart-1: #f3c178;
+  --chart-2: #f35e41;
+  --chart-3: #e0a850;
+  --chart-4: #ff8166;
+  --chart-5: #ffc7b8;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  
-  /* Discord-like theme colors */
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #5865f2;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
-  
-  --color-accent-50: #f0fdf4;
-  --color-accent-100: #dcfce7;
-  --color-accent-200: #bbf7d0;
-  --color-accent-300: #86efac;
-  --color-accent-400: #4ade80;
-  --color-accent-500: #22c55e;
-  --color-accent-600: #16a34a;
-  --color-accent-700: #15803d;
-  --color-accent-800: #166534;
-  --color-accent-900: #14532d;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #36393f;
-    --foreground: #ffffff;
-  }
+* {
+  border-color: var(--border-color);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  overflow: hidden;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-light);
 }
 
-/* Custom scrollbar - Discord style */
+/* Custom scrollbar with theme colors */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-corner {
-  background-color: transparent;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #202225;
-  border-radius: 8px;
+  background: linear-gradient(to bottom, #f3c178, #f35e41);
+  border-radius: 10px;
+  border: 2px solid #0b0500;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #36393f;
+  background: linear-gradient(to bottom, #e0a850, #e0442a);
 }
 
 ::-webkit-scrollbar-track {
-  background-color: transparent;
+  background-color: rgba(243, 193, 120, 0.05);
+  border-radius: 10px;
 }
 
-/* Smooth animations */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-/* Focus styles */
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid #5865f2;
-  outline-offset: 2px;
-}
-
-/* Message animations */
+/* Animations */
 @keyframes messageSlideIn {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -102,236 +132,100 @@ textarea:focus-visible {
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.7);
+    transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
 
-.animate-scale-in {
-  animation: scaleIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(243, 193, 120, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(243, 94, 65, 0.4);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-glow {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Custom scrollbar class */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background-color: #2B2D31;
+  background-color: rgba(243, 193, 120, 0.05);
   border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #1A1B1E;
+  background: linear-gradient(to bottom, #f3c178, #f35e41);
   border-radius: 4px;
 }
 
-.message-enter {
-  animation: messageSlideIn 0.2s ease-out;
-}
-
-/* Hover effects */
-.server-icon {
-  transition: border-radius 0.2s ease, background-color 0.2s ease;
-}
-
-.server-icon:hover {
-  border-radius: 16px;
-}
-
-/* Status indicators */
-.status-online {
-  background-color: #3ba55c;
-}
-
-.status-idle {
-  background-color: #faa61a;
-}
-
-.status-dnd {
-  background-color: #ed4245;
-}
-
-.status-offline {
-  background-color: #747f8d;
-}
-
-/* Tooltip styles */
-.tooltip {
-  position: relative;
-}
-
-.tooltip::before {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #18191c;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  z-index: 1000;
-  margin-bottom: 8px;
-}
-
-.tooltip::after {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 4px solid transparent;
-  border-top-color: #18191c;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  z-index: 1000;
-  margin-bottom: 4px;
-}
-
-.tooltip:hover::before,
-.tooltip:hover::after {
-  opacity: 1;
-}
-
-/* Loading spinner */
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.spinner {
-  animation: spin 1s linear infinite;
-}
-
-/* Pulse animation for loading states */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Modal backdrop blur */
-.modal-backdrop {
-  backdrop-filter: blur(4px);
-}
-
-/* Message input focus ring */
-.message-input:focus-within {
-  box-shadow: 0 0 0 2px #5865f2;
-}
-
-/* Channel list hover effects */
-.channel-item {
-  position: relative;
-}
-
-.channel-item::before {
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 0;
-  background-color: white;
-  border-radius: 0 4px 4px 0;
-  transition: height 0.2s ease;
-}
-
-.channel-item:hover::before {
-  height: 20px;
-}
-
-.channel-item.active::before {
-  height: 40px;
-}
-
-/* Mention styling */
-.mention {
-  background-color: rgba(88, 101, 242, 0.3);
-  color: #dee0fc;
-  padding: 0 2px;
-  border-radius: 3px;
-  font-weight: 500;
-}
-
-.mention:hover {
-  background-color: #5865f2;
-  color: white;
-}
-
-/* Code blocks */
-.code-block {
-  background-color: #2f3136;
-  border: 1px solid #202225;
-  border-radius: 4px;
-  padding: 8px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.125;
-  white-space: pre-wrap;
-  overflow-x: auto;
-}
-
-/* Inline code */
-.code-inline {
-  background-color: #2f3136;
-  padding: 2px 4px;
-  border-radius: 3px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-  font-size: 85%;
-}
-
-/* Emoji sizing */
-.emoji {
-  width: 1.375em;
-  height: 1.375em;
-  vertical-align: -0.4em;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #e0a850, #e0442a);
 }
 
 /* Selection styling */
 ::selection {
-  background-color: rgba(88, 101, 242, 0.6);
+  background-color: #f3c178;
+  color: #0b0500;
 }
 
 /* Disable text selection on UI elements */
 .no-select {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 
-/* Line clamping for text truncation */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, #f3c178, #f35e41);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* Glass morphism */
+.glass {
+  background: rgba(11, 5, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(243, 193, 120, 0.1);
+}
+
+/* Glow effects */
+.glow-primary {
+  box-shadow: 0 0 20px rgba(243, 193, 120, 0.4);
+}
+
+.glow-accent {
+  box-shadow: 0 0 20px rgba(243, 94, 65, 0.4);
 }
