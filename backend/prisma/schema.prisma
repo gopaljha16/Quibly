@@ -31,6 +31,7 @@ model User {
   updatedAt              DateTime       @updatedAt
   ownedServers           Server[]       @relation("ServerOwner")
   serverMembers          ServerMember[]
+  userInterests          UserInterest[]
 
   @@index([email])
   @@index([username])
@@ -84,6 +85,7 @@ model Channel {
   updatedAt            DateTime    @updatedAt
   server               Server      @relation(fields: [serverId], references: [id], onDelete: Cascade)
   messages             Message[]
+  hashtags             ChannelHashtag[]
 
   @@index([serverId])
 }
@@ -120,6 +122,43 @@ model Role {
   server      Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
 
   @@index([serverId])
+}
+
+model Interest {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  userInterests   UserInterest[]
+  channelHashtags ChannelHashtag[]
+
+  @@index([name])
+}
+
+model UserInterest {
+  id         String   @id @default(cuid())
+  userId     String
+  interestId String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interestId])
+  @@index([userId])
+  @@index([interestId])
+}
+
+model ChannelHashtag {
+  id         String   @id @default(cuid())
+  channelId  String
+  interestId String
+  createdAt  DateTime @default(now())
+  channel    Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@unique([channelId, interestId])
+  @@index([channelId])
+  @@index([interestId])
 }
 
 enum ChannelType {

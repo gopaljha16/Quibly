@@ -330,3 +330,107 @@ exports.reorderChannels = async (req, res) => {
         });
     }
 };
+
+// Get recommended channels based on user interests
+exports.getRecommendedChannels = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const channels = await getRecommendedChannelsForUser(userId);
+
+        res.status(200).json({
+            success: true,
+            channels
+        });
+    } catch (error) {
+        console.error('Get recommended channels error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching recommended channels'
+        });
+    }
+};
+
+// Helper function for recommendation logic
+async function getRecommendedChannelsForUser(userId) {
+    try {
+        // Get channels matching user interests using raw SQL for better performance
+        const matchedChannels = await db.$queryRaw`
+            SELECT 
+                c.id,
+                c.name,
+                c."serverId",
+                s.name as "serverName",
+                s.icon as "serverIcon",
+                s."membersCount",
+                COUNT(ch."interestId")::int as "matchCount"
+            FROM "Channel" c
+            JOIN "ChannelHashtag" ch ON c.id = ch."channelId"
+            JOIN "Server" s ON c."serverId" = s.id
+            JOIN "UserInterest" ui ON ui."interestId" = ch."interestId"
+            WHERE ui."userId" = ${userId}
+            AND s."isPublic" = true
+            AND NOT EXISTS (
+                SELECT 1 FROM "ServerMember" sm
+                WHERE sm."serverId" = s.id AND sm."userId" = ${userId}
+            )
+            GROUP BY c.id, c.name, c."serverId", s.name, s.icon, s."membersCount"
+            ORDER BY "matchCount" DESC, s."membersCount" DESC
+            LIMIT 5
+        `;
+
+        // If less than 5, fill with popular channels user hasn't joined
+        if (matchedChannels.length < 5) {
+            const excludeIds = matchedChannels.map(ch => ch.id);
+            const remaining = 5 - matchedChannels.length;
+
+            const popularChannels = await db.channel.findMany({
+                where: {
+                    id: excludeIds.length > 0 ? { notIn: excludeIds } : undefined,
+                    server: {
+                        isPublic: true,
+                        members: {
+                            none: {
+                                userId: userId
+                            }
+                        }
+                    }
+                },
+                include: {
+                    server: {
+                        select: {
+                            id: true,
+                            name: true,
+                            icon: true,
+                            membersCount: true
+                        }
+                    }
+                },
+                orderBy: {
+                    server: {
+                        membersCount: 'desc'
+                    }
+                },
+                take: remaining
+            });
+
+            const formattedPopular = popularChannels.map(ch => ({
+                id: ch.id,
+                name: ch.name,
+                serverId: ch.server.id,
+                serverName: ch.server.name,
+                serverIcon: ch.server.icon,
+                membersCount: ch.server.membersCount,
+                matchCount: 0
+            }));
+
+            return [...matchedChannels, ...formattedPopular];
+        }
+
+        return matchedChannels;
+    } catch (error) {
+        console.error('Error in getRecommendedChannelsForUser:', error);
+        return [];
+    }
+}
+
+module.exports.getRecommendedChannelsForUser = getRecommendedChannelsForUser;
