@@ -11,19 +11,27 @@ import { Message } from '@/hooks/queries'
 export function setupSocketQuerySync(socket: Socket, queryClient: QueryClient) {
   // Handle new messages
   socket.on('receive_message', (incoming: any) => {
+    console.log('📨 FRONTEND: receive_message event received:', incoming)
     const msg = incoming as Message
     const channelId = msg.channelId
     
-    if (!channelId) return
+    if (!channelId) {
+      console.log('⚠️  No channelId in message, skipping')
+      return
+    }
+    
+    console.log('✅ Adding message to cache for channel:', channelId)
     
     // Add message to cache
     queryClient.setQueryData<Message[]>(['messages', channelId], (old = []) => {
       // Check if message already exists
       const exists = old.some((m) => m._id === msg._id)
       if (exists) {
+        console.log('   Message already exists, updating')
         // Update existing message
         return old.map((m) => (m._id === msg._id ? msg : m))
       }
+      console.log('   Adding new message to cache')
       // Add new message
       return [...old, msg]
     })

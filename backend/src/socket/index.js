@@ -34,13 +34,11 @@ module.exports = (httpServer) => {
   });
 
   io.on("connection", (socket) => {
-    console.log("🟢 Connected:", socket.user?.id);
-
     require("./message.socket")(io, socket);
     require("./presence.socket")(io, socket);
 
     socket.on("disconnect", () => {
-      console.log("🔴 Disconnected:", socket.user?.id);
+      // Silent disconnect
     });
   });
 };
