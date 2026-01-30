@@ -1,10 +1,11 @@
+require('dotenv').config();
+
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const http = require("http");
 const db = require("./config/db");
 const { startFanoutService } = require("./services/messageFanout");
-require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
@@ -115,8 +116,24 @@ if (process.env.REDIS_STRING && process.env.REDIS_PASSWORD) {
 }
 
 server.listen(PORT, () => {
-    console.log(` Server is running on port ${PORT}`);
-    console.log(` Email: ${process.env.EMAIL_USER}`);
+    console.log(`✅ Server is running on port ${PORT}`);
+    console.log(`📧 Email: ${process.env.EMAIL_USER}`);
+    
+    // Verify LiveKit configuration
+    if (process.env.LIVEKIT_API_KEY && process.env.LIVEKIT_API_SECRET && process.env.LIVEKIT_WS_URL) {
+        console.log('🎤 LiveKit configured:');
+        console.log(`   - API Key: ${process.env.LIVEKIT_API_KEY.substring(0, 10)}...`);
+        console.log(`   - Secret Length: ${process.env.LIVEKIT_API_SECRET.length} chars`);
+        console.log(`   - WebSocket URL: ${process.env.LIVEKIT_WS_URL}`);
+    } else {
+        console.warn('⚠️  LiveKit NOT configured - voice features will not work');
+        console.warn('   Missing:', {
+            apiKey: !process.env.LIVEKIT_API_KEY,
+            apiSecret: !process.env.LIVEKIT_API_SECRET,
+            wsUrl: !process.env.LIVEKIT_WS_URL
+        });
+    }
+
     console.log(` Frontend URL: ${process.env.FRONTEND_URL}`);
     console.log(` Socket.IO server initialized`);
     

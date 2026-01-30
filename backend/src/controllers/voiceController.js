@@ -11,6 +11,8 @@ exports.getVoiceToken = async (req, res) => {
     const { channelId } = req.params;
     const userId = req.user.id;
 
+    console.log('🎤 Voice token requested:', { channelId, userId });
+
     // Verify channel exists and is a voice channel
     const channel = await prisma.channel.findUnique({
       where: { id: channelId },
@@ -26,17 +28,24 @@ exports.getVoiceToken = async (req, res) => {
     });
 
     if (!channel) {
+      console.log('❌ Channel not found:', channelId);
       return res.status(404).json({ error: 'Channel not found' });
     }
 
+    console.log('✅ Channel found:', { name: channel.name, type: channel.type });
+
     if (channel.type !== 'VOICE') {
+      console.log('❌ Channel is not a voice channel:', channel.type);
       return res.status(400).json({ error: 'Channel is not a voice channel' });
     }
 
     // Check if user is a member of the server
     if (channel.server.members.length === 0) {
+      console.log('❌ User is not a member of the server');
       return res.status(403).json({ error: 'Not a member of this server' });
     }
+
+    console.log('✅ User is a member of the server');
 
     // Get user details
     const user = await prisma.user.findUnique({
@@ -44,18 +53,36 @@ exports.getVoiceToken = async (req, res) => {
       select: { id: true, username: true, avatar: true, discriminator: true },
     });
 
-    // Generate token
-    const token = generateToken(
-      channelId,
-      userId,
-      {
-        username: user.username,
-        discriminator: user.discriminator,
-        avatar: user.avatar,
-      }
-    );
+    if (!user) {
+      console.log('❌ User not found:', userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    res.json({
+    console.log('✅ User details retrieved:', { username: user.username });
+
+    // Generate token
+    console.log('🔑 Generating LiveKit token...');
+    let token;
+    try {
+      token = await generateToken(
+        channelId,
+        userId,
+        {
+          username: user.username,
+          discriminator: user.discriminator,
+          avatar: user.avatar,
+        }
+      );
+    } catch (tokenError) {
+      console.error('❌ Token generation failed:', tokenError);
+      return res.status(500).json({ 
+        error: 'Failed to generate voice token',
+        details: tokenError.message,
+        hint: 'Check LiveKit credentials in .env file'
+      });
+    }
+
+    const response = {
       token,
       wsUrl: LIVEKIT_WS_URL,
       roomName: channelId,
@@ -66,10 +93,19 @@ exports.getVoiceToken = async (req, res) => {
         discriminator: user.discriminator,
         avatar: user.avatar,
       },
+    };
+
+    console.log('✅ Sending voice token response:', {
+      wsUrl: response.wsUrl,
+      roomName: response.roomName,
+      identity: response.identity,
+      tokenLength: token.length
     });
+
+    res.json(response);
   } catch (error) {
-    console.error('Error generating voice token:', error);
-    res.status(500).json({ error: 'Failed to generate voice token' });
+    console.error('❌ Error generating voice token:', error);
+    res.status(500).json({ error: 'Failed to generate voice token', details: error.message });
   }
 };
 

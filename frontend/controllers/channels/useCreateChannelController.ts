@@ -6,7 +6,7 @@ import { useChannelsData } from '@/hooks/useChannelsData'
  * Create Channel Modal Controller
  * Manages channel creation form state and logic
  */
-export function useCreateChannelController(onClose: () => void) {
+export function useCreateChannelController(onClose: () => void, channelType: 'TEXT' | 'VOICE' = 'TEXT') {
     const { createChannel, creatingChannel } = useChannelsData()
     const [channelName, setChannelName] = useState('')
     const [error, setError] = useState<string>()
@@ -30,7 +30,7 @@ export function useCreateChannelController(onClose: () => void) {
         }
 
         try {
-            await createChannel(channelName.trim())
+            await createChannel(channelName.trim(), channelType)
             onClose()
         } catch (err: any) {
             setError(err.message || 'Failed to create channel')

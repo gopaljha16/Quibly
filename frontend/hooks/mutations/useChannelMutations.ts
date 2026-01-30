@@ -8,10 +8,10 @@ export function useCreateChannel() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: async ({ serverId, name }: { serverId: string; name: string }) => {
+    mutationFn: async ({ serverId, name, type = 'TEXT' }: { serverId: string; name: string; type?: 'TEXT' | 'VOICE' }) => {
       const response = await apiPost<{ success: boolean; channel: Channel }>(
         `/server/${serverId}/create-channel`,
-        { name }
+        { name, type }
       )
       return { serverId, channel: response.channel }
     },

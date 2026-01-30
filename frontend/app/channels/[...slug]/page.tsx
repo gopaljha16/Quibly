@@ -5,8 +5,10 @@ import { useChannelsData } from '@/hooks/useChannelsData'
 import { useMessagesData } from '@/hooks/useMessagesData'
 import { useLinkPreviews } from '@/lib/useLinkPreviews'
 import { useUIStore } from '@/lib/store'
+import { useProfile } from '@/hooks/queries'
 import LinkPreview from '@/components/LinkPreview'
 import LinkifiedText from '@/components/LinkifiedText'
+import { VoiceChannelPanel } from '@/components/channels/VoiceChannelPanel'
 import { Message } from '@/hooks/queries'
 import { MessageListSkeleton } from '@/components/LoadingSkeletons'
 
@@ -227,6 +229,7 @@ const MessageInput = ({
 
 export default function ChannelsPage() {
   const { route, channels, channelsLoading, selectedChannel } = useChannelsData()
+  const { data: currentUser } = useProfile()
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   // Use new messages hook
@@ -272,6 +275,24 @@ export default function ChannelsPage() {
     } catch (error) {
       console.error('Failed to delete message:', error)
     }
+  }
+
+  // Check if current channel is a voice channel
+  const isVoiceChannel = selectedChannel?.type === 'VOICE'
+
+  // If it's a voice channel, show the voice panel
+  if (!route.isMe && selectedChannel && isVoiceChannel && currentUser) {
+    return (
+      <VoiceChannelPanel
+        channelId={selectedChannel._id}
+        channelName={selectedChannel.name}
+        currentUser={{
+          id: currentUser._id,
+          username: currentUser.username,
+          avatar: currentUser.avatar || undefined,
+        }}
+      />
+    )
   }
 
   return (

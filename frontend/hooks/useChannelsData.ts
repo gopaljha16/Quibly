@@ -122,11 +122,12 @@ export function useChannelsData() {
   }
 
   // Channel operations
-  const createChannel = async (name: string) => {
+  const createChannel = async (name: string, type: 'TEXT' | 'VOICE' = 'TEXT') => {
     if (!route.serverId) return
     const result = await createChannelMutation.mutateAsync({
       serverId: route.serverId,
       name,
+      type,
     })
     router.push(`/channels/${route.serverId}/${result.channel._id}`)
   }

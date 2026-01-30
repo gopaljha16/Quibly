@@ -6,7 +6,7 @@ import { apiGet } from '@/lib/api'
 export type Channel = {
   _id: string
   name: string
-  type?: string
+  type?: 'TEXT' | 'VOICE'
   topic?: string
   description?: string
 }

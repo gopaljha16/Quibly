@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@livekit/components-styles";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { SocketProvider } from "@/providers/SocketProvider";
 
