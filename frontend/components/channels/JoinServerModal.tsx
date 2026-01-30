@@ -1,25 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useJoinServerController } from '@/controllers/channels/useJoinServerController'
 
 export default function JoinServerModal({
   open,
   onClose,
-  onJoin,
-  loading,
-  error,
 }: {
   open: boolean
   onClose: () => void
-  onJoin: (serverId: string) => void
-  loading: boolean
-  error: string | null
 }) {
-  const [serverId, setServerId] = useState('')
+  const {
+    inviteCode,
+    error,
+    isLoading,
+    handleChange,
+    handleSubmit,
+  } = useJoinServerController(onClose)
 
+  // Reset form when modal opens
   useEffect(() => {
-    if (!open) return
-    setServerId('')
+    if (open) {
+      handleChange('')
+    }
   }, [open])
 
   if (!open) return null
@@ -29,11 +32,11 @@ export default function JoinServerModal({
       <div
         className="absolute inset-0 bg-black/70"
         onClick={() => {
-          if (!loading) onClose()
+          if (!isLoading) onClose()
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[440px] rounded-[4px] bg-[#1a1510] shadow-2xl overflow-hidden animate-scale-in text-center">
+        <form onSubmit={handleSubmit} className="w-full max-w-[440px] rounded-[4px] bg-[#1a1510] shadow-2xl overflow-hidden animate-scale-in text-center">
           <div className="px-6 pt-6 pb-2">
             <h2 className="text-2xl font-bold text-[#F2F3F5] mb-2">Join a Server</h2>
             <p className="text-[#B5BAC1] text-sm mb-4">
@@ -42,7 +45,7 @@ export default function JoinServerModal({
             <button
               type="button"
               onClick={() => {
-                if (!loading) onClose()
+                if (!isLoading) onClose()
               }}
               className="absolute top-4 right-4 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors"
               aria-label="Close"
@@ -65,11 +68,12 @@ export default function JoinServerModal({
                 Invite Link *
               </label>
               <input
-                value={serverId}
-                onChange={(e) => setServerId(e.target.value)}
+                value={inviteCode}
+                onChange={(e) => handleChange(e.target.value)}
                 className="w-full rounded-[3px] bg-[#0d0805] p-2.5 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
                 placeholder="https://discord.gg/hTKzmak"
-                disabled={loading}
+                disabled={isLoading}
+                autoFocus
               />
               <div className="mt-2 text-xs text-[#949BA4]">
                 Invites should look like <span className="font-mono text-[#DBDEE1]">hTKzmak</span>, <span className="font-mono text-[#DBDEE1]">https://discord.gg/hTKzmak</span>, or <span className="font-mono text-[#DBDEE1]">https://discord.com/invite/hTKzmak</span>.
@@ -81,23 +85,22 @@ export default function JoinServerModal({
             <button
               type="button"
               onClick={() => {
-                if (!loading) onClose()
+                if (!isLoading) onClose()
               }}
               className="text-sm font-medium text-[#DBDEE1] hover:underline transition-colors"
-              disabled={loading}
+              disabled={isLoading}
             >
               Back
             </button>
             <button
-              type="button"
-              onClick={() => onJoin(serverId.trim())}
+              type="submit"
               className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading || !serverId.trim()}
+              disabled={isLoading || !inviteCode.trim()}
             >
-              {loading ? 'Joining...' : 'Join Server'}
+              {isLoading ? 'Joining...' : 'Join Server'}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   )

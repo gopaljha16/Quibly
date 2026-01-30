@@ -1,25 +1,28 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useCreateChannelController } from '@/controllers/channels/useCreateChannelController'
 
 export default function CreateChannelModal({
   open,
   onClose,
-  onCreate,
-  loading,
-  error,
 }: {
   open: boolean
   onClose: () => void
-  onCreate: (name: string) => void
-  loading: boolean
-  error: string | null
 }) {
-  const [name, setName] = useState('')
+  const {
+    channelName,
+    error,
+    isLoading,
+    handleChange,
+    handleSubmit,
+  } = useCreateChannelController(onClose)
 
+  // Reset form when modal opens
   useEffect(() => {
-    if (!open) return
-    setName('')
+    if (open) {
+      handleChange('')
+    }
   }, [open])
 
   if (!open) return null
@@ -29,17 +32,17 @@ export default function CreateChannelModal({
       <div
         className="absolute inset-0 bg-black/70"
         onClick={() => {
-          if (!loading) onClose()
+          if (!isLoading) onClose()
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[460px] rounded-[4px] bg-[#1a1510] shadow-2xl overflow-hidden animate-scale-in">
+        <form onSubmit={handleSubmit} className="w-full max-w-[460px] rounded-[4px] bg-[#1a1510] shadow-2xl overflow-hidden animate-scale-in">
           <div className="flex items-center justify-between px-4 py-4">
             <div className="text-lg font-bold text-[#F2F3F5] px-2">Create Channel</div>
             <button
               type="button"
               onClick={() => {
-                if (!loading) onClose()
+                if (!isLoading) onClose()
               }}
               className="text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors"
               aria-label="Close"
@@ -68,11 +71,12 @@ export default function CreateChannelModal({
                   </svg>
                 </div>
                 <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
+                  value={channelName}
+                  onChange={(e) => handleChange(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
                   className="w-full rounded-[3px] bg-[#0d0805] p-2.5 pl-10 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
                   placeholder="new-channel"
-                  disabled={loading}
+                  disabled={isLoading}
+                  autoFocus
                 />
               </div>
             </div>
@@ -82,23 +86,22 @@ export default function CreateChannelModal({
             <button
               type="button"
               onClick={() => {
-                if (!loading) onClose()
+                if (!isLoading) onClose()
               }}
               className="px-4 py-2.5 text-sm font-medium text-white hover:underline transition-colors"
-              disabled={loading}
+              disabled={isLoading}
             >
               Cancel
             </button>
             <button
-              type="button"
-              onClick={() => onCreate(name.trim())}
+              type="submit"
               className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading || !name.trim()}
+              disabled={isLoading || !channelName.trim()}
             >
-              {loading ? 'Creating...' : 'Create Channel'}
+              {isLoading ? 'Creating...' : 'Create Channel'}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   )

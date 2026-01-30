@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import InterestAutocomplete from './interest/InterestAutocomplete'
 import SelectedInterests from './interest/SelectedInterests'
+import { INTERESTS_LIST } from '@/lib/interests'
 
 interface Interest {
     id: string
@@ -25,13 +26,10 @@ export default function InterestSelector({
     error,
     allowSkip = true
 }: InterestSelectorProps) {
-    const [interests, setInterests] = useState<Interest[]>([])
-    const [loading, setLoading] = useState(true)
+    const interests = INTERESTS_LIST // Use static list instead of fetching
     const [expanded, setExpanded] = useState(false)
 
-    useEffect(() => {
-        fetchInterests()
-    }, [])
+    console.log('🎯 InterestSelector: Loaded', interests.length, 'interests from static list')
 
     // Auto-expand when user starts selecting interests
     useEffect(() => {
@@ -39,23 +37,6 @@ export default function InterestSelector({
             setExpanded(true)
         }
     }, [selectedInterests.length])
-
-    const fetchInterests = async () => {
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/interests`)
-            const data = await res.json()
-            console.log('Interests response:', data)
-            if (data.success) {
-                setInterests(data.interests)
-            } else {
-                console.error('Failed response:', data)
-            }
-        } catch (error) {
-            console.error('Failed to fetch interests:', error)
-        } finally {
-            setLoading(false)
-        }
-    }
 
     const handleSelect = (interestId: string) => {
         if (!selectedInterests.includes(interestId)) {
@@ -69,18 +50,6 @@ export default function InterestSelector({
 
     const selectedInterestObjects = interests.filter(i => selectedInterests.includes(i.id))
 
-    if (loading) {
-        return (
-            <div className="space-y-3 p-6 border border-[#f3c178]/20 rounded-xl bg-[#0b0500]/60 animate-pulse">
-                <div className="flex items-center justify-center p-8">
-                    <div className="flex flex-col items-center gap-3">
-                        <Loader2 className="h-8 w-8 text-[#f3c178] animate-spin" />
-                        <p className="text-[#bdb9b6] text-sm font-medium">Loading interests...</p>
-                    </div>
-                </div>
-            </div>
-        )
-    }
 
     return (
         <div
@@ -91,31 +60,15 @@ export default function InterestSelector({
                 <Label className="text-sm font-semibold text-[#f3c178] flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     Select Your Interests
-                    <span className="text-xs text-[#bdb9b6] font-normal">(optional)</span>
                 </Label>
             </div>
 
-            {/* No Interest Option */}
-            <div className="flex flex-wrap gap-2">
-                <button
-                    type="button"
-                    onClick={() => onChange([])}
-                    className={`px-4 py-2 rounded-lg border-2 transition-all duration-200 font-medium text-sm ${selectedInterests.length === 0
-                            ? 'bg-[#f3c178]/20 border-[#f3c178] text-[#f3c178] shadow-md shadow-[#f3c178]/20'
-                            : 'bg-[#0b0500] border-[#f3c178]/30 text-[#bdb9b6] hover:border-[#f3c178]/60 hover:text-[#f3c178]'
-                        }`}
-                >
-                    No Interest
-                </button>
-            </div>
 
-            {/* Autocomplete search */}
             <div onClick={() => setExpanded(true)}>
                 <InterestAutocomplete
                     interests={interests}
                     selectedInterests={selectedInterests}
                     onSelect={handleSelect}
-                    loading={loading}
                 />
             </div>
 
