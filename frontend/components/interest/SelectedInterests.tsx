@@ -24,7 +24,7 @@ export default function SelectedInterests({ interests, onRemove }: SelectedInter
                     <Badge
                         key={interest.id}
                         variant="secondary"
-                        className="px-3 py-1.5 bg-gradient-to-r from-[#f3c178]/20 to-[#f35e41]/20 border border-[#f3c178]/30 text-[#fef9f0] hover:bg-[#f3c178]/30 transition-all duration-200 group"
+                        className="px-3 py-1.5 bg-gradient-to-r from-cyan-500/20 to-purple-600/20 border border-[#f3c178]/30 text-[#fef9f0] hover:bg-[#f3c178]/30 transition-all duration-200 group"
                     >
                         <span className="capitalize text-sm font-medium">
                             {interest.name.replace(/-/g, ' ')}

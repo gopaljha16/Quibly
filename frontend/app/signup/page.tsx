@@ -81,23 +81,22 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0500] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col relative overflow-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#f3c178] rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#f35e41] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#f3c178] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-15">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#5865f2] rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#5865f2] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
       {/* Header */}
-      <div className="relative border-b border-[#f3c178]/20 bg-[#0b0500]/80 backdrop-blur-xl z-10">
+      <div className="relative border-b border-[#2a2a2a] bg-[#0a0a0a]/80 backdrop-blur-xl z-10">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-[#bdb9b6] hover:text-[#f3c178] transition-colors group">
+          <Link href="/" className="flex items-center gap-2 text-[#b4b4b4] hover:text-[#5865f2] transition-colors group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span>Back to home</span>
           </Link>
-          <div className="text-sm text-[#bdb9b6]">
-            Step <span className="text-[#f3c178] font-bold">1</span> of 2
+          <div className="text-sm text-[#b4b4b4]">
+            Step <span className="text-[#5865f2] font-bold">1</span> of 2
           </div>
         </div>
       </div>
@@ -107,15 +106,15 @@ export default function SignupPage() {
         <div className="container mx-auto max-w-xl">
           {/* Title */}
           <div className="text-center mb-8 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#f3c178]/20 to-[#f35e41]/20 border border-[#f3c178]/30 backdrop-blur-sm">
-              <Sparkles className="w-4 h-4 text-[#f3c178]" />
-              <span className="text-sm font-semibold text-[#f3c178]">Join our community</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] backdrop-blur-sm">
+              <Sparkles className="w-4 h-4 text-[#5865f2]" />
+              <span className="text-sm font-semibold text-[#5865f2]">Join our community</span>
             </div>
 
-            <h1 className="text-5xl font-black bg-gradient-to-r from-[#f3c178] via-[#fad48f] to-[#f35e41] bg-clip-text text-transparent">
+            <h1 className="text-5xl font-black text-[#5865f2]">
               Create Account
             </h1>
-            <p className="text-[#bdb9b6] text-base">
+            <p className="text-[#b4b4b4] text-base">
               Start your journey with us today
             </p>
           </div>
@@ -123,22 +122,22 @@ export default function SignupPage() {
           {/* Form Card */}
           <div className="relative group animate-in fade-in zoom-in-95 duration-500" style={{ animationDelay: '100ms' }}>
             {/* Glow */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#f3c178] via-[#f35e41] to-[#f3c178] rounded-2xl blur opacity-30 group-hover:opacity-50 transition animate-glow"></div>
+            <div className="absolute -inset-0.5 bg-[#5865f2] rounded-2xl blur opacity-20 group-hover:opacity-30 transition"></div>
 
             {/* Form */}
-            <div className="relative bg-[#1a1510] border border-[#f3c178]/20 rounded-2xl p-6 shadow-2xl">
+            <div className="relative bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-6 shadow-2xl">
               {/* Form Header */}
-              <div className="mb-6 pb-4 border-b border-[#f3c178]/10">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-[#f3c178] to-[#f35e41] bg-clip-text text-transparent">
+              <div className="mb-6 pb-4 border-b border-[#2a2a2a]">
+                <h2 className="text-2xl font-bold text-[#5865f2]">
                   Create Account
                 </h2>
-                <p className="text-sm text-[#bdb9b6] mt-1">Fill in your details to get started</p>
+                <p className="text-sm text-[#b4b4b4] mt-1">Fill in your details to get started</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Username */}
                 <div className="space-y-2">
-                  <Label htmlFor="username" className="text-[#fef9f0] font-medium">
+                  <Label htmlFor="username" className="text-white font-medium">
                     Username
                   </Label>
                   <div className="relative">
@@ -147,20 +146,20 @@ export default function SignupPage() {
                       name="username"
                       value={formData.username}
                       onChange={handleChange}
-                      className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] h-11 placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 ${errors.username ? 'border-[#f35e41] ring-2 ring-[#f35e41]/20' : ''
+                      className={`bg-[#141414] border-[#2a2a2a] text-white h-11 placeholder:text-[#808080] focus:border-[#5865f2] focus:ring-2 focus:ring-[#5865f2]/20 ${errors.username ? 'border-[#f23f43] ring-2 ring-[#f23f43]/20' : ''
                         }`}
                       placeholder="Choose a unique username"
                     />
                     {!errors.username && formData.username && (
-                      <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />
+                      <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3ba55d]" />
                     )}
                   </div>
-                  {errors.username && <p className="text-xs text-[#f35e41]">{errors.username}</p>}
+                  {errors.username && <p className="text-xs text-[#f23f43]">{errors.username}</p>}
                 </div>
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-[#fef9f0] font-medium">
+                  <Label htmlFor="email" className="text-white font-medium">
                     Email Address
                   </Label>
                   <div className="relative">
@@ -170,20 +169,20 @@ export default function SignupPage() {
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] h-11 placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 ${errors.email ? 'border-[#f35e41] ring-2 ring-[#f35e41]/20' : ''
+                      className={`bg-[#141414] border-[#2a2a2a] text-white h-11 placeholder:text-[#808080] focus:border-[#5865f2] focus:ring-2 focus:ring-[#5865f2]/20 ${errors.email ? 'border-[#f23f43] ring-2 ring-[#f23f43]/20' : ''
                         }`}
                       placeholder="you@example.com"
                     />
                     {!errors.email && formData.email && /\S+@\S+\.\S+/.test(formData.email) && (
-                      <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-400" />
+                      <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3ba55d]" />
                     )}
                   </div>
-                  {errors.email && <p className="text-xs text-[#f35e41]">{errors.email}</p>}
+                  {errors.email && <p className="text-xs text-[#f23f43]">{errors.email}</p>}
                 </div>
 
                 {/* Password */}
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-[#fef9f0] font-medium">
+                  <Label htmlFor="password" className="text-white font-medium">
                     Password
                   </Label>
                   <div className="relative">
@@ -193,14 +192,14 @@ export default function SignupPage() {
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={handleChange}
-                      className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] h-11 pr-10 placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 ${errors.password ? 'border-[#f35e41] ring-2 ring-[#f35e41]/20' : ''
+                      className={`bg-[#141414] border-[#2a2a2a] text-white h-11 pr-10 placeholder:text-[#808080] focus:border-[#5865f2] focus:ring-2 focus:ring-[#5865f2]/20 ${errors.password ? 'border-[#f23f43] ring-2 ring-[#f23f43]/20' : ''
                         }`}
                       placeholder="Create a strong password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bdb9b6] hover:text-[#f3c178]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b4b4b4] hover:text-[#5865f2]"
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
@@ -210,7 +209,7 @@ export default function SignupPage() {
 
                 {/* Confirm Password */}
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-[#fef9f0] font-medium">
+                  <Label htmlFor="confirmPassword" className="text-white font-medium">
                     Confirm Password
                   </Label>
                   <div className="relative">
@@ -220,19 +219,19 @@ export default function SignupPage() {
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] h-11 pr-10 placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 ${errors.confirmPassword ? 'border-[#f35e41] ring-2 ring-[#f35e41]/20' : ''
+                      className={`bg-[#141414] border-[#2a2a2a] text-white h-11 pr-10 placeholder:text-[#808080] focus:border-[#5865f2] focus:ring-2 focus:ring-[#5865f2]/20 ${errors.confirmPassword ? 'border-[#f23f43] ring-2 ring-[#f23f43]/20' : ''
                         }`}
                       placeholder="Confirm your password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bdb9b6] hover:text-[#f3c178]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b4b4b4] hover:text-[#5865f2]"
                     >
                       {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
-                  {errors.confirmPassword && <p className="text-xs text-[#f35e41]">{errors.confirmPassword}</p>}
+                  {errors.confirmPassword && <p className="text-xs text-[#f23f43]">{errors.confirmPassword}</p>}
                 </div>
 
                 {/* Interests */}
@@ -250,13 +249,13 @@ export default function SignupPage() {
                     id="terms"
                     type="checkbox"
                     required
-                    className="mt-1 h-4 w-4 rounded border-[#f3c178]/30 bg-[#0b0500] text-[#f3c178] focus:ring-[#f3c178] cursor-pointer"
+                    className="mt-1 h-4 w-4 rounded border-[#2a2a2a] bg-[#141414] text-[#5865f2] focus:ring-[#5865f2] cursor-pointer"
                   />
-                  <label htmlFor="terms" className="text-sm text-[#bdb9b6] cursor-pointer">
+                  <label htmlFor="terms" className="text-sm text-[#b4b4b4] cursor-pointer">
                     I agree to the{' '}
-                    <a href="#" className="text-[#f3c178] hover:underline">Terms</a>
+                    <a href="#" className="text-[#5865f2] hover:underline">Terms</a>
                     {' '}and{' '}
-                    <a href="#" className="text-[#f3c178] hover:underline">Privacy Policy</a>
+                    <a href="#" className="text-[#5865f2] hover:underline">Privacy Policy</a>
                   </label>
                 </div>
 
@@ -264,7 +263,7 @@ export default function SignupPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold shadow-lg shadow-[#f3c178]/30 transition-all duration-300 relative overflow-hidden group"
+                  className="w-full h-12 bg-[#5865f2] hover:bg-[#4752c4] text-white font-bold shadow-lg shadow-[#5865f2]/30 transition-all duration-300"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 animate-shimmer"></span>
                   {isLoading ? (
@@ -282,9 +281,9 @@ export default function SignupPage() {
               </form>
 
               {/* Footer */}
-              <div className="text-center mt-6 text-sm text-[#bdb9b6]">
+              <div className="text-center mt-6 text-sm text-[#b4b4b4]">
                 Already have an account?{' '}
-                <Link href="/login" className="text-[#f3c178] hover:text-[#fad48f] font-semibold underline-offset-2 hover:underline">
+                <Link href="/login" className="text-[#5865f2] hover:text-[#7289da] font-semibold underline-offset-2 hover:underline">
                   Sign in
                 </Link>
               </div>

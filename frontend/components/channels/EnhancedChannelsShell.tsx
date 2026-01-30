@@ -19,17 +19,17 @@ import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/c
 // Status badge with tooltip
 const StatusBadge = ({ status }: { status?: 'online' | 'idle' | 'dnd' | 'offline' }) => {
   const statusInfo = {
-    online: { color: 'bg-[#23a559]', text: 'Online' },
-    idle: { color: 'bg-[#f0b232]', text: 'Idle' },
-    dnd: { color: 'bg-[#f23f43]', text: 'Do Not Disturb' },
-    offline: { color: 'bg-[#80848e]', text: 'Offline' }
+    online: { color: 'bg-[#3ba55d]', text: 'Online' },
+    idle: { color: 'bg-[#faa61a]', text: 'Idle' },
+    dnd: { color: 'bg-[#ed4245]', text: 'Do Not Disturb' },
+    offline: { color: 'bg-[#5a5a5a]', text: 'Offline' }
   }
 
   const info = statusInfo[status || 'offline']
 
   return (
     <div className="relative group">
-      <div className={`w-3.5 h-3.5 rounded-full border-[3px] border-[#2B2D31] ${info.color}`} />
+      <div className={`w-3.5 h-3.5 rounded-full border-[3px] border-[#1a1a1a] ${info.color}`} />
       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-[#F2F3F5] text-xs font-medium rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
         {info.text}
         <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-black" />
@@ -62,7 +62,7 @@ const UserAvatar = ({
 
   return (
     <div className="relative inline-block">
-      <div className={`${sizes[size]} rounded-full bg-gradient-to-br from-[#f3c178] to-[#f35e41] flex items-center justify-center font-medium text-white overflow-hidden transition-opacity hover:opacity-90`}>
+      <div className={`${sizes[size]} rounded-full bg-[#5865f2] flex items-center justify-center font-medium text-white overflow-hidden transition-opacity hover:opacity-90`}>
         {avatar ? (
           <img src={avatar} alt={username} className="w-full h-full rounded-full object-cover" />
         ) : (
@@ -237,9 +237,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   }, [route.serverId, route.isMe, isConnected, getServerOnlineUsers])
 
   return (
-    <div className="h-screen w-screen bg-[#0b0500] text-white flex overflow-hidden font-sans">
+    <div className="h-screen w-screen bg-[#0a0a0a] text-white flex overflow-hidden font-sans">
       {/* Server Sidebar */}
-      <div className="w-[72px] bg-[#050200] flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-hide">
+      <div className="w-[72px] bg-[#141414] flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-hide">
         {/* Home/DM Button */}
         <div className="relative group">
           <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ${route.isMe ? 'h-10' : 'h-2 group-hover:h-5 opacity-0 group-hover:opacity-100'
@@ -248,8 +248,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             type="button"
             onClick={goToMe}
             className={`w-12 h-12 flex items-center justify-center text-lg font-bold transition-all duration-200 overflow-hidden ${route.isMe
-              ? 'bg-gradient-to-r from-[#f3c178] to-[#f35e41] rounded-[16px]'
-              : 'bg-[#1a1510] text-gray-100 group-hover:bg-[#f3c178] group-hover:text-white rounded-[24px] group-hover:rounded-[16px]'
+              ? 'bg-[#5865f2] rounded-[16px]'
+              : 'bg-[#1a1a1a] text-gray-100 group-hover:bg-[#5865f2] group-hover:text-white rounded-[24px] group-hover:rounded-[16px]'
               }`}
           >
             <svg width="28" height="20" viewBox="0 0 28 20" className="fill-current">
@@ -258,7 +258,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           </button>
         </div>
 
-        <div className="w-8 h-[2px] bg-[#35363C] rounded-lg my-1" />
+        <div className="w-8 h-[2px] bg-[#2a2a2a] rounded-lg my-1" />
 
         {/* Server List */}
         {serversLoading ? (
@@ -272,8 +272,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 type="button"
                 onClick={() => void selectServer(s._id)}
                 className={`w-12 h-12 flex items-center justify-center text-lg font-bold transition-all duration-200 overflow-hidden ${s._id === route.serverId
-                  ? 'bg-gradient-to-r from-[#f3c178] to-[#f35e41] rounded-[16px] text-white'
-                  : 'bg-[#1a1510] text-gray-100 group-hover:bg-[#f3c178] group-hover:text-white rounded-[24px] group-hover:rounded-[16px]'
+                  ? 'bg-[#5865f2] rounded-[16px] text-white'
+                  : 'bg-[#1a1a1a] text-gray-100 group-hover:bg-[#5865f2] group-hover:text-white rounded-[24px] group-hover:rounded-[16px]'
                   }`}
                 title={s.name || 'Server'}
               >
@@ -292,7 +292,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="w-12 h-12 rounded-[24px] bg-[#1a1510] hover:bg-[#f3c178] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#f3c178] hover:text-white text-2xl font-normal group"
+            className="w-12 h-12 rounded-[24px] bg-[#1a1a1a] hover:bg-[#3ba55d] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#3ba55d] hover:text-white text-2xl font-normal group"
             title="Add a Server"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
@@ -306,7 +306,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           <button
             type="button"
             onClick={() => setJoinOpen(true)}
-            className="w-12 h-12 rounded-[24px] bg-[#1a1510] hover:bg-[#f3c178] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#f3c178] hover:text-white"
+            className="w-12 h-12 rounded-[24px] bg-[#1a1a1a] hover:bg-[#5865f2] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#5865f2] hover:text-white"
             title="Join a Server"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
@@ -317,10 +317,10 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       </div>
 
       {/* Channels Sidebar */}
-      <div className="w-[240px] bg-[#0d0805] flex flex-col rounded-tl-[8px]">
+      <div className="w-[240px] bg-[#1a1a1a] flex flex-col rounded-tl-[8px]">
         {/* Server Header */}
         <div className="relative">
-          <div className="h-12 px-4 flex items-center border-b border-[#1a1510] shadow-sm cursor-pointer hover:bg-[#1a1510] transition-colors"
+          <div className="h-12 px-4 flex items-center border-b border-[#2a2a2a] shadow-sm cursor-pointer hover:bg-[#202020] transition-colors"
             onClick={() => !route.isMe && route.serverId && setServerMenuOpen((v) => !v)}
           >
             <div className="font-bold text-white truncate flex-1">
@@ -338,7 +338,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           {serverMenuOpen && !route.isMe && route.serverId && (
             <div
               ref={serverMenuRef}
-              className="absolute top-full left-2 right-2 mt-1 bg-[#111214] rounded shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1.5 z-50"
+              className="absolute top-full left-2 right-2 mt-1 bg-[#202020] rounded shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1.5 z-50"
             >
               <button
                 type="button"
@@ -346,7 +346,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   setServerMenuOpen(false)
                   setInviteModalOpen(true)
                 }}
-                className="w-full text-left px-2 py-1.5 text-sm text-[#f3c178] hover:bg-[#f3c178] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group"
+                className="w-full text-left px-2 py-1.5 text-sm text-[#5865f2] hover:bg-[#2a2a2a] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group"
               >
                 Invite People
                 <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current">
@@ -359,7 +359,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   setServerMenuOpen(false)
                   setServerSettingsOpen(true)
                 }}
-                className="w-full text-left px-2 py-1.5 text-sm text-[#B5BAC1] hover:bg-[#1a1510] hover:text-white rounded-[2px] transition-colors flex items-center justify-between"
+                className="w-full text-left px-2 py-1.5 text-sm text-[#b4b4b4] hover:bg-[#2a2a2a] hover:text-white rounded-[2px] transition-colors flex items-center justify-between"
               >
                 Server Settings
                 <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current">
@@ -402,14 +402,14 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
         </div>
 
         {/* Search Bar */}
-        <div className="p-2 border-b border-[#1a1510] shadow-sm">
-          <button className="w-full h-7 rounded-[4px] bg-[#050200] text-left px-2 text-sm text-[#949BA4] hover:text-[#DBDEE1] transition-colors flex items-center">
+        <div className="p-2 border-b border-[#2a2a2a] shadow-sm">
+          <button className="w-full h-7 rounded-[4px] bg-[#141414] text-left px-2 text-sm text-[#808080] hover:text-white transition-colors flex items-center">
             Find or start a conversation
           </button>
         </div>
 
         {/* Channels List */}
-        <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1A1B1E] scrollbar-track-[#2B2D31]">
+        <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#2a2a2a] scrollbar-track-[#1a1a1a]">
           {error && (
             <div className="mx-2 mb-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
               {error instanceof Error ? error.message : String(error)}
@@ -418,14 +418,14 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
           {route.isMe ? (
             <div className="space-y-[2px]">
-              <div className="px-2 pt-4 pb-1 text-xs text-[#949BA4] font-bold hover:text-[#DBDEE1] cursor-pointer flex items-center gap-0.5">
+              <div className="px-2 pt-4 pb-1 text-xs text-[#808080] font-bold hover:text-white cursor-pointer flex items-center gap-0.5">
                 <span className="uppercase">Direct Messages</span>
                 <svg className="w-3 h-3 ml-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               </div>
-              <button className="group w-full px-2 py-2 rounded-[4px] hover:bg-[#1a1510] text-[15px] text-[#949BA4] hover:text-[#DBDEE1] text-left flex items-center gap-3 transition-colors">
-                <div className="w-8 h-8 rounded-full bg-[#1a1510] flex items-center justify-center overflow-hidden">
+              <button className="group w-full px-2 py-2 rounded-[4px] hover:bg-[#202020] text-[15px] text-[#b4b4b4] hover:text-white text-left flex items-center gap-3 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-[#202020] flex items-center justify-center overflow-hidden">
                   <svg width="18" height="18" viewBox="0 0 24 24" className="fill-current">
                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                   </svg>
@@ -435,7 +435,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             </div>
           ) : (
             <div className="space-y-[2px]">
-              <div className="px-2 pt-4 pb-1 text-xs text-[#949BA4] font-bold hover:text-[#DBDEE1] cursor-pointer flex items-center gap-0.5 uppercase">
+              <div className="px-2 pt-4 pb-1 text-xs text-[#808080] font-bold hover:text-white cursor-pointer flex items-center gap-0.5 uppercase">
                 <svg width="12" height="12" viewBox="0 0 24 24" className="fill-current mr-0.5 transform rotate-90">
                   <path d="M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6zM16 6h2v12h-2z" />
                 </svg>
@@ -457,7 +457,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               {channels.filter(c => c.type === 'TEXT').map((c, idx) => (
                 <div
                   key={c._id}
-                  className={`group relative w-full text-left px-2 py-[6px] rounded-[4px] text-[15px] flex items-center gap-1.5 cursor-pointer ${c._id === route.channelId ? 'bg-[#f3c178]/10 text-[#f3c178] border-l-2 border-[#f3c178]' : 'hover:bg-[#35373C] text-[#949BA4] hover:text-[#DBDEE1]'
+                  className={`group relative w-full text-left px-2 py-[6px] rounded-[4px] text-[15px] flex items-center gap-1.5 cursor-pointer ${c._id === route.channelId ? 'bg-[#2a2a2a] text-white font-medium' : 'hover:bg-[#202020] text-[#b4b4b4] hover:text-white'
                     }`}
                   onClick={() => {
                     if (!route.serverId) return
@@ -483,7 +483,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     </svg>
 
                     {channelMenuOpenId === c._id && (
-                      <div className="absolute mt-2 left-0 top-full w-44 rounded border border-[#1F2023] bg-[#111214] shadow-lg z-50 overflow-hidden p-1">
+                      <div className="absolute mt-2 left-0 top-full w-44 rounded border border-cyan-500/10 bg-[#111214] shadow-lg z-50 overflow-hidden p-1">
                         <button
                           type="button"
                           onClick={async () => {
@@ -491,7 +491,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                             setRenameChannelId(c._id)
                             setRenameChannelValue(c.name)
                           }}
-                          className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#f3c178] text-[#B5BAC1] hover:text-white rounded-[2px]"
+                          className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#f3c178] text-slate-400 hover:text-white rounded-[2px]"
                         >
                           Edit Channel
                         </button>
@@ -515,11 +515,11 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               ))}
 
               {!channelsLoading && channels.filter(c => c.type === 'TEXT').length === 0 && (
-                <div className="px-2 py-1 text-xs text-[#949BA4]">No text channels yet</div>
+                <div className="px-2 py-1 text-xs text-[#808080]">No text channels yet</div>
               )}
 
               {/* Voice Channels Section */}
-              <div className="px-2 pt-4 pb-1 text-xs text-[#949BA4] font-bold hover:text-[#DBDEE1] cursor-pointer flex items-center gap-0.5 uppercase">
+              <div className="px-2 pt-4 pb-1 text-xs text-[#808080] font-bold hover:text-white cursor-pointer flex items-center gap-0.5 uppercase">
                 <svg width="12" height="12" viewBox="0 0 24 24" className="fill-current mr-0.5 transform rotate-90">
                   <path d="M5.59 7.41L10.18 12l-4.59 4.59L7 18l6-6-6-6zM16 6h2v12h-2z" />
                 </svg>
@@ -542,8 +542,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   key={c._id}
                   className={`group relative w-full text-left px-2 py-[6px] rounded-[4px] text-[15px] flex items-center gap-1.5 cursor-pointer ${
                     c._id === route.channelId
-                      ? 'bg-[#f3c178]/10 text-[#f3c178] border-l-2 border-[#f3c178]'
-                      : 'hover:bg-[#35373C] text-[#949BA4] hover:text-[#DBDEE1]'
+                      ? 'bg-[#2a2a2a] text-white font-medium'
+                      : 'hover:bg-[#202020] text-[#b4b4b4] hover:text-white'
                   }`}
                   onClick={() => {
                     if (!route.serverId) return
@@ -569,7 +569,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     </svg>
 
                     {channelMenuOpenId === c._id && (
-                      <div className="absolute mt-2 left-0 top-full w-44 rounded border border-[#1F2023] bg-[#111214] shadow-lg z-50 overflow-hidden p-1">
+                      <div className="absolute mt-2 left-0 top-full w-44 rounded border border-cyan-500/10 bg-[#111214] shadow-lg z-50 overflow-hidden p-1">
                         <button
                           type="button"
                           onClick={async () => {
@@ -577,7 +577,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                             setRenameChannelId(c._id)
                             setRenameChannelValue(c.name)
                           }}
-                          className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#f3c178] text-[#B5BAC1] hover:text-white rounded-[2px]"
+                          className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#f3c178] text-slate-400 hover:text-white rounded-[2px]"
                         >
                           Edit Channel
                         </button>
@@ -601,16 +601,16 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               ))}
 
               {!channelsLoading && channels.filter(c => c.type === 'VOICE').length === 0 && (
-                <div className="px-2 py-1 text-xs text-[#949BA4]">No voice channels yet</div>
+                <div className="px-2 py-1 text-xs text-[#808080]">No voice channels yet</div>
               )}
             </div>
           )}
         </div>
 
         {/* User Panel */}
-        <div className="h-[52px] bg-[#050200] px-2 flex items-center gap-1 flex-shrink-0" ref={userMenuRef}>
+        <div className="h-[52px] bg-[#141414] px-2 flex items-center gap-1 flex-shrink-0" ref={userMenuRef}>
           <div
-            className="flex items-center gap-2 hover:bg-[#1a1510] rounded-[4px] pl-0.5 pr-2 py-1 cursor-pointer transition-colors min-w-0 -ml-1 mr-auto"
+            className="flex items-center gap-2 hover:bg-[#202020] rounded-[4px] pl-0.5 pr-2 py-1 cursor-pointer transition-colors min-w-0 -ml-1 mr-auto"
             onClick={() => setUserMenuOpen(!userMenuOpen)}
           >
             <UserAvatar
@@ -624,14 +624,14 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               <div className="text-sm font-semibold text-white truncate leading-tight">
                 {currentUser?.username || 'Loading...'}
               </div>
-              <div className="text-xs text-[#949BA4] truncate leading-tight">
+              <div className="text-xs text-[#808080] truncate leading-tight">
                 {myStatus === 'online' ? 'Online' : myStatus === 'idle' ? 'Idle' : myStatus === 'dnd' ? 'Do Not Disturb' : 'Invisible'}
               </div>
             </div>
           </div>
 
           <div className="flex items-center">
-            <button className="w-8 h-8 rounded-[4px] hover:bg-[#3F4147] flex items-center justify-center text-[#DBDEE1] transition-colors relative group">
+            <button className="w-8 h-8 rounded-[4px] hover:bg-[#2a2a2a] flex items-center justify-center text-white transition-colors relative group">
               <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
                 <path d="M14.99 11C14.99 12.66 13.66 14 12 14C10.34 14 9 12.66 9 11V5C9 3.34 10.34 2 12 2C13.66 2 15 3.34 15 5L14.99 11ZM12 16.1C14.76 16.1 17.3 14 17.3 11H19C19 14.42 16.28 17.17 13 17.65V21H11V17.65C7.72 17.17 5 14.42 5 11H6.7C6.7 14 9.24 16.1 12 16.1Z" />
               </svg>
@@ -639,7 +639,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 Mute
               </div>
             </button>
-            <button className="w-8 h-8 rounded-[4px] hover:bg-[#1a1510] flex items-center justify-center text-[#DBDEE1] transition-colors relative group">
+            <button className="w-8 h-8 rounded-[4px] hover:bg-[#2a2a2a] flex items-center justify-center text-white transition-colors relative group">
               <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
                 <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10V14C8 16.21 9.79 18 12 18C14.21 18 16 16.21 16 14V10C16 7.79 14.21 6 12 6Z" />
               </svg>
@@ -650,7 +650,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             <button
               type="button"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="w-8 h-8 rounded-[4px] hover:bg-[#3F4147] flex items-center justify-center text-[#DBDEE1] transition-colors relative group"
+              className="w-8 h-8 rounded-[4px] hover:bg-[#2a2a2a] flex items-center justify-center text-white transition-colors relative group"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
                 <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
@@ -662,9 +662,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           </div>
 
           {userMenuOpen && (
-            <div className="absolute bottom-16 left-2 w-64 rounded bg-[#0d0805] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div className="h-16 bg-gradient-to-r from-[#f3c178] to-[#f35e41] relative">
-                <div className="absolute -bottom-6 left-4 border-[6px] border-[#111214] rounded-full">
+            <div className="absolute bottom-16 left-2 w-64 rounded bg-[#1a1a1a] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <div className="h-16 bg-[#5865f2] relative">
+                <div className="absolute -bottom-6 left-4 border-[6px] border-[#1a1a1a] rounded-full">
                   <UserAvatar
                     username={currentUser?.username || 'User'}
                     avatar={currentUser?.avatar}
@@ -677,13 +677,13 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               <div className="px-4 pt-10 pb-4">
                 <div className="mb-4">
                   <div className="text-white font-bold text-lg">{currentUser?.username}</div>
-                  {currentUser?.email && (
-                    <div className="text-[#949BA4] text-sm">{currentUser.email}</div>
-                  )}
+                  <div className="text-[#808080] text-sm">
+                    {currentUser?.username}#{currentUser?.discriminator || '0001'}
+                  </div>
                 </div>
 
                 <div className="space-y-1 mb-2">
-                  <div className="text-[#f3c178] text-xs font-bold uppercase mb-2">Set Status</div>
+                  <div className="text-[#5865f2] text-xs font-bold uppercase mb-2">Set Status</div>
                   {(['online', 'idle', 'dnd', 'offline'] as const).map((s) => (
                     <button
                       key={s}
@@ -693,8 +693,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                         setUserMenuOpen(false)
                       }}
                       className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm ${myStatus === s
-                        ? 'bg-[#f3c178]/20 text-white'
-                        : 'text-[#B5BAC1] hover:bg-[#1a1510] hover:text-white'
+                        ? 'bg-[#2a2a2a] text-white'
+                        : 'text-[#b4b4b4] hover:bg-[#202020] hover:text-white'
                         }`}
                     >
                       <StatusBadge status={s} />
@@ -705,7 +705,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   ))}
                 </div>
 
-                <div className="border-t border-[#1a1510] pt-2 mt-2">
+                <div className="border-t border-[#2a2a2a] pt-2 mt-2">
                   <button
                     type="button"
                     onClick={async () => {
@@ -731,10 +731,10 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col bg-[#0b0500]">
+      <div className="flex-1 flex flex-col bg-[#0a0a0a]">
           {/* Channel Header */}
-          <div className="h-12 border-b border-[#1a1510] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#0b0500]">
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#80848E]">
+          <div className="h-12 border-b border-[#2a2a2a] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#0a0a0a]">
+            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#808080]">
               <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
             </svg>
             <div className="font-bold text-white truncate text-[16px]">
@@ -742,14 +742,14 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             </div>
             {selectedChannel?.description && (
               <>
-                <div className="w-px h-6 bg-[#3F4147] mx-2" />
-                <div className="text-xs text-[#B5BAC1] truncate max-w-lg font-medium">
+                <div className="w-px h-6 bg-[#2a2a2a] mx-2" />
+                <div className="text-xs text-[#b4b4b4] truncate max-w-lg font-medium">
                   {selectedChannel.description}
                 </div>
               </>
             )}
             <div className="ml-auto flex items-center gap-4">
-              <button className="w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group">
+              <button className="w-6 h-6 text-[#b4b4b4] hover:text-white transition-colors relative group">
                 <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
                   <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L13.5 2.5L16.17 5.17C15.24 5.06 14.32 5 13.4 5H12C7.58 5 4 8.58 4 13C4 17.42 7.58 21 12 21C16.42 21 20 17.42 20 13H18C18 16.31 15.31 19 12 19C8.69 19 6 16.31 6 13C6 9.69 8.69 7 12 7H13.4C14.8 7 16.2 7.2 17.6 7.7L21 9Z" />
                 </svg>
@@ -757,7 +757,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   Notification Settings
                 </div>
               </button>
-              <button className="w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group">
+              <button className="w-6 h-6 text-[#b4b4b4] hover:text-white transition-colors relative group">
                 <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
@@ -766,7 +766,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 </div>
               </button>
               <button
-                className={`w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group ${route.isMe ? 'hidden' : ''}`}
+                className={`w-6 h-6 text-[#b4b4b4] hover:text-white transition-colors relative group ${route.isMe ? 'hidden' : ''}`}
                 onClick={() => {
                   // Toggle member list visibility if I had state for it
                   // For now just visual
@@ -784,9 +784,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 <input
                   type="text"
                   placeholder="Search"
-                  className="bg-[#1E1F22] text-sm text-[#DBDEE1] placeholder-[#949BA4] rounded-[4px] px-2 py-1 w-36 transition-all focus:w-60 focus:outline-none"
+                  className="bg-[#1a1a1a] text-sm text-white placeholder-[#808080] rounded-[4px] px-2 py-1 w-36 transition-all focus:w-60 focus:outline-none border border-[#2a2a2a] focus:border-[#5865f2]"
                 />
-                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current text-[#949BA4] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current text-[#808080] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
                   <path d="M21.707 20.293L16.314 14.9C17.403 13.504 18 11.799 18 10C18 6.009 15.363 2.691 11.609 2.133C7.527 1.517 3.966 4.394 3.125 8.406C2.35 12.096 5.167 15.65 8.921 15.957C10.799 16.111 12.504 15.514 13.9 14.425L19.293 19.818C19.488 20.013 19.744 20.11 20 20.11C20.256 20.11 20.512 20.013 20.707 19.818C21.098 19.427 21.098 18.795 21.707 20.293ZM10 14C7.794 14 6 12.206 6 10C6 7.794 7.794 6 10 6C12.206 6 14 7.794 14 10C14 12.206 12.206 14 10 14Z" />
                 </svg>
               </div>
@@ -798,12 +798,12 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
       {/* Members Sidebar */}
       {!route.isMe && route.serverId && (
-        <div className="w-[240px] bg-[#0d0805] flex flex-col flex-shrink-0">
+        <div className="w-[240px] bg-[#1a1a1a] flex flex-col flex-shrink-0">
             <div className="h-12 px-4 flex items-center shadow-sm flex-shrink-0">
               {/* Use same height as header but transparent or matching bg */}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1a1510] scrollbar-track-[#0d0805]">
+            <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#2a2a2a] scrollbar-track-[#1a1a1a]">
               {membersError && (
                 <div className="mx-2 mb-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
                   {membersError instanceof Error ? membersError.message : String(membersError)}
@@ -811,7 +811,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               )}
 
               {/* Group Members by Status (Simplified for now) */}
-              <div className="px-3 pt-3 pb-1 text-xs text-[#949BA4] font-bold uppercase tracking-wide">
+              <div className="px-3 pt-3 pb-1 text-xs text-[#808080] font-bold uppercase tracking-wide">
                 Online — {members.length}
               </div>
 
@@ -826,7 +826,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     key={m._id}
                     type="button"
                     onClick={() => setSelectedMember({ user: { ...user, status: userStatus }, isOwner })}
-                    className="w-full px-2 py-1.5 rounded-[4px] hover:bg-[#1a1510] transition-colors flex items-center gap-3 group opacity-90 hover:opacity-100"
+                    className="w-full px-2 py-1.5 rounded-[4px] hover:bg-[#202020] transition-colors flex items-center gap-3 group opacity-90 hover:opacity-100"
                   >
                     <UserAvatar
                       username={user.username}
@@ -837,17 +837,17 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     />
                     <div className="min-w-0 flex-1 text-left">
                       <div className="flex items-center gap-1.5">
-                        <div className={`text-[15px] font-medium truncate ${isOnline ? 'text-[#DBDEE1]' : 'text-[#949BA4] group-hover:text-[#DBDEE1]'}`}>
+                        <div className={`text-[15px] font-medium truncate ${isOnline ? 'text-white' : 'text-[#808080] group-hover:text-white'}`}>
                           {user.username}
                         </div>
                         {isOwner && (
-                          <svg className="w-3.5 h-3.5 text-[#F0B232]" viewBox="0 0 16 16" fill="currentColor">
+                          <svg className="w-3.5 h-3.5 text-[#f0b232]" viewBox="0 0 16 16" fill="currentColor">
                             <path d="M13.6572 5.42868C13.8879 5.29002 14.1806 5.30402 14.3973 5.46468C14.6133 5.62602 14.7119 5.90068 14.6473 6.16202L13.3139 11.4954C13.2393 11.7927 12.9726 12.0007 12.6666 12.0007H3.33325C3.02725 12.0007 2.76058 11.7927 2.68592 11.4954L1.35258 6.16202C1.28792 5.90068 1.38658 5.62602 1.60258 5.46468C1.81992 5.30468 2.11192 5.29068 2.34325 5.42868L5.13192 7.10202L7.44592 3.63068C7.46173 3.60697 7.48026 3.5853 7.50125 3.56602C7.62192 3.45535 7.78058 3.39002 7.94525 3.38202H8.05458C8.21925 3.39002 8.37792 3.45535 8.49925 3.56602C8.52024 3.5853 8.53877 3.60697 8.55458 3.63068L10.8686 7.10202L13.6572 5.42868ZM2.66667 13.334H13.3333V14.6673H2.66667V13.334Z" />
                           </svg>
                         )}
                       </div>
                       {user.customStatus && (
-                        <div className="text-xs text-[#949BA4] truncate group-hover:text-[#DBDEE1]">{user.customStatus}</div>
+                        <div className="text-xs text-[#808080] truncate group-hover:text-white">{user.customStatus}</div>
                       )}
                     </div>
                   </button>
@@ -865,12 +865,12 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               if (e.target === e.currentTarget) setRenameChannelId(null)
             }}
           >
-            <div className="w-[420px] max-w-[92vw] rounded-xl border border-black/20 bg-[#36393f] p-6">
+            <div className="w-[420px] max-w-[92vw] rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-6">
               <div className="text-lg font-semibold text-white mb-4">Edit Channel</div>
               <div className="mb-4">
-                <label className="block text-xs font-semibold text-white/60 mb-2 uppercase">Channel Name</label>
+                <label className="block text-xs font-semibold text-[#b4b4b4] mb-2 uppercase">Channel Name</label>
                 <input
-                  className="w-full h-10 rounded bg-[#40444b] border border-black/20 px-3 text-sm outline-none focus:border-[#f3c178] text-white"
+                  className="w-full h-10 rounded bg-[#141414] border border-[#2a2a2a] px-3 text-sm outline-none focus:border-[#4a9eff] text-white"
                   value={renameChannelValue}
                   onChange={(e) => setRenameChannelValue(e.target.value)}
                   autoFocus
@@ -879,7 +879,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
-                  className="px-4 py-2 rounded bg-transparent hover:bg-white/5 text-sm text-white"
+                  className="px-4 py-2 rounded bg-transparent hover:bg-[#2a2a2a] text-sm text-white"
                   onClick={() => setRenameChannelId(null)}
                   disabled={renamingChannel}
                 >
@@ -887,7 +887,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-2 rounded bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-sm text-[#0b0500] font-bold disabled:opacity-60"
+                  className="px-4 py-2 rounded bg-gradient-to-r from-[#5865f2] to-[#7289da] hover:from-[#4752c4] hover:to-[#5865f2] text-sm text-white font-bold disabled:opacity-60"
                   disabled={renamingChannel || !renameChannelValue.trim()}
                   onClick={async () => {
                     const cid = renameChannelId

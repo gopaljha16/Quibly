@@ -36,10 +36,10 @@ export default function JoinServerModal({
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <form onSubmit={handleSubmit} className="w-full max-w-[440px] rounded-[4px] bg-[#1a1510] shadow-2xl overflow-hidden animate-scale-in text-center">
+        <form onSubmit={handleSubmit} className="w-full max-w-[440px] rounded-[4px] bg-[#12131a] shadow-2xl overflow-hidden animate-scale-in text-center">
           <div className="px-6 pt-6 pb-2">
             <h2 className="text-2xl font-bold text-[#F2F3F5] mb-2">Join a Server</h2>
-            <p className="text-[#B5BAC1] text-sm mb-4">
+            <p className="text-slate-400 text-sm mb-4">
               Enter an invite below to join an existing server
             </p>
             <button
@@ -47,7 +47,7 @@ export default function JoinServerModal({
               onClick={() => {
                 if (!isLoading) onClose()
               }}
-              className="absolute top-4 right-4 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-50 transition-colors"
               aria-label="Close"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
@@ -64,37 +64,37 @@ export default function JoinServerModal({
             )}
 
             <div className="mb-4 text-left">
-              <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
                 Invite Link *
               </label>
               <input
                 value={inviteCode}
                 onChange={(e) => handleChange(e.target.value)}
-                className="w-full rounded-[3px] bg-[#0d0805] p-2.5 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
+                className="w-full rounded-[3px] bg-[#12131a] p-2.5 text-slate-50 outline-none font-medium placeholder-[#87898C]"
                 placeholder="https://discord.gg/hTKzmak"
                 disabled={isLoading}
                 autoFocus
               />
-              <div className="mt-2 text-xs text-[#949BA4]">
-                Invites should look like <span className="font-mono text-[#DBDEE1]">hTKzmak</span>, <span className="font-mono text-[#DBDEE1]">https://discord.gg/hTKzmak</span>, or <span className="font-mono text-[#DBDEE1]">https://discord.com/invite/hTKzmak</span>.
+              <div className="mt-2 text-xs text-slate-500">
+                Invites should look like <span className="font-mono text-slate-50">hTKzmak</span>, <span className="font-mono text-slate-50">https://discord.gg/hTKzmak</span>, or <span className="font-mono text-slate-50">https://discord.com/invite/hTKzmak</span>.
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0d0805] p-4 flex justify-between items-center">
+          <div className="bg-[#12131a] p-4 flex justify-between items-center">
             <button
               type="button"
               onClick={() => {
                 if (!isLoading) onClose()
               }}
-              className="text-sm font-medium text-[#DBDEE1] hover:underline transition-colors"
+              className="text-sm font-medium text-slate-50 hover:underline transition-colors"
               disabled={isLoading}
             >
               Back
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-[#0b0500] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading || !inviteCode.trim()}
             >
               {isLoading ? 'Joining...' : 'Join Server'}

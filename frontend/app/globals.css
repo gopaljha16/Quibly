@@ -1,230 +1,184 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme {
-  /* Override ALL default Tailwind colors with custom theme */
-  --color-primary-*: initial;
-  --color-blue-*: initial;
-  --color-indigo-*: initial;
-
-  /* Custom Theme Colors - Gold, Coral, Dark */
-  --color-primary-50: #fef9f0;
-  --color-primary-100: #fef3e0;
-  --color-primary-200: #fce3b8;
-  --color-primary-300: #fad48f;
-  --color-primary-400: #f8c566;
-  --color-primary-500: #f3c178;
-  --color-primary-600: #e0a850;
-  --color-primary-700: #c8902a;
-  --color-primary-800: #a06f1d;
-  --color-primary-900: #785314;
-
-  --color-accent-50: #fff4f0;
-  --color-accent-100: #ffe8e0;
-  --color-accent-200: #ffc7b8;
-  --color-accent-300: #ffa78f;
-  --color-accent-400: #ff8166;
-  --color-accent-500: #f35e41;
-  --color-accent-600: #e0442a;
-  --color-accent-700: #c82a1a;
-  --color-accent-800: #a01810;
-  --color-accent-900: #78100a;
-
-  --color-dark-50: #e6e4e3;
-  --color-dark-100: #bdb9b6;
-  --color-dark-200: #948e89;
-  --color-dark-300: #6b635c;
-  --color-dark-400: #42382f;
-  --color-dark-500: #0b0500;
-  --color-dark-600: #090400;
-  --color-dark-700: #070300;
-  --color-dark-800: #050200;
-  --color-dark-900: #030100;
-}
-
 :root {
-  /* Global CSS Variables */
-  --primary-color: #f3c178;
-  --accent-color: #f35e41;
-  --dark-color: #0b0500;
-  --bg-dark: #0b0500;
-  --bg-darker: #050200;
-  --text-light: #fef9f0;
-  --text-muted: #bdb9b6;
-  --border-color: rgba(243, 193, 120, 0.2);
-  --glow-primary: rgba(243, 193, 120, 0.4);
-  --glow-accent: rgba(243, 94, 65, 0.4);
-
-  /* Shadcn UI variables - Override with theme colors */
-  --radius: 0.75rem;
-  --background: #0b0500;
-  --foreground: #fef9f0;
-  --card: #1a1510;
-  --card-foreground: #fef9f0;
-  --popover: #1a1510;
-  --popover-foreground: #fef9f0;
-  --primary: #f3c178;
-  --primary-foreground: #0b0500;
-  --secondary: #42382f;
-  --secondary-foreground: #fef9f0;
-  --muted: #42382f;
-  --muted-foreground: #bdb9b6;
-  --accent: #f35e41;
-  --accent-foreground: #fef9f0;
-  --destructive: #e0442a;
-  --destructive-foreground: #fef9f0;
-  --border: rgba(243, 193, 120, 0.2);
-  --input: rgba(243, 193, 120, 0.15);
-  --ring: #f3c178;
-  --chart-1: #f3c178;
-  --chart-2: #f35e41;
-  --chart-3: #e0a850;
-  --chart-4: #ff8166;
-  --chart-5: #ffc7b8;
-}
-
-* {
-  border-color: var(--border-color);
+  /* Professional Dark Inbox Theme */
+  --color-obsidian: #0a0a0a;
+  --color-dark-bg: #141414;
+  --color-dark-surface: #1a1a1a;
+  --color-dark-elevated: #202020;
+  --color-dark-hover: #2a2a2a;
+  
+  --color-accent-blue: #5865f2;
+  --color-accent-blue-hover: #4752c4;
+  --color-accent-blue-light: #7289da;
+  
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b4b4b4;
+  --color-text-muted: #808080;
+  --color-text-dim: #5a5a5a;
+  
+  --color-border: #2a2a2a;
+  --color-border-subtle: #1f1f1f;
+  
+  --gradient-primary: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
+  --gradient-hover: linear-gradient(135deg, #4752c4 0%, #5865f2 100%);
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', sans-serif;
-  background: var(--bg-dark);
-  color: var(--text-light);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--color-obsidian);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom scrollbar with theme colors */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #f3c178, #f35e41);
-  border-radius: 10px;
-  border: 2px solid #0b0500;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #e0a850, #e0442a);
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: rgba(243, 193, 120, 0.05);
-  border-radius: 10px;
+  background: var(--color-dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+
+/* Selection */
+::selection {
+  background: rgba(88, 101, 242, 0.3);
+  color: var(--color-text-primary);
+}
+
+/* Gradient Text Utility */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass Morphism */
+.glass {
+  background: rgba(20, 20, 20, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* Subtle Hover Effects */
+.hover-lift {
+  transition: all 0.2s ease;
+}
+
+.hover-lift:hover {
+  background: var(--color-dark-hover);
 }
 
 /* Animations */
-@keyframes messageSlideIn {
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes glow-pulse {
-
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(243, 193, 120, 0.4);
-  }
-
-  50% {
-    box-shadow: 0 0 40px rgba(243, 94, 65, 0.4);
-  }
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
-}
-
 .animate-shimmer {
-  animation: shimmer 2s infinite;
+  animation: shimmer 2s linear infinite;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
 }
 
-.animate-glow {
-  animation: glow-pulse 3s ease-in-out infinite;
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
 }
 
-/* Custom scrollbar class */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* LiveKit Custom Styles */
+.lk-video-conference {
+  height: 100% !important;
+  background-color: var(--color-dark-bg) !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background-color: rgba(243, 193, 120, 0.05);
-  border-radius: 4px;
+.lk-grid-layout {
+  padding: 1rem !important;
+  gap: 1rem !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #f3c178, #f35e41);
-  border-radius: 4px;
+.lk-participant-tile {
+  border-radius: 0.75rem !important;
+  overflow: hidden !important;
+  background: var(--color-dark-elevated) !important;
+  border: 1px solid var(--color-border) !important;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #e0a850, #e0442a);
+.lk-participant-metadata {
+  background: rgba(10, 10, 10, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
 }
 
-/* Selection styling */
-::selection {
-  background-color: #f3c178;
-  color: #0b0500;
+.lk-participant-name {
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  color: var(--color-text-primary) !important;
 }
 
-/* Disable text selection on UI elements */
-.no-select {
-  user-select: none;
+.lk-control-bar {
+  background: var(--color-dark-surface) !important;
+  border-top: 1px solid var(--color-border) !important;
+  padding: 0.75rem 1rem !important;
 }
 
-/* Gradient text utility */
-.gradient-text {
-  background: linear-gradient(135deg, #f3c178, #f35e41);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.lk-button {
+  border-radius: 0.5rem !important;
+  transition: all 0.2s !important;
+  background: var(--color-dark-elevated) !important;
+  border: 1px solid var(--color-border) !important;
 }
 
-/* Glass morphism */
-.glass {
-  background: rgba(11, 5, 0, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(243, 193, 120, 0.1);
+.lk-button:hover {
+  background: var(--color-dark-hover) !important;
+  border-color: var(--color-border) !important;
 }
 
-/* Glow effects */
-.glow-primary {
-  box-shadow: 0 0 20px rgba(243, 193, 120, 0.4);
+/* Badge Styles */
+.badge-green {
+  background: rgba(59, 165, 93, 0.15);
+  color: #3ba55d;
+  border: 1px solid rgba(59, 165, 93, 0.3);
 }
 
-.glow-accent {
-  box-shadow: 0 0 20px rgba(243, 94, 65, 0.4);
+.badge-blue {
+  background: rgba(88, 101, 242, 0.15);
+  color: #5865f2;
+  border: 1px solid rgba(88, 101, 242, 0.3);
+}
+
+.badge-orange {
+  background: rgba(250, 166, 26, 0.15);
+  color: #faa61a;
+  border: 1px solid rgba(250, 166, 26, 0.3);
 }

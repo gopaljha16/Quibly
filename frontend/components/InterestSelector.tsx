@@ -53,11 +53,11 @@ export default function InterestSelector({
 
     return (
         <div
-            className={`space-y-4 p-6 border border-[#f3c178]/30 rounded-xl bg-[#0b0500]/60 transition-all duration-500 ${expanded ? 'ring-2 ring-[#f3c178]/20 shadow-lg shadow-[#f3c178]/10' : ''
+            className={`space-y-4 p-6 border border-[#f3c178]/30 rounded-xl bg-[#030305]/60 transition-all duration-500 ${expanded ? 'ring-2 ring-cyan-500/20 shadow-lg shadow-[#f3c178]/10' : ''
                 }`}
         >
             <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-[#f3c178] flex items-center gap-2">
+                <Label className="text-sm font-semibold text-cyan-400 flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     Select Your Interests
                 </Label>
@@ -84,7 +84,7 @@ export default function InterestSelector({
                 {selectedInterestObjects.length > 0 && (
                     <div className="mt-4 p-3 bg-[#f3c178]/10 border border-[#f3c178]/20 rounded-lg">
                         <p className="text-xs text-[#fef9f0] flex items-center gap-2">
-                            <Sparkles className="w-3 h-3 text-[#f3c178]" />
+                            <Sparkles className="w-3 h-3 text-cyan-400" />
                             {selectedInterestObjects.length} {selectedInterestObjects.length === 1 ? 'interest' : 'interests'} selected - You'll get personalized recommendations!
                         </p>
                     </div>
@@ -94,7 +94,7 @@ export default function InterestSelector({
                     <button
                         type="button"
                         onClick={() => setExpanded(false)}
-                        className="mt-3 w-full text-xs text-[#bdb9b6] hover:text-[#f3c178] flex items-center justify-center gap-1 transition-colors"
+                        className="mt-3 w-full text-xs text-[#bdb9b6] hover:text-cyan-400 flex items-center justify-center gap-1 transition-colors"
                     >
                         <ChevronUp className="w-3 h-3" />
                         Collapse
