@@ -62,18 +62,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0500] flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col relative overflow-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#f3c178] rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#f35e41] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 bg-[#f3c178] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-15">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#5865f2] rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#5865f2] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
       {/* Header */}
-      <div className="relative border-b border-[#f3c178]/20 bg-[#0b0500]/80 backdrop-blur-xl z-10">
+      <div className="relative border-b border-[#2a2a2a] bg-[#0a0a0a]/80 backdrop-blur-xl z-10">
         <div className="container mx-auto px-4 h-16 flex items-center">
-          <Link href="/" className="flex items-center gap-2 text-[#bdb9b6] hover:text-[#f3c178] transition-colors group">
+          <Link href="/" className="flex items-center gap-2 text-[#b4b4b4] hover:text-[#5865f2] transition-colors group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span>Back to home</span>
           </Link>
@@ -85,15 +84,15 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Title */}
           <div className="text-center mb-8 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#f3c178]/20 to-[#f35e41]/20 border border-[#f3c178]/30 backdrop-blur-sm">
-              <Sparkles className="w-4 h-4 text-[#f3c178]" />
-              <span className="text-sm font-semibold text-[#f3c178]">Welcome back!</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] backdrop-blur-sm">
+              <Sparkles className="w-4 h-4 text-[#4a9eff]" />
+              <span className="text-sm font-semibold text-[#4a9eff]">Welcome back!</span>
             </div>
 
-            <h1 className="text-5xl font-black bg-gradient-to-r from-[#f3c178] via-[#fad48f] to-[#f35e41] bg-clip-text text-transparent">
+            <h1 className="text-5xl font-black bg-gradient-to-r from-[#23a559] to-[#4a9eff] bg-clip-text text-transparent">
               Sign In
             </h1>
-            <p className="text-[#bdb9b6] text-base">
+            <p className="text-[#b4b4b4] text-base">
               Continue to your account
             </p>
           </div>
@@ -101,14 +100,14 @@ export default function LoginPage() {
           {/* Form Card */}
           <div className="relative group animate-in fade-in zoom-in-95 duration-500" style={{ animationDelay: '100ms' }}>
             {/* Glow */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#f3c178] via-[#f35e41] to-[#f3c178] rounded-2xl blur opacity-30 group-hover:opacity-50 transition animate-glow"></div>
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#23a559] to-[#4a9eff] rounded-2xl blur opacity-20 group-hover:opacity-30 transition"></div>
 
             {/* Form */}
-            <div className="relative bg-[#1a1510] border border-[#f3c178]/20 rounded-2xl p-8 shadow-2xl">
+            <div className="relative bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-8 shadow-2xl">
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-[#f3c178] flex items-center gap-2 font-semibold">
+                  <Label htmlFor="email" className="text-[#5865f2] flex items-center gap-2 font-semibold">
                     <Mail className="w-4 h-4" />
                     Email Address
                   </Label>
@@ -118,17 +117,17 @@ export default function LoginPage() {
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] h-12 focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 ${errors.email ? 'border-[#f35e41] ring-2 ring-[#f35e41]/20' : ''
+                    className={`bg-[#141414] border-[#2a2a2a] text-white h-12 focus:border-[#5865f2] focus:ring-2 focus:ring-[#5865f2]/20 ${errors.email ? 'border-[#f23f43] ring-2 ring-[#f23f43]/20' : ''
                       }`}
                     placeholder="your.email@example.com"
                     autoFocus
                   />
-                  {errors.email && <p className="text-xs text-[#f35e41]">{errors.email}</p>}
+                  {errors.email && <p className="text-xs text-[#f23f43]">{errors.email}</p>}
                 </div>
 
                 {/* Password */}
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-[#f3c178] flex items-center gap-2 font-semibold">
+                  <Label htmlFor="password" className="text-[#5865f2] flex items-center gap-2 font-semibold">
                     <Lock className="w-4 h-4" />
                     Password
                   </Label>
@@ -139,19 +138,19 @@ export default function LoginPage() {
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={handleChange}
-                      className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] h-12 pr-10 focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 ${errors.password ? 'border-[#f35e41] ring-2 ring-[#f35e41]/20' : ''
+                      className={`bg-[#141414] border-[#2a2a2a] text-white h-12 pr-10 focus:border-[#5865f2] focus:ring-2 focus:ring-[#5865f2]/20 ${errors.password ? 'border-[#f23f43] ring-2 ring-[#f23f43]/20' : ''
                         }`}
                       placeholder="Enter your password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bdb9b6] hover:text-[#f3c178]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b4b4b4] hover:text-[#5865f2]"
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
-                  {errors.password && <p className="text-xs text-[#f35e41]">{errors.password}</p>}
+                  {errors.password && <p className="text-xs text-[#f23f43]">{errors.password}</p>}
                 </div>
 
                 {/* Remember & Forgot */}
@@ -160,13 +159,13 @@ export default function LoginPage() {
                     <input
                       id="remember"
                       type="checkbox"
-                      className="h-4 w-4 rounded border-[#f3c178]/30 bg-[#0b0500] text-[#f3c178] focus:ring-[#f3c178] cursor-pointer"
+                      className="h-4 w-4 rounded border-[#2a2a2a] bg-[#141414] text-[#4a9eff] focus:ring-[#4a9eff] cursor-pointer"
                     />
-                    <label htmlFor="remember" className="text-sm text-[#bdb9b6] cursor-pointer hover:text-[#f3c178] transition-colors">
+                    <label htmlFor="remember" className="text-sm text-[#b4b4b4] cursor-pointer hover:text-[#5865f2] transition-colors">
                       Remember me
                     </label>
                   </div>
-                  <a href="#" className="text-sm text-[#f3c178] hover:text-[#fad48f] font-semibold hover:underline transition-colors">
+                  <a href="#" className="text-sm text-[#5865f2] hover:text-[#7289da] font-semibold hover:underline transition-colors">
                     Forgot password?
                   </a>
                 </div>
@@ -175,7 +174,7 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-13 bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold shadow-lg shadow-[#f3c178]/30 transition-all duration-300 mt-6 relative overflow-hidden group"
+                  className="w-full h-13 bg-[#5865f2] hover:bg-[#4752c4] text-white font-bold shadow-lg shadow-[#5865f2]/30 transition-all duration-300 mt-6"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 animate-shimmer"></span>
                   {isLoading ? (
@@ -195,23 +194,23 @@ export default function LoginPage() {
               {/* Divider */}
               <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[#f3c178]/20"></div>
+                  <div className="w-full border-t border-[#2a2a2a]"></div>
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-4 bg-[#1a1510] text-[#bdb9b6] font-medium">Don't have an account?</span>
+                  <span className="px-4 bg-[#1a1a1a] text-[#b4b4b4] font-medium">Don't have an account?</span>
                 </div>
               </div>
 
               {/* Sign Up Link */}
               <div className="text-center">
-                <p className="text-[#bdb9b6] text-sm mb-4">
+                <p className="text-[#b4b4b4] text-sm mb-4">
                   Join thousands of users today
                 </p>
                 <Link href="/signup">
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full h-11 border-2 border-[#f3c178] bg-transparent hover:bg-[#f3c178]/10 text-[#f3c178] hover:text-[#fad48f] font-semibold transition-all duration-300"
+                    className="w-full h-11 border-2 border-[#5865f2] bg-transparent hover:bg-[#5865f2]/10 text-[#5865f2] hover:text-[#7289da] font-semibold transition-all duration-300"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
                     Create Free Account

@@ -101,12 +101,12 @@ export default function ServerSettingsModal({
          <div className="absolute inset-0 bg-black/70" onClick={() => { if (!saving) onClose() }} />
 
          <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-[800px] h-[600px] bg-[#1a1510] rounded-[4px] shadow-2xl overflow-hidden flex animate-scale-in">
+            <div className="w-full max-w-[800px] h-[600px] bg-[#12131a] rounded-[4px] shadow-2xl overflow-hidden flex animate-scale-in">
 
                {/* Sidebar */}
-               <div className="w-[218px] bg-[#0d0805] flex flex-col pt-[60px] pb-4">
+               <div className="w-[218px] bg-[#12131a] flex flex-col pt-[60px] pb-4">
                   <div className="px-[10px] mb-2 flex justify-between items-center">
-                     <div className="text-xs font-bold text-[#949BA4] px-2 uppercase truncate">{server.name}</div>
+                     <div className="text-xs font-bold text-slate-500 px-2 uppercase truncate">{server.name}</div>
                   </div>
 
                   <div className="flex-1 overflow-y-auto custom-scrollbar px-2">
@@ -115,8 +115,8 @@ export default function ServerSettingsModal({
                            key={tab.id}
                            onClick={() => setActiveTab(tab.id)}
                            className={`w-full text-left px-2.5 py-1.5 rounded-[4px] mb-[2px] text-sm font-medium flex items-center justify-between group transition-colors ${activeTab === tab.id
-                              ? 'bg-[#f3c178]/10 text-[#f3c178] border-l-2 border-[#f3c178]'
-                              : 'text-[#B5BAC1] hover:bg-[#35373C] hover:text-[#DBDEE1]'
+                              ? 'bg-[#f3c178]/10 text-cyan-400 border-l-2 border-[#f3c178]'
+                              : 'text-slate-400 hover:bg-[#1a1b24] hover:text-slate-50'
                               }`}
                         >
                            {tab.name}
@@ -134,7 +134,7 @@ export default function ServerSettingsModal({
                </div>
 
                {/* Main Content */}
-               <div className="flex-1 bg-[#1a1510] flex flex-col relative">
+               <div className="flex-1 bg-[#12131a] flex flex-col relative">
                   <div className="flex-1 overflow-y-auto p-[40px] custom-scrollbar">
                      <div className="max-w-[460px]">
                         <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Overview</h2>
@@ -143,25 +143,25 @@ export default function ServerSettingsModal({
                            <div className="flex-1">
                               {/* Server Name */}
                               <div className="mb-6">
-                                 <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
                                     Server Name
                                  </label>
                                  <input
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full bg-[#0d0805] text-[#DBDEE1] p-2.5 rounded-[3px] border-none outline-none font-medium"
+                                    className="w-full bg-[#12131a] text-slate-50 p-2.5 rounded-[3px] border-none outline-none font-medium"
                                  />
                               </div>
 
                               {/* Description */}
                               <div className="mb-6">
-                                 <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
                                     Description
                                  </label>
                                  <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full bg-[#1E1F22] text-[#DBDEE1] p-2.5 rounded-[3px] border-none outline-none font-medium h-[100px] resize-none"
+                                    className="w-full bg-[#1E1F22] text-slate-50 p-2.5 rounded-[3px] border-none outline-none font-medium h-[100px] resize-none"
                                     placeholder="Tell us about your server!"
                                  />
                               </div>
@@ -169,27 +169,27 @@ export default function ServerSettingsModal({
 
                            {/* Icon Upload Placeholder */}
                            <div className="flex flex-col items-center gap-2">
-                              <div className="w-[100px] h-[100px] rounded-full bg-[#1E1F22] border-2 border-dashed border-[#4E5058] flex items-center justify-center text-[#B5BAC1] text-xs text-center p-2 cursor-pointer hover:border-[#F2F3F5] transition-colors">
+                              <div className="w-[100px] h-[100px] rounded-full bg-[#1E1F22] border-2 border-dashed border-[#4E5058] flex items-center justify-center text-slate-400 text-xs text-center p-2 cursor-pointer hover:border-[#F2F3F5] transition-colors">
                                  {formData.icon ? (
                                     <img src={formData.icon} alt="Server Icon" className="w-full h-full rounded-full object-cover" />
                                  ) : (
                                     <span>Upload Icon</span>
                                  )}
                               </div>
-                              <div className="text-[10px] text-[#949BA4]">Minimum Size: 128x128</div>
+                              <div className="text-[10px] text-slate-500">Minimum Size: 128x128</div>
                            </div>
                         </div>
 
                         {/* Verification Level */}
                         <div className="mb-8">
-                           <label className="block text-xs font-bold text-[#B5BAC1] uppercase mb-2">
+                           <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
                               Verification Level
                            </label>
-                           <div className="bg-[#0d0805] rounded-[3px] p-2">
+                           <div className="bg-[#12131a] rounded-[3px] p-2">
                               <select
                                  value={formData.verificationLevel}
                                  onChange={(e) => setFormData({ ...formData, verificationLevel: e.target.value as any })}
-                                 className="w-full bg-transparent text-[#DBDEE1] outline-none text-sm"
+                                 className="w-full bg-transparent text-slate-50 outline-none text-sm"
                               >
                                  <option value="none">None - Unrestricted</option>
                                  <option value="low">Low - Must have verified email</option>
@@ -203,7 +203,7 @@ export default function ServerSettingsModal({
                         <div className="flex items-center justify-between mb-8">
                            <div>
                               <div className="text-sm font-medium text-[#F2F3F5]">Public Server</div>
-                              <div className="text-xs text-[#B5BAC1]">Allow anyone to discover and join your server</div>
+                              <div className="text-xs text-slate-400">Allow anyone to discover and join your server</div>
                            </div>
                            <button
                               onClick={() => setFormData({ ...formData, isPublic: !formData.isPublic })}
@@ -227,17 +227,17 @@ export default function ServerSettingsModal({
                   <div className="absolute top-[36px] right-[40px] flex flex-col items-center gap-1">
                      <button
                         onClick={onClose}
-                        className="w-9 h-9 rounded-full border-2 border-[#B5BAC1] text-[#B5BAC1] flex items-center justify-center hover:bg-[#B5BAC1] hover:text-[#313338] transition-colors"
+                        className="w-9 h-9 rounded-full border-2 border-[#B5BAC1] text-slate-400 flex items-center justify-center hover:bg-[#B5BAC1] hover:text-[#313338] transition-colors"
                      >
                         <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current font-bold">
                            <path fillRule="evenodd" clipRule="evenodd" d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z" />
                         </svg>
                      </button>
-                     <div className="text-xs font-bold text-[#B5BAC1]">ESC</div>
+                     <div className="text-xs font-bold text-slate-400">ESC</div>
                   </div>
 
                   {/* Save Changes Bar */}
-                  <div className="bg-[#050200] p-4 flex justify-end gap-3 shadow-lg">
+                  <div className="bg-[#0a0b0f] p-4 flex justify-end gap-3 shadow-lg">
                      <button
                         onClick={() => setFormData({
                            name: server.name || '',
@@ -254,7 +254,7 @@ export default function ServerSettingsModal({
                      </button>
                      <button
                         onClick={handleSave}
-                        className="px-6 py-2 rounded-[3px] text-sm font-medium bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold transition-colors disabled:opacity-50"
+                        className="px-6 py-2 rounded-[3px] text-sm font-medium bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-[#0b0500] font-bold transition-colors disabled:opacity-50"
                         disabled={saving}
                      >
                         {saving ? 'Saving Changes...' : 'Save Changes'}

@@ -51,11 +51,11 @@ export default function InterestAutocomplete({
         <div className="relative" ref={inputRef}>
             <div className="relative group">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
-                    <Search className="h-4 w-4 text-[#bdb9b6] group-focus-within:text-[#f3c178] transition-colors" />
+                    <Search className="h-4 w-4 text-[#bdb9b6] group-focus-within:text-cyan-400 transition-colors" />
                 </div>
 
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 text-xs text-[#bdb9b6] group-focus-within:text-[#f3c178] transition-colors">
+                    <div className="flex items-center gap-1.5 text-xs text-[#bdb9b6] group-focus-within:text-cyan-400 transition-colors">
                         <Zap className="w-3.5 h-3.5" />
                         <span className="font-medium">Live</span>
                     </div>
@@ -71,7 +71,7 @@ export default function InterestAutocomplete({
                     }}
                     onFocus={() => setOpen(true)}
                     onClick={() => setOpen(true)}
-                    className="pl-10 pr-24 bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 h-11 transition-all duration-200"
+                    className="pl-10 pr-24 bg-[#030305] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 h-11 transition-all duration-200"
                 />
             </div>
 
@@ -79,9 +79,9 @@ export default function InterestAutocomplete({
             {open && (
                 <div className="absolute top-full left-0 right-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="relative">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-[#f3c178] to-[#f35e41] rounded-xl blur opacity-20"></div>
+                        <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-xl blur opacity-20"></div>
 
-                        <Command className="relative rounded-xl border border-[#f3c178]/20 bg-[#1a1510] backdrop-blur-xl shadow-2xl">
+                        <Command className="relative rounded-xl border border-[#f3c178]/20 bg-[#12131a] backdrop-blur-xl shadow-2xl">
                             <CommandList className="max-h-[280px] overflow-y-auto custom-scrollbar">
                                 {filteredInterests.length > 0 ? (
                                     <CommandGroup>
@@ -98,7 +98,7 @@ export default function InterestAutocomplete({
                                                     setSearch('')
                                                     setOpen(false)
                                                 }}
-                                                className="cursor-pointer text-[#fef9f0] hover:text-[#fef9f0] hover:bg-gradient-to-r hover:from-[#f3c178]/20 hover:to-[#f35e41]/20 transition-all duration-150 rounded-lg mx-2 my-1 px-3 py-2.5 group/item border border-transparent hover:border-[#f3c178]/30"
+                                                className="cursor-pointer text-[#fef9f0] hover:text-[#fef9f0] hover:bg-gradient-to-r hover:from-cyan-500/20 hover:to-purple-600/20 transition-all duration-150 rounded-lg mx-2 my-1 px-3 py-2.5 group/item border border-transparent hover:border-[#f3c178]/30"
                                                 style={{ animationDelay: `${index * 20}ms` }}
                                             >
                                                 <div className="flex items-center gap-3 w-full">
@@ -114,7 +114,7 @@ export default function InterestAutocomplete({
                                                     </div>
 
                                                     <div className="w-6 h-6 rounded-md bg-[#f3c178]/20 flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity border border-[#f3c178]/30">
-                                                        <span className="text-[#f3c178] text-sm font-bold">+</span>
+                                                        <span className="text-cyan-400 text-sm font-bold">+</span>
                                                     </div>
                                                 </div>
                                             </CommandItem>

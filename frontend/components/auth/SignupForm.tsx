@@ -43,7 +43,7 @@ export default function SignupForm() {
       <ScrollArea className="h-[calc(100vh-200px)] pr-4">
         <form onSubmit={handleSubmit} className="space-y-5 pb-6">
           <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
-            <Label htmlFor="username" className="text-sm font-semibold text-[#f3c178] flex items-center gap-2">
+            <Label htmlFor="username" className="text-sm font-semibold text-cyan-400 flex items-center gap-2">
               <User className="w-4 h-4" />
               Username
             </Label>
@@ -55,7 +55,7 @@ export default function SignupForm() {
                 autoComplete="username"
                 value={formData.username}
                 onChange={(e) => handleChange('username', e.target.value)}
-                className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 h-11 transition-all ${errors.username ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                className={`bg-[#030305] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 h-11 transition-all ${errors.username ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
                   }`}
                 placeholder="Choose a unique username"
               />
@@ -69,7 +69,7 @@ export default function SignupForm() {
           </div>
 
           <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300" style={{ animationDelay: '50ms' }}>
-            <Label htmlFor="email" className="text-sm font-semibold text-[#f3c178] flex items-center gap-2">
+            <Label htmlFor="email" className="text-sm font-semibold text-cyan-400 flex items-center gap-2">
               <Mail className="w-4 h-4" />
               Email Address
             </Label>
@@ -81,7 +81,7 @@ export default function SignupForm() {
                 autoComplete="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 h-11 transition-all ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                className={`bg-[#030305] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 h-11 transition-all ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
                   }`}
                 placeholder="you@example.com"
               />
@@ -95,7 +95,7 @@ export default function SignupForm() {
           </div>
 
           <div className="space-y-2 animate-in fade-in slide-in-from-top-3 duration-300" style={{ animationDelay: '100ms' }}>
-            <Label htmlFor="password" className="text-sm font-semibold text-[#f3c178] flex items-center gap-2">
+            <Label htmlFor="password" className="text-sm font-semibold text-cyan-400 flex items-center gap-2">
               <Lock className="w-4 h-4" />
               Password
             </Label>
@@ -107,14 +107,14 @@ export default function SignupForm() {
                 autoComplete="new-password"
                 value={formData.password}
                 onChange={(e) => handleChange('password', e.target.value)}
-                className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 pr-10 h-11 transition-all ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                className={`bg-[#030305] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 pr-10 h-11 transition-all ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
                   }`}
                 placeholder="Create a strong password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bdb9b6] hover:text-[#f3c178] transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bdb9b6] hover:text-cyan-400 transition-colors p-1"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -129,7 +129,7 @@ export default function SignupForm() {
 
           {/* Confirm Password Field */}
           <div className="space-y-2 animate-in fade-in slide-in-from-top-4 duration-300" style={{ animationDelay: '150ms' }}>
-            <Label htmlFor="confirmPassword" className="text-sm font-semibold text-[#f3c178] flex items-center gap-2">
+            <Label htmlFor="confirmPassword" className="text-sm font-semibold text-cyan-400 flex items-center gap-2">
               <Lock className="w-4 h-4" />
               Confirm Password
             </Label>
@@ -141,14 +141,14 @@ export default function SignupForm() {
                 autoComplete="new-password"
                 value={formData.confirmPassword}
                 onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                className={`bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 pr-10 h-11 transition-all ${errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+                className={`bg-[#030305] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 pr-10 h-11 transition-all ${errors.confirmPassword ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
                   }`}
                 placeholder="Confirm your password"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bdb9b6] hover:text-[#f3c178] transition-colors p-1"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#bdb9b6] hover:text-cyan-400 transition-colors p-1"
               >
                 {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>

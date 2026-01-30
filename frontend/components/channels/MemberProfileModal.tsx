@@ -55,9 +55,9 @@ export default function MemberProfileModal({
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[340px] rounded-[8px] bg-[#0d0805] shadow-2xl overflow-hidden animate-scale-in relative">
+        <div className="w-full max-w-[340px] rounded-[8px] bg-[#12131a] shadow-2xl overflow-hidden animate-scale-in relative">
           {/* Banner */}
-          <div className="h-[60px] bg-gradient-to-r from-[#f3c178] to-[#f35e41] relative">
+          <div className="h-[60px] bg-gradient-to-r from-cyan-500 to-purple-600 relative">
             <button
               type="button"
               onClick={onClose}
@@ -81,7 +81,7 @@ export default function MemberProfileModal({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#f3c178] to-[#f35e41] flex items-center justify-center">
+                  <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
                     {initials}
                   </div>
                 )}
@@ -92,7 +92,7 @@ export default function MemberProfileModal({
             </div>
 
             {/* User Info */}
-            <div className="mb-4 bg-[#050200] rounded-[8px] p-3 border border-[#1a1510]">
+            <div className="mb-4 bg-[#0a0b0f] rounded-[8px] p-3 border border-cyan-500/10">
               <div className="flex items-center gap-2 mb-1">
                 <div className="text-lg font-bold text-[#F2F3F5]">{user.username}</div>
                 {isOwner && (
@@ -101,10 +101,10 @@ export default function MemberProfileModal({
                   </svg>
                 )}
               </div>
-              <div className="text-sm text-[#B5BAC1] font-medium">#{user.discriminator}</div>
+              <div className="text-sm text-slate-400 font-medium">#{user.discriminator}</div>
 
               {user.customStatus && (
-                <div className="mt-2 text-sm text-[#DBDEE1]">
+                <div className="mt-2 text-sm text-slate-50">
                   {user.customStatus}
                 </div>
               )}
@@ -114,24 +114,24 @@ export default function MemberProfileModal({
 
             {/* About Me Section */}
             <div className="mb-4">
-              <div className="text-xs font-bold text-[#B5BAC1] uppercase mb-2">About Me</div>
-              <div className="text-sm text-[#DBDEE1] leading-relaxed whitespace-pre-wrap">
+              <div className="text-xs font-bold text-slate-400 uppercase mb-2">About Me</div>
+              <div className="text-sm text-slate-50 leading-relaxed whitespace-pre-wrap">
                 {user.bio || 'Just another discord user.'}
               </div>
             </div>
 
             {/* Roles Section - Placeholder */}
             <div className="mb-4">
-              <div className="text-xs font-bold text-[#B5BAC1] uppercase mb-2">Roles</div>
+              <div className="text-xs font-bold text-slate-400 uppercase mb-2">Roles</div>
               <div className="flex flex-wrap gap-1">
                 <div className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]">
                   <div className="w-3 h-3 rounded-full bg-[#99AAB5]" />
-                  <span className="text-xs font-medium text-[#DBDEE1]">Member</span>
+                  <span className="text-xs font-medium text-slate-50">Member</span>
                 </div>
                 {isOwner && (
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-[#1a1510] rounded-[4px] border border-[#0d0805]">
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-[#12131a] rounded-[4px] border border-[#0d0805]">
                     <div className="w-3 h-3 rounded-full bg-[#F0B232]" />
-                    <span className="text-xs font-medium text-[#DBDEE1]">Owner</span>
+                    <span className="text-xs font-medium text-slate-50">Owner</span>
                   </div>
                 )}
               </div>
@@ -139,9 +139,9 @@ export default function MemberProfileModal({
 
             {/* Note Section */}
             <div>
-              <div className="text-xs font-bold text-[#B5BAC1] uppercase mb-2">Note</div>
+              <div className="text-xs font-bold text-slate-400 uppercase mb-2">Note</div>
               <textarea
-                className="w-full bg-[#111214] text-[#DBDEE1] text-xs p-2 rounded-[3px] border-none outline-none resize-none h-[36px] placeholder-[#5C5E66] focus:h-[60px] transition-all duration-200"
+                className="w-full bg-[#111214] text-slate-50 text-xs p-2 rounded-[3px] border-none outline-none resize-none h-[36px] placeholder-[#5C5E66] focus:h-[60px] transition-all duration-200"
                 placeholder="Click to add a note"
               />
             </div>
