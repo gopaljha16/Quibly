@@ -24,5 +24,6 @@ router.get('/channel/:channelId', channelController.getChannelById);
 router.put('/channel/:channelId', channelController.updateChannel);
 router.delete('/channel/:channelId', channelController.deleteChannel);
 router.patch('/:serverId/reorder-channels', channelController.reorderChannels);
+router.get('/recommended-channels', channelController.getRecommendedChannels);
 
 module.exports = router;
