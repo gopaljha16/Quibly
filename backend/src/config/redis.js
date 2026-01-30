@@ -168,6 +168,81 @@ const redisWrapper = {
 
     isConnected() {
         return isConnected;
+    },
+
+    // Voice channel operations
+    async sadd(key, ...members) {
+        if (!client || !isConnected) return null;
+        try {
+            return await client.sAdd(key, members);
+        } catch (error) {
+            console.error('Redis SADD error:', error);
+            return null;
+        }
+    },
+
+    async srem(key, ...members) {
+        if (!client || !isConnected) return null;
+        try {
+            return await client.sRem(key, members);
+        } catch (error) {
+            console.error('Redis SREM error:', error);
+            return null;
+        }
+    },
+
+    async smembers(key) {
+        if (!client || !isConnected) return [];
+        try {
+            return await client.sMembers(key);
+        } catch (error) {
+            console.error('Redis SMEMBERS error:', error);
+            return [];
+        }
+    },
+
+    async hset(key, field, value) {
+        if (!client || !isConnected) return null;
+        try {
+            // If field is an object, use hSet with object
+            if (typeof field === 'object') {
+                return await client.hSet(key, field);
+            }
+            return await client.hSet(key, field, value);
+        } catch (error) {
+            console.error('Redis HSET error:', error);
+            return null;
+        }
+    },
+
+    async hget(key, field) {
+        if (!client || !isConnected) return null;
+        try {
+            return await client.hGet(key, field);
+        } catch (error) {
+            console.error('Redis HGET error:', error);
+            return null;
+        }
+    },
+
+    async hgetall(key) {
+        if (!client || !isConnected) return {};
+        try {
+            return await client.hGetAll(key);
+        } catch (error) {
+            console.error('Redis HGETALL error:', error);
+            return {};
+        }
+    },
+
+    async keys(pattern) {
+        if (!client || !isConnected) return [];
+        try {
+            return await client.keys(pattern);
+        } catch (error) {
+            console.error('Redis KEYS error:', error);
+            return [];
+        }
     }
 };
 
