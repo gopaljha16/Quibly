@@ -319,21 +319,86 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       {/* Channels Sidebar */}
       <div className="w-[240px] bg-[#0d0805] flex flex-col rounded-tl-[8px]">
         {/* Server Header */}
-        <div className="h-12 px-4 flex items-center border-b border-[#1a1510] shadow-sm cursor-pointer hover:bg-[#1a1510] transition-colors"
-          onClick={() => !route.isMe && route.serverId && setServerMenuOpen((v) => !v)}
-          ref={serverMenuRef}
-        >
-          <div className="font-bold text-white truncate flex-1">
-            {route.isMe ? 'Direct Messages' : selectedServer?.name || 'Server'}
+        <div className="relative">
+          <div className="h-12 px-4 flex items-center border-b border-[#1a1510] shadow-sm cursor-pointer hover:bg-[#1a1510] transition-colors"
+            onClick={() => !route.isMe && route.serverId && setServerMenuOpen((v) => !v)}
+          >
+            <div className="font-bold text-white truncate flex-1">
+              {route.isMe ? 'Direct Messages' : selectedServer?.name || 'Server'}
+            </div>
+            {!route.isMe && route.serverId && (
+              <div className="flex items-center">
+                <svg width="18" height="18" viewBox="0 0 24 24" className={`fill-current text-white transition-transform ${serverMenuOpen ? 'rotate-45' : ''}`}>
+                  <path d="M18 13h-5v5c0 .55-.45 1-1 1s-1-.45-1-1v-5H6c-.55 0-1-.45-1-1s.45-1 1-1h5V6c0-.55.45-1 1-1s1 .45 1 1v5h5c.55 0 1 .45 1 1s-.45 1-1 1z" />
+                </svg>
+              </div>
+            )}
           </div>
-          {!route.isMe && route.serverId && (
-            <div className="flex items-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" className={`fill-current text-white transition-transform ${serverMenuOpen ? 'rotate-45' : ''}`}>
-                <path d="M18 13h-5v5c0 .55-.45 1-1 1s-1-.45-1-1v-5H6c-.55 0-1-.45-1-1s.45-1 1-1h5V6c0-.55.45-1 1-1s1 .45 1 1v5h5c.55 0 1 .45 1 1s-.45 1-1 1z" />
-              </svg>
+
+          {serverMenuOpen && !route.isMe && route.serverId && (
+            <div
+              ref={serverMenuRef}
+              className="absolute top-full left-2 right-2 mt-1 bg-[#111214] rounded shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1.5 z-50"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setServerMenuOpen(false)
+                  setInviteModalOpen(true)
+                }}
+                className="w-full text-left px-2 py-1.5 text-sm text-[#f3c178] hover:bg-[#f3c178] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group"
+              >
+                Invite People
+                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setServerMenuOpen(false)
+                  setServerSettingsOpen(true)
+                }}
+                className="w-full text-left px-2 py-1.5 text-sm text-[#B5BAC1] hover:bg-[#1a1510] hover:text-white rounded-[2px] transition-colors flex items-center justify-between"
+              >
+                Server Settings
+                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current">
+                  <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
+                </svg>
+              </button>
+              <div className="h-px bg-[#1F2023] my-1" />
+              <button
+                type="button"
+                onClick={async () => {
+                  setServerMenuOpen(false)
+                  if (confirm('Leave this server?')) {
+                    if (route.serverId) {
+                      await leaveServer(route.serverId)
+                    }
+                  }
+                }}
+                className="w-full text-left px-2 py-1.5 text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white rounded-[2px] transition-colors"
+              >
+                Leave Server
+              </button>
+              {ownerId === currentUser?._id && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setServerMenuOpen(false)
+                    if (confirm('Delete this server permanently? This action cannot be undone.')) {
+                      if (route.serverId) {
+                        await deleteServer(route.serverId)
+                      }
+                    }
+                  }}
+                  className="w-full text-left px-2 py-1.5 text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white rounded-[2px] transition-colors"
+                >
+                  Delete Server
+                </button>
+              )}
             </div>
           )}
-
         </div>
 
         {/* Search Bar */}
@@ -577,9 +642,10 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             </div>
           )}
         </div>
+      </div>
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col bg-[#0b0500]">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col bg-[#0b0500]">
           {/* Channel Header */}
           <div className="h-12 border-b border-[#1a1510] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#0b0500]">
             <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#80848E]">
@@ -642,11 +708,11 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           </div>
 
           {children}
-        </div>
+      </div>
 
-        {/* Members Sidebar */}
-        {!route.isMe && route.serverId && (
-          <div className="w-[240px] bg-[#0d0805] flex flex-col flex-shrink-0">
+      {/* Members Sidebar */}
+      {!route.isMe && route.serverId && (
+        <div className="w-[240px] bg-[#0d0805] flex flex-col flex-shrink-0">
             <div className="h-12 px-4 flex items-center shadow-sm flex-shrink-0">
               {/* Use same height as header but transparent or matching bg */}
             </div>
@@ -705,8 +771,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           </div>
         )}
 
-        {/* Modals */}
-        {renameChannelId && (
+      {/* Modals */}
+      {renameChannelId && (
           <div
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
             onMouseDown={(e) => {
@@ -800,7 +866,6 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           user={selectedMember?.user || null}
           isOwner={!!selectedMember?.isOwner}
         />
-      </div>
-      )
-  }
+    </div>
+  )
 }
