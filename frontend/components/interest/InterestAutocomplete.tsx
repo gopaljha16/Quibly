@@ -20,14 +20,12 @@ interface InterestAutocompleteProps {
     interests: Interest[]
     selectedInterests: string[]
     onSelect: (interestId: string) => void
-    loading?: boolean
 }
 
 export default function InterestAutocomplete({
     interests,
     selectedInterests,
-    onSelect,
-    loading = false
+    onSelect
 }: InterestAutocompleteProps) {
     const [search, setSearch] = useState('')
     const [open, setOpen] = useState(false)
@@ -57,35 +55,28 @@ export default function InterestAutocomplete({
                 </div>
 
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 z-10 flex items-center gap-2">
-                    {loading ? (
-                        <div className="flex items-center gap-2 text-xs text-[#bdb9b6]">
-                            <div className="w-2 h-2 bg-[#f3c178] rounded-full animate-pulse"></div>
-                            <span>Loading...</span>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-1.5 text-xs text-[#bdb9b6] group-focus-within:text-[#f3c178] transition-colors">
-                            <Zap className="w-3.5 h-3.5" />
-                            <span className="font-medium">Live</span>
-                        </div>
-                    )}
+                    <div className="flex items-center gap-1.5 text-xs text-[#bdb9b6] group-focus-within:text-[#f3c178] transition-colors">
+                        <Zap className="w-3.5 h-3.5" />
+                        <span className="font-medium">Live</span>
+                    </div>
                 </div>
 
                 <Input
                     type="text"
-                    placeholder="Search from 98 interests..."
+                    placeholder="Search from 96 interests..."
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value)
-                        setOpen(e.target.value.length > 0)
+                        setOpen(true)
                     }}
-                    onFocus={() => setOpen(search.length > 0)}
-                    disabled={loading}
+                    onFocus={() => setOpen(true)}
+                    onClick={() => setOpen(true)}
                     className="pl-10 pr-24 bg-[#0b0500] border-[#f3c178]/30 text-[#fef9f0] placeholder:text-[#6b635c] focus:border-[#f3c178] focus:ring-2 focus:ring-[#f3c178]/20 h-11 transition-all duration-200"
                 />
             </div>
 
             {/* Dropdown */}
-            {open && search && (
+            {open && (
                 <div className="absolute top-full left-0 right-0 mt-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="relative">
                         <div className="absolute -inset-1 bg-gradient-to-r from-[#f3c178] to-[#f35e41] rounded-xl blur opacity-20"></div>
@@ -98,7 +89,7 @@ export default function InterestAutocomplete({
                                             <div className="w-2 h-2 bg-[#f3c178] rounded-full animate-pulse"></div>
                                             <span>{filteredInterests.length} interests found</span>
                                         </div>
-                                        {filteredInterests.slice(0, 10).map((interest, index) => (
+                                        {filteredInterests.map((interest, index) => (
                                             <CommandItem
                                                 key={interest.id}
                                                 value={interest.id}
@@ -128,11 +119,6 @@ export default function InterestAutocomplete({
                                                 </div>
                                             </CommandItem>
                                         ))}
-                                        {filteredInterests.length > 10 && (
-                                            <div className="p-2 text-xs text-center text-[#bdb9b6] border-t border-[#f3c178]/10 mt-1">
-                                                + {filteredInterests.length - 10} more
-                                            </div>
-                                        )}
                                     </CommandGroup>
                                 ) : (
                                     <CommandEmpty className="py-8 text-center">

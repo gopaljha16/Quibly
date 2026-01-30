@@ -523,298 +523,284 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   />
                 </div>
               </div>
-              <div className="pt-8 pb-3 px-4 border-b border-[#1a1510] bg-[#0d0805]">
-                <div className="font-bold text-lg text-white">
-                  {currentUser?.username || 'Loading...'}
+              <div className="px-4 pt-10 pb-4">
+                <div className="mb-4">
+                  <div className="text-white font-bold text-lg">{currentUser?.username}</div>
+                  {currentUser?.email && (
+                    <div className="text-[#949BA4] text-sm">{currentUser.email}</div>
+                  )}
                 </div>
-                <div className="text-sm text-[#B5BAC1]">
-                  #{currentUser?.discriminator || '0000'}
-                </div>
-              </div>
 
-              {/* Status Options */}
-              <div className="p-2 bg-[#0d0805]">
-                <div className="text-xs font-bold text-[#B5BAC1] uppercase mb-2 px-2 mt-2">Set Status</div>
-                {[
-                  { status: 'online' as const, label: 'Online', color: 'bg-[#23a559]' },
-                  { status: 'idle' as const, label: 'Idle', color: 'bg-[#f0b232]' },
-                  { status: 'dnd' as const, label: 'Do Not Disturb', color: 'bg-[#f23f43]' },
-                  { status: 'offline' as const, label: 'Invisible', color: 'bg-[#80848e]' }
-                ].map(({ status, label, color }) => (
+                <div className="space-y-1 mb-2">
+                  <div className="text-[#f3c178] text-xs font-bold uppercase mb-2">Set Status</div>
+                  {(['online', 'idle', 'dnd', 'offline'] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        changeStatus(s)
+                        setUserMenuOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm ${myStatus === s
+                        ? 'bg-[#f3c178]/20 text-white'
+                        : 'text-[#B5BAC1] hover:bg-[#1a1510] hover:text-white'
+                        }`}
+                    >
+                      <StatusBadge status={s} />
+                      <span className="capitalize">
+                        {s === 'dnd' ? 'Do Not Disturb' : s === 'offline' ? 'Invisible' : s}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="border-t border-[#1a1510] pt-2 mt-2">
                   <button
-                    key={status}
-                    onClick={() => {
-                      changeStatus(status)
-                      setUserMenuOpen(false)
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await apiPost('/auth/logout')
+                        router.push('/')
+                      } catch (err) {
+                        console.error('Logout failed:', err)
+                      }
                     }}
-                    className={`w-full text-left px-2 py-1.5 rounded-[2px] text-sm hover:bg-[#f3c178]/20 hover:text-[#f3c178] flex items-center gap-3 group transition-colors ${myStatus === status ? 'bg-[#f3c178]/10 text-[#f3c178] border-l-2 border-[#f3c178]' : 'text-[#B5BAC1]'
-                      }`}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white transition-colors"
                   >
-                    <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
-                    {label}
+                    <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                    </svg>
+                    <span className="font-medium">Log Out</span>
                   </button>
-                ))}
-              </div>
-
-              <div className="p-2 border-t border-[#1a1510] bg-[#0d0805]">
-                <button
-                  onClick={() => {
-                    setUserMenuOpen(false)
-                    void handleLogout()
-                  }}
-                  className="w-full text-left px-2 py-1.5 text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white rounded-[2px] transition-colors flex items-center gap-2"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current">
-                    <path d="M9 3V5H15V3H9ZM5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V5H5ZM16.17 11L14.59 12.58L13 11V16H11V11L9.41 12.59L7.83 11L12 6.83L16.17 11Z" transform="rotate(90 12 12)" />
-                  </svg>
-                  Log Out
-                </button>
+                </div>
               </div>
             </div>
           )}
         </div>
-      </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col bg-[#0b0500]">
-        {/* Channel Header */}
-        <div className="h-12 border-b border-[#1a1510] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#0b0500]">
-          <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#80848E]">
-            <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
-          </svg>
-          <div className="font-bold text-white truncate text-[16px]">
-            {route.isMe ? 'Friends' : selectedChannel?.name || 'general'}
-          </div>
-          {selectedChannel?.description && (
-            <>
-              <div className="w-px h-6 bg-[#3F4147] mx-2" />
-              <div className="text-xs text-[#B5BAC1] truncate max-w-lg font-medium">
-                {selectedChannel.description}
-              </div>
-            </>
-          )}
-          <div className="ml-auto flex items-center gap-4">
-            <button className="w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group">
-              <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L13.5 2.5L16.17 5.17C15.24 5.06 14.32 5 13.4 5H12C7.58 5 4 8.58 4 13C4 17.42 7.58 21 12 21C16.42 21 20 17.42 20 13H18C18 16.31 15.31 19 12 19C8.69 19 6 16.31 6 13C6 9.69 8.69 7 12 7H13.4C14.8 7 16.2 7.2 17.6 7.7L21 9Z" />
-              </svg>
-              <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                Notification Settings
-              </div>
-            </button>
-            <button className="w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group">
-              <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-              </svg>
-              <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                Pinned Messages
-              </div>
-            </button>
-            <button
-              className={`w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group ${route.isMe ? 'hidden' : ''}`}
-              onClick={() => {
-                // Toggle member list visibility if I had state for it
-                // For now just visual
-              }}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-                <path d="M16 4C16 2.89 16.89 2 18 2C19.11 2 20 2.89 20 4C20 5.11 19.11 6 18 6C16.89 6 16 5.11 16 4ZM16 20V14H18.5L15.96 6.37C15.5 4.97 13.92 4.97 13.46 6.37L10.92 14H13.42V20H16ZM4 4C4 2.89 4.89 2 6 2C7.11 2 8 2.89 8 4C8 5.11 7.11 6 6 6C4.89 6 4 5.11 4 4ZM1.75 16L4.5 7.94C4.96 6.54 6.54 6.54 7 7.94L9.75 16H8V22H4V16H1.75Z" />
-              </svg>
-              <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                Hide Member List
-              </div>
-            </button>
-
-            <div className="relative group">
-              <input
-                type="text"
-                placeholder="Search"
-                className="bg-[#1E1F22] text-sm text-[#DBDEE1] placeholder-[#949BA4] rounded-[4px] px-2 py-1 w-36 transition-all focus:w-60 focus:outline-none"
-              />
-              <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current text-[#949BA4] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                <path d="M21.707 20.293L16.314 14.9C17.403 13.504 18 11.799 18 10C18 6.009 15.363 2.691 11.609 2.133C7.527 1.517 3.966 4.394 3.125 8.406C2.35 12.096 5.167 15.65 8.921 15.957C10.799 16.111 12.504 15.514 13.9 14.425L19.293 19.818C19.488 20.013 19.744 20.11 20 20.11C20.256 20.11 20.512 20.013 20.707 19.818C21.098 19.427 21.098 18.795 21.707 20.293ZM10 14C7.794 14 6 12.206 6 10C6 7.794 7.794 6 10 6C12.206 6 14 7.794 14 10C14 12.206 12.206 14 10 14Z" />
-              </svg>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col bg-[#0b0500]">
+          {/* Channel Header */}
+          <div className="h-12 border-b border-[#1a1510] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#0b0500]">
+            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#80848E]">
+              <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
+            </svg>
+            <div className="font-bold text-white truncate text-[16px]">
+              {route.isMe ? 'Friends' : selectedChannel?.name || 'general'}
             </div>
-          </div>
-        </div>
-
-        {children}
-      </div>
-
-      {/* Members Sidebar */}
-      {!route.isMe && route.serverId && (
-        <div className="w-[240px] bg-[#0d0805] flex flex-col flex-shrink-0">
-          <div className="h-12 px-4 flex items-center shadow-sm flex-shrink-0">
-            {/* Use same height as header but transparent or matching bg */}
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1a1510] scrollbar-track-[#0d0805]">
-            {membersError && (
-              <div className="mx-2 mb-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-                {membersError instanceof Error ? membersError.message : String(membersError)}
-              </div>
+            {selectedChannel?.description && (
+              <>
+                <div className="w-px h-6 bg-[#3F4147] mx-2" />
+                <div className="text-xs text-[#B5BAC1] truncate max-w-lg font-medium">
+                  {selectedChannel.description}
+                </div>
+              </>
             )}
-
-            {/* Group Members by Status (Simplified for now) */}
-            <div className="px-3 pt-3 pb-1 text-xs text-[#949BA4] font-bold uppercase tracking-wide">
-              Online — {members.length}
-            </div>
-
-            {members.map((m) => {
-              const user = m.user
-              const isOwner = ownerId ? ownerId === user._id : false
-              const userStatus = getUserStatus(user._id)
-              const isOnline = isUserOnline(user._id)
-
-              return (
-                <button
-                  key={m._id}
-                  type="button"
-                  onClick={() => setSelectedMember({ user: { ...user, status: userStatus }, isOwner })}
-                  className="w-full px-2 py-1.5 rounded-[4px] hover:bg-[#1a1510] transition-colors flex items-center gap-3 group opacity-90 hover:opacity-100"
-                >
-                  <UserAvatar
-                    username={user.username}
-                    avatar={user.avatar}
-                    size="md"
-                    status={userStatus}
-                    showStatus
-                  />
-                  <div className="min-w-0 flex-1 text-left">
-                    <div className="flex items-center gap-1.5">
-                      <div className={`text-[15px] font-medium truncate ${isOnline ? 'text-[#DBDEE1]' : 'text-[#949BA4] group-hover:text-[#DBDEE1]'}`}>
-                        {user.username}
-                      </div>
-                      {isOwner && (
-                        <svg className="w-3.5 h-3.5 text-[#F0B232]" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M13.6572 5.42868C13.8879 5.29002 14.1806 5.30402 14.3973 5.46468C14.6133 5.62602 14.7119 5.90068 14.6473 6.16202L13.3139 11.4954C13.2393 11.7927 12.9726 12.0007 12.6666 12.0007H3.33325C3.02725 12.0007 2.76058 11.7927 2.68592 11.4954L1.35258 6.16202C1.28792 5.90068 1.38658 5.62602 1.60258 5.46468C1.81992 5.30468 2.11192 5.29068 2.34325 5.42868L5.13192 7.10202L7.44592 3.63068C7.46173 3.60697 7.48026 3.5853 7.50125 3.56602C7.62192 3.45535 7.78058 3.39002 7.94525 3.38202H8.05458C8.21925 3.39002 8.37792 3.45535 8.49925 3.56602C8.52024 3.5853 8.53877 3.60697 8.55458 3.63068L10.8686 7.10202L13.6572 5.42868ZM2.66667 13.334H13.3333V14.6673H2.66667V13.334Z" />
-                        </svg>
-                      )}
-                    </div>
-                    {user.customStatus && (
-                      <div className="text-xs text-[#949BA4] truncate group-hover:text-[#DBDEE1]">{user.customStatus}</div>
-                    )}
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Modals */}
-      {renameChannelId && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setRenameChannelId(null)
-          }}
-        >
-          <div className="w-[420px] max-w-[92vw] rounded-xl border border-black/20 bg-[#36393f] p-6">
-            <div className="text-lg font-semibold text-white mb-4">Edit Channel</div>
-            <div className="mb-4">
-              <label className="block text-xs font-semibold text-white/60 mb-2 uppercase">Channel Name</label>
-              <input
-                className="w-full h-10 rounded bg-[#40444b] border border-black/20 px-3 text-sm outline-none focus:border-[#f3c178] text-white"
-                value={renameChannelValue}
-                onChange={(e) => setRenameChannelValue(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                className="px-4 py-2 rounded bg-transparent hover:bg-white/5 text-sm text-white"
-                onClick={() => setRenameChannelId(null)}
-                disabled={renamingChannel}
-              >
-                Cancel
+            <div className="ml-auto flex items-center gap-4">
+              <button className="w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group">
+                <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L13.5 2.5L16.17 5.17C15.24 5.06 14.32 5 13.4 5H12C7.58 5 4 8.58 4 13C4 17.42 7.58 21 12 21C16.42 21 20 17.42 20 13H18C18 16.31 15.31 19 12 19C8.69 19 6 16.31 6 13C6 9.69 8.69 7 12 7H13.4C14.8 7 16.2 7.2 17.6 7.7L21 9Z" />
+                </svg>
+                <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  Notification Settings
+                </div>
+              </button>
+              <button className="w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group">
+                <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+                <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  Pinned Messages
+                </div>
               </button>
               <button
-                type="button"
-                className="px-4 py-2 rounded bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-sm text-[#0b0500] font-bold disabled:opacity-60"
-                disabled={renamingChannel || !renameChannelValue.trim()}
-                onClick={async () => {
-                  const cid = renameChannelId
-                  const next = renameChannelValue.trim()
-                  if (!cid || !next) return
-                  setRenamingChannel(true)
-                  try {
-                    await updateChannel(cid, { name: next })
-                    setRenameChannelId(null)
-                  } finally {
-                    setRenamingChannel(false)
-                  }
+                className={`w-6 h-6 text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors relative group ${route.isMe ? 'hidden' : ''}`}
+                onClick={() => {
+                  // Toggle member list visibility if I had state for it
+                  // For now just visual
                 }}
               >
-                Save Changes
+                <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                  <path d="M16 4C16 2.89 16.89 2 18 2C19.11 2 20 2.89 20 4C20 5.11 19.11 6 18 6C16.89 6 16 5.11 16 4ZM16 20V14H18.5L15.96 6.37C15.5 4.97 13.92 4.97 13.46 6.37L10.92 14H13.42V20H16ZM4 4C4 2.89 4.89 2 6 2C7.11 2 8 2.89 8 4C8 5.11 7.11 6 6 6C4.89 6 4 5.11 4 4ZM1.75 16L4.5 7.94C4.96 6.54 6.54 6.54 7 7.94L9.75 16H8V22H4V16H1.75Z" />
+                </svg>
+                <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  Hide Member List
+                </div>
               </button>
+
+              <div className="relative group">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="bg-[#1E1F22] text-sm text-[#DBDEE1] placeholder-[#949BA4] rounded-[4px] px-2 py-1 w-36 transition-all focus:w-60 focus:outline-none"
+                />
+                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current text-[#949BA4] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <path d="M21.707 20.293L16.314 14.9C17.403 13.504 18 11.799 18 10C18 6.009 15.363 2.691 11.609 2.133C7.527 1.517 3.966 4.394 3.125 8.406C2.35 12.096 5.167 15.65 8.921 15.957C10.799 16.111 12.504 15.514 13.9 14.425L19.293 19.818C19.488 20.013 19.744 20.11 20 20.11C20.256 20.11 20.512 20.013 20.707 19.818C21.098 19.427 21.098 18.795 21.707 20.293ZM10 14C7.794 14 6 12.206 6 10C6 7.794 7.794 6 10 6C12.206 6 14 7.794 14 10C14 12.206 12.206 14 10 14Z" />
+                </svg>
+              </div>
             </div>
           </div>
+
+          {children}
         </div>
-      )}
 
-      <CreateServerModal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreate={async (name) => {
-          await createServer(name)
-          setCreateOpen(false)
-        }}
-        loading={creatingServer}
-        error={createServerError}
-      />
-      <JoinServerModal
-        open={joinOpen}
-        onClose={() => setJoinOpen(false)}
-        onJoin={async (serverId) => {
-          await joinServer(serverId)
-          setJoinOpen(false)
-        }}
-        loading={joiningServer}
-        error={joinServerError}
-      />
-      <CreateChannelModal
-        open={createChannelOpen}
-        onClose={() => setCreateChannelOpen(false)}
-        onCreate={async (name) => {
-          await createChannel(name)
-          setCreateChannelOpen(false)
-        }}
-        loading={creatingChannel}
-        error={createChannelError}
-      />
+        {/* Members Sidebar */}
+        {!route.isMe && route.serverId && (
+          <div className="w-[240px] bg-[#0d0805] flex flex-col flex-shrink-0">
+            <div className="h-12 px-4 flex items-center shadow-sm flex-shrink-0">
+              {/* Use same height as header but transparent or matching bg */}
+            </div>
 
-      <ServerSettingsModal
-        open={serverSettingsOpen}
-        onClose={() => setServerSettingsOpen(false)}
-        server={selectedServer}
-        onUpdate={async (updatedServer) => {
-          if (selectedServer) {
-            await updateServer(selectedServer._id, {
-              name: updatedServer.name,
-              description: updatedServer.description,
-              icon: updatedServer.icon || undefined,
-              banner: updatedServer.banner || undefined,
-              isPublic: updatedServer.isPublic,
-              verificationLevel: updatedServer.verificationLevel
-            })
-          }
-        }}
-      />
+            <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1a1510] scrollbar-track-[#0d0805]">
+              {membersError && (
+                <div className="mx-2 mb-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                  {membersError instanceof Error ? membersError.message : String(membersError)}
+                </div>
+              )}
 
-      <InviteServerModal
-        open={inviteModalOpen}
-        onClose={() => setInviteModalOpen(false)}
-        server={selectedServer}
-      />
+              {/* Group Members by Status (Simplified for now) */}
+              <div className="px-3 pt-3 pb-1 text-xs text-[#949BA4] font-bold uppercase tracking-wide">
+                Online — {members.length}
+              </div>
 
-      <MemberProfileModal
-        open={!!selectedMember}
-        onClose={() => setSelectedMember(null)}
-        user={selectedMember?.user || null}
-        isOwner={!!selectedMember?.isOwner}
-      />
-    </div>
-  )
+              {members.map((m) => {
+                const user = m.user
+                const isOwner = ownerId ? ownerId === user._id : false
+                const userStatus = getUserStatus(user._id)
+                const isOnline = isUserOnline(user._id)
+
+                return (
+                  <button
+                    key={m._id}
+                    type="button"
+                    onClick={() => setSelectedMember({ user: { ...user, status: userStatus }, isOwner })}
+                    className="w-full px-2 py-1.5 rounded-[4px] hover:bg-[#1a1510] transition-colors flex items-center gap-3 group opacity-90 hover:opacity-100"
+                  >
+                    <UserAvatar
+                      username={user.username}
+                      avatar={user.avatar}
+                      size="md"
+                      status={userStatus}
+                      showStatus
+                    />
+                    <div className="min-w-0 flex-1 text-left">
+                      <div className="flex items-center gap-1.5">
+                        <div className={`text-[15px] font-medium truncate ${isOnline ? 'text-[#DBDEE1]' : 'text-[#949BA4] group-hover:text-[#DBDEE1]'}`}>
+                          {user.username}
+                        </div>
+                        {isOwner && (
+                          <svg className="w-3.5 h-3.5 text-[#F0B232]" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M13.6572 5.42868C13.8879 5.29002 14.1806 5.30402 14.3973 5.46468C14.6133 5.62602 14.7119 5.90068 14.6473 6.16202L13.3139 11.4954C13.2393 11.7927 12.9726 12.0007 12.6666 12.0007H3.33325C3.02725 12.0007 2.76058 11.7927 2.68592 11.4954L1.35258 6.16202C1.28792 5.90068 1.38658 5.62602 1.60258 5.46468C1.81992 5.30468 2.11192 5.29068 2.34325 5.42868L5.13192 7.10202L7.44592 3.63068C7.46173 3.60697 7.48026 3.5853 7.50125 3.56602C7.62192 3.45535 7.78058 3.39002 7.94525 3.38202H8.05458C8.21925 3.39002 8.37792 3.45535 8.49925 3.56602C8.52024 3.5853 8.53877 3.60697 8.55458 3.63068L10.8686 7.10202L13.6572 5.42868ZM2.66667 13.334H13.3333V14.6673H2.66667V13.334Z" />
+                          </svg>
+                        )}
+                      </div>
+                      {user.customStatus && (
+                        <div className="text-xs text-[#949BA4] truncate group-hover:text-[#DBDEE1]">{user.customStatus}</div>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Modals */}
+        {renameChannelId && (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setRenameChannelId(null)
+            }}
+          >
+            <div className="w-[420px] max-w-[92vw] rounded-xl border border-black/20 bg-[#36393f] p-6">
+              <div className="text-lg font-semibold text-white mb-4">Edit Channel</div>
+              <div className="mb-4">
+                <label className="block text-xs font-semibold text-white/60 mb-2 uppercase">Channel Name</label>
+                <input
+                  className="w-full h-10 rounded bg-[#40444b] border border-black/20 px-3 text-sm outline-none focus:border-[#f3c178] text-white"
+                  value={renameChannelValue}
+                  onChange={(e) => setRenameChannelValue(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-transparent hover:bg-white/5 text-sm text-white"
+                  onClick={() => setRenameChannelId(null)}
+                  disabled={renamingChannel}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-sm text-[#0b0500] font-bold disabled:opacity-60"
+                  disabled={renamingChannel || !renameChannelValue.trim()}
+                  onClick={async () => {
+                    const cid = renameChannelId
+                    const next = renameChannelValue.trim()
+                    if (!cid || !next) return
+                    setRenamingChannel(true)
+                    try {
+                      await updateChannel(cid, { name: next })
+                      setRenameChannelId(null)
+                    } finally {
+                      setRenamingChannel(false)
+                    }
+                  }}
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <CreateServerModal
+          open={createOpen}
+          onClose={() => setCreateOpen(false)}
+        />
+        <JoinServerModal
+          open={joinOpen}
+          onClose={() => setJoinOpen(false)}
+        />
+        <CreateChannelModal
+          open={createChannelOpen}
+          onClose={() => setCreateChannelOpen(false)}
+        />
+
+        <ServerSettingsModal
+          open={serverSettingsOpen}
+          onClose={() => setServerSettingsOpen(false)}
+          server={selectedServer}
+          onUpdate={async (updatedServer) => {
+            if (selectedServer) {
+              await updateServer(selectedServer._id, {
+                name: updatedServer.name,
+                description: updatedServer.description,
+                icon: updatedServer.icon || undefined,
+                banner: updatedServer.banner || undefined,
+                isPublic: updatedServer.isPublic,
+                verificationLevel: updatedServer.verificationLevel
+              })
+            }
+          }}
+        />
+
+        <InviteServerModal
+          open={inviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+          server={selectedServer}
+        />
+
+        <MemberProfileModal
+          open={!!selectedMember}
+          onClose={() => setSelectedMember(null)}
+          user={selectedMember?.user || null}
+          isOwner={!!selectedMember?.isOwner}
+        />
+      </div>
+      )
+  }
 }

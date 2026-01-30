@@ -7,8 +7,8 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog'
-import LoginModalContent from '@/components/auth/LoginModalContent'
-import SignupModalContent from '@/components/auth/SignupModalContent'
+import LoginForm from '@/components/auth/LoginForm'
+import SignupForm from '@/components/auth/SignupForm'
 
 export default function LandingPage() {
   const [loginOpen, setLoginOpen] = useState(false)
@@ -118,7 +118,7 @@ export default function LandingPage() {
       <section className="relative min-h-screen flex items-center justify-center px-4 pt-16">
         <div className="container mx-auto">
           <div className="max-w-5xl mx-auto text-center space-y-6">
-            
+
 
             {/* Main Headline */}
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-black leading-[1.1] animate-in fade-in slide-in-from-bottom-8 duration-700" style={{ animationDelay: '100ms' }}>
@@ -256,13 +256,13 @@ export default function LandingPage() {
       {/* Modals */}
       <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
         <DialogContent className="bg-[#1a1510] border-[#f3c178]/20">
-          <LoginModalContent onSuccess={() => setLoginOpen(false)} />
+          <LoginForm />
         </DialogContent>
       </Dialog>
 
       <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
         <DialogContent className="bg-[#1a1510] border-[#f3c178]/20 max-h-[90vh] overflow-y-auto">
-          <SignupModalContent onSuccess={() => setSignupOpen(false)} />
+          <SignupForm />
         </DialogContent>
       </Dialog>
 
