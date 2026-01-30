@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="flex items-center justify-center min-h-screen bg-[#313338]">
+        <div className="flex items-center justify-center min-h-screen bg-[#0b0500]">
           <div className="text-center p-8 max-w-md">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-red-500/10 flex items-center justify-center">
               <svg
@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 this.setState({ hasError: false, error: undefined })
                 window.location.reload()
               }}
-              className="px-6 py-3 rounded-lg bg-[#5865f2] hover:bg-[#4752c4] text-white font-medium transition-colors"
+              className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold transition-colors"
             >
               Reload Page
             </button>

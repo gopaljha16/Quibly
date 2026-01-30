@@ -33,7 +33,7 @@ export default function CreateServerModal({
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[440px] rounded-[4px] bg-[#313338] shadow-2xl overflow-hidden animate-scale-in text-center">
+        <div className="w-full max-w-[440px] rounded-[4px] bg-[#1a1510] shadow-2xl overflow-hidden animate-scale-in text-center">
           <div className="px-6 pt-6 pb-2">
             <h2 className="text-2xl font-bold text-[#F2F3F5] mb-2">Create Your Server</h2>
             <p className="text-[#B5BAC1] text-sm mb-4">
@@ -67,18 +67,18 @@ export default function CreateServerModal({
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-[3px] bg-[#1E1F22] p-2.5 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
+                className="w-full rounded-[3px] bg-[#0d0805] p-2.5 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
                 placeholder="My Server"
                 disabled={loading}
               />
             </div>
-            
+
             <div className="text-[10px] text-[#949BA4] text-left mb-4">
-              By creating a server, you agree to Discord's <a href="#" className="text-[#00A8FC] hover:underline">Community Guidelines</a>.
+              By creating a server, you agree to Discord's <a href="#" className="text-[#f3c178] hover:underline">Community Guidelines</a>.
             </div>
           </div>
 
-          <div className="bg-[#2B2D31] p-4 flex justify-between items-center">
+          <div className="bg-[#0d0805] p-4 flex justify-between items-center">
             <button
               type="button"
               onClick={() => {
@@ -92,7 +92,7 @@ export default function CreateServerModal({
             <button
               type="button"
               onClick={() => onCreate(name.trim())}
-              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-[#5865f2] hover:bg-[#4752c4] text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading || !name.trim()}
             >
               {loading ? 'Creating...' : 'Create'}

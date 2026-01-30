@@ -11,11 +11,11 @@ import { Message } from '@/hooks/queries'
 import { MessageListSkeleton } from '@/components/LoadingSkeletons'
 
 // Message Item Component
-const MessageItem = ({ 
-  message, 
-  onEdit, 
-  onDelete 
-}: { 
+const MessageItem = ({
+  message,
+  onEdit,
+  onDelete
+}: {
   message: Message
   onEdit: (id: string, content: string) => void
   onDelete: (id: string) => void
@@ -23,34 +23,34 @@ const MessageItem = ({
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const { firstUrl } = useLinkPreviews(message.content)
-  
-  const sender = typeof message.senderId === 'string' 
+
+  const sender = typeof message.senderId === 'string'
     ? message.senderId === 'me' ? 'You' : message.senderId
     : message.senderId.username
-    
+
   const date = new Date(message.createdAt)
   const today = new Date()
-  const isToday = date.getDate() === today.getDate() && 
-    date.getMonth() === today.getMonth() && 
+  const isToday = date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
     date.getFullYear() === today.getFullYear()
-    
+
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
   const isYesterday = date.getDate() === yesterday.getDate() &&
     date.getMonth() === yesterday.getMonth() &&
     date.getFullYear() === yesterday.getFullYear()
 
-  const timeStr = date.toLocaleTimeString([], { 
-    hour: 'numeric', 
-    minute: '2-digit' 
+  const timeStr = date.toLocaleTimeString([], {
+    hour: 'numeric',
+    minute: '2-digit'
   })
 
-  const dateStr = isToday 
+  const dateStr = isToday
     ? `Today at ${timeStr}`
     : isYesterday
       ? `Yesterday at ${timeStr}`
       : `${date.toLocaleDateString()} ${timeStr}`
-  
+
   const initials = sender?.slice(0, 1).toUpperCase() || 'U'
   const canAct = !message._id.startsWith('optimistic-')
 
@@ -67,18 +67,18 @@ const MessageItem = ({
 
   return (
     <div className={`group flex gap-4 px-4 py-0.5 hover:bg-[#2e3035]/60 relative mt-[1.0625rem] first:mt-2 ${menuOpen ? 'bg-[#2e3035]/60' : ''}`}>
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5865F2] to-[#4752C4] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 cursor-pointer hover:drop-shadow-md transition-all active:translate-y-px">
+      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f3c178] to-[#f35e41] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 cursor-pointer hover:drop-shadow-md transition-all active:translate-y-px">
         {typeof message.senderId === 'object' && message.senderId.avatar ? (
-          <img 
-            src={message.senderId.avatar} 
-            alt={sender} 
-            className="w-full h-full rounded-full object-cover" 
+          <img
+            src={message.senderId.avatar}
+            alt={sender}
+            className="w-full h-full rounded-full object-cover"
           />
         ) : (
           initials
         )}
       </div>
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-medium text-white hover:underline cursor-pointer">
@@ -89,12 +89,12 @@ const MessageItem = ({
             <span className="text-[0.625rem] text-[#949BA4]">(edited)</span>
           )}
         </div>
-        
+
         <div className="text-[#DBDEE1] break-words leading-[1.375rem]">
-          <LinkifiedText 
-            text={message.content} 
+          <LinkifiedText
+            text={message.content}
             className="whitespace-pre-wrap"
-            linkClassName="text-[#00A8FC] hover:underline cursor-pointer transition-colors"
+            linkClassName="text-[#f3c178] hover:underline cursor-pointer transition-colors"
           />
         </div>
 
@@ -104,7 +104,7 @@ const MessageItem = ({
           </div>
         )}
       </div>
-      
+
       {canAct && (
         <div className={`absolute -top-4 right-4 ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity z-10`}>
           <div className="bg-[#313338] rounded shadow-sm border border-[#26272D] flex items-center p-0.5 transition-transform hover:scale-[1.02]">
@@ -119,7 +119,7 @@ const MessageItem = ({
                 Edit
               </div>
             </button>
-            
+
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className={`p-1.5 hover:bg-[#404249] text-[#B5BAC1] hover:text-[#DBDEE1] rounded transition-colors relative group/tooltip ${menuOpen ? 'bg-[#404249] text-[#DBDEE1]' : ''}`}
@@ -132,9 +132,9 @@ const MessageItem = ({
               </div>
             </button>
           </div>
-          
+
           {menuOpen && (
-            <div 
+            <div
               ref={menuRef}
               className="absolute top-full right-0 mt-1 w-[188px] bg-[#111214] rounded shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1.5 z-50"
             >
@@ -159,12 +159,12 @@ const MessageItem = ({
 }
 
 // Message Input Component
-const MessageInput = ({ 
-  channelName, 
-  value, 
-  onChange, 
-  onSend, 
-  disabled 
+const MessageInput = ({
+  channelName,
+  value,
+  onChange,
+  onSend,
+  disabled
 }: {
   channelName: string
   value: string
@@ -173,14 +173,14 @@ const MessageInput = ({
   disabled: boolean
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       onSend()
     }
   }
-  
+
   useEffect(() => {
     const textarea = textareaRef.current
     if (textarea) {
@@ -188,10 +188,10 @@ const MessageInput = ({
       textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px'
     }
   }, [value])
-  
+
   return (
-    <div className="px-4 pb-6 bg-[#313338] flex-shrink-0 z-10">
-      <div className="bg-[#383A40] rounded-lg focus-within:ring-1 focus-within:ring-[#00A8FC] transition-all relative">
+    <div className="px-4 pb-6 bg-[#0b0500] flex-shrink-0 z-10">
+      <div className="bg-[#1a1510] rounded-lg focus-within:ring-1 focus-within:ring-[#f3c178] transition-all relative">
         <div className="absolute left-4 top-[10px] flex items-center">
           <button className="w-6 h-6 rounded-full bg-[#B5BAC1] hover:text-[#DBDEE1] text-[#313338] flex items-center justify-center transition-colors hover:bg-[#D1D5DA]">
             <svg width="14" height="14" viewBox="0 0 24 24" className="fill-current font-bold">
@@ -210,7 +210,7 @@ const MessageInput = ({
           disabled={disabled}
           rows={1}
         />
-        
+
         <div className="absolute right-3 top-[8px] flex items-center gap-3">
           <button className="text-[#B5BAC1] hover:text-[#DBDEE1] transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current transform scale-90">
@@ -228,7 +228,7 @@ const MessageInput = ({
 export default function ChannelsPage() {
   const { route, channels, channelsLoading, selectedChannel } = useChannelsData()
   const bottomRef = useRef<HTMLDivElement | null>(null)
-  
+
   // Use new messages hook
   const {
     messages,
@@ -276,13 +276,13 @@ export default function ChannelsPage() {
 
   return (
     <>
-      <div className="flex-1 overflow-auto bg-[#313338] scrollbar-thin scrollbar-thumb-[#1A1B1E] scrollbar-track-[#2B2D31] flex flex-col">
+      <div className="flex-1 overflow-auto bg-[#0b0500] scrollbar-thin scrollbar-thumb-[#1a1510] scrollbar-track-[#0b0500] flex flex-col">
         {route.isMe ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-[#5865f2] flex items-center justify-center">
+              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#f3c178] to-[#f35e41] flex items-center justify-center">
                 <svg width="48" height="48" viewBox="0 0 24 24" className="fill-current text-white">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">Friends</h2>
@@ -300,9 +300,9 @@ export default function ChannelsPage() {
             <div className="flex-1 flex flex-col justify-end min-h-0">
               {!messagesLoading && sortedMessages.length < 50 && (
                 <div className="px-4 pt-12 pb-4 mt-auto">
-                  <div className="w-[68px] h-[68px] rounded-full bg-[#41434A] flex items-center justify-center mb-4">
+                  <div className="w-[68px] h-[68px] rounded-full bg-[#1a1510] flex items-center justify-center mb-4">
                     <svg width="42" height="42" viewBox="0 0 24 24" className="fill-current text-white">
-                      <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z"/>
+                      <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
                     </svg>
                   </div>
                   <h1 className="text-[32px] font-bold text-white mb-2">Welcome to #{selectedChannel.name}!</h1>
@@ -330,7 +330,7 @@ export default function ChannelsPage() {
                   ))}
                 </div>
               )}
-              
+
               <div ref={bottomRef} className="h-0" />
             </div>
           </div>
@@ -354,10 +354,10 @@ export default function ChannelsPage() {
             if (e.target === e.currentTarget) cancelEditing()
           }}
         >
-          <div className="w-[520px] max-w-[92vw] rounded-xl border border-black/20 bg-[#36393f] p-6">
+          <div className="w-[520px] max-w-[92vw] rounded-xl border border-black/20 bg-[#1a1510] p-6">
             <div className="text-lg font-semibold text-white mb-4">Edit Message</div>
             <textarea
-              className="w-full min-h-24 rounded bg-[#40444b] border border-black/20 px-3 py-2 text-sm outline-none focus:border-[#5865f2] text-white resize-none"
+              className="w-full min-h-24 rounded bg-[#0d0805] border border-black/20 px-3 py-2 text-sm outline-none focus:border-[#f3c178] text-white resize-none"
               value={editingMessageContent}
               onChange={(e) => {
                 // Update editing content in Zustand
@@ -377,7 +377,7 @@ export default function ChannelsPage() {
               </button>
               <button
                 type="button"
-                className="px-4 py-2 rounded bg-[#5865f2] hover:bg-[#4752c4] text-sm text-white disabled:opacity-60"
+                className="px-4 py-2 rounded bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-sm text-[#0b0500] font-bold disabled:opacity-60"
                 disabled={editing || !editingMessageContent.trim()}
                 onClick={saveEdit}
               >

@@ -33,7 +33,7 @@ export default function JoinServerModal({
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[440px] rounded-[4px] bg-[#313338] shadow-2xl overflow-hidden animate-scale-in text-center">
+        <div className="w-full max-w-[440px] rounded-[4px] bg-[#1a1510] shadow-2xl overflow-hidden animate-scale-in text-center">
           <div className="px-6 pt-6 pb-2">
             <h2 className="text-2xl font-bold text-[#F2F3F5] mb-2">Join a Server</h2>
             <p className="text-[#B5BAC1] text-sm mb-4">
@@ -67,7 +67,7 @@ export default function JoinServerModal({
               <input
                 value={serverId}
                 onChange={(e) => setServerId(e.target.value)}
-                className="w-full rounded-[3px] bg-[#1E1F22] p-2.5 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
+                className="w-full rounded-[3px] bg-[#0d0805] p-2.5 text-[#DBDEE1] outline-none font-medium placeholder-[#87898C]"
                 placeholder="https://discord.gg/hTKzmak"
                 disabled={loading}
               />
@@ -77,7 +77,7 @@ export default function JoinServerModal({
             </div>
           </div>
 
-          <div className="bg-[#2B2D31] p-4 flex justify-between items-center">
+          <div className="bg-[#0d0805] p-4 flex justify-between items-center">
             <button
               type="button"
               onClick={() => {
@@ -91,7 +91,7 @@ export default function JoinServerModal({
             <button
               type="button"
               onClick={() => onJoin(serverId.trim())}
-              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-[#5865F2] hover:bg-[#4752C4] text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-gradient-to-r from-[#f3c178] to-[#f35e41] hover:from-[#e0a850] hover:to-[#e0442a] text-[#0b0500] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading || !serverId.trim()}
             >
               {loading ? 'Joining...' : 'Join Server'}
