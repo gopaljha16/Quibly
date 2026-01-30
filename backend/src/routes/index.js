@@ -7,6 +7,7 @@ const messageRoutes = require('./message');
 const linkPreviewRoutes = require('./linkPreview');
 const userRoutes = require('./users');
 const interestRoutes = require('./interest');
+const voiceRoutes = require('./voice');
 
 // Use routes
 router.use('/auth', authRoutes);
@@ -15,6 +16,7 @@ router.use('/message', messageRoutes);
 router.use('/link-preview', linkPreviewRoutes);
 router.use('/users', userRoutes);
 router.use('/interests', interestRoutes);
+router.use('/voice', voiceRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {
