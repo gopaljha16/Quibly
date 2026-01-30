@@ -14,6 +14,17 @@ module.exports = (io, socket) => {
   // User comes online
   const handleUserOnline = async (userId) => {
     try {
+      // Check if user exists first
+      const userExists = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true }
+      });
+
+      if (!userExists) {
+        console.error(`User ${userId} not found in database`);
+        return;
+      }
+
       // Update user status in database
       await db.user.update({
         where: { id: userId },
@@ -42,8 +53,6 @@ module.exports = (io, socket) => {
         status: "online",
         lastSeen: new Date().toISOString()
       });
-
-      console.log(`User ${userId} is now online`);
     } catch (error) {
       console.error("Error handling user online:", error);
     }
@@ -60,29 +69,35 @@ module.exports = (io, socket) => {
         if (activeConnections.get(userId).size === 0) {
           activeConnections.delete(userId);
           
-          // Update database
-          await db.user.update({
+          // Check if user exists before updating
+          const userExists = await db.user.findUnique({
             where: { id: userId },
-            data: {
-              status: "offline",
-              lastSeen: new Date()
+            select: { id: true }
+          });
+
+          if (userExists) {
+            // Update database
+            await db.user.update({
+              where: { id: userId },
+              data: {
+                status: "offline",
+                lastSeen: new Date()
+              }
+            });
+
+            // Update Redis
+            if (redis.client && redis.client.isReady) {
+              await redis.client.setEx(`user:${userId}:status`, 300, "offline");
+              await redis.client.setEx(`user:${userId}:lastSeen`, 300, new Date().toISOString());
             }
-          });
 
-          // Update Redis
-          if (redis.client && redis.client.isReady) {
-            await redis.client.setEx(`user:${userId}:status`, 300, "offline");
-            await redis.client.setEx(`user:${userId}:lastSeen`, 300, new Date().toISOString());
+            // Broadcast offline status
+            socket.broadcast.emit("user_status_change", {
+              userId,
+              status: "offline",
+              lastSeen: new Date().toISOString()
+            });
           }
-
-          // Broadcast offline status
-          socket.broadcast.emit("user_status_change", {
-            userId,
-            status: "offline",
-            lastSeen: new Date().toISOString()
-          });
-
-          console.log(`User ${userId} is now offline`);
         }
       }
       
@@ -101,6 +116,18 @@ module.exports = (io, socket) => {
       const validStatuses = ["online", "idle", "dnd", "offline"];
       if (!validStatuses.includes(newStatus)) {
         socket.emit("error", "Invalid status");
+        return;
+      }
+
+      // Check if user exists
+      const userExists = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true }
+      });
+
+      if (!userExists) {
+        console.error(`User ${userId} not found in database`);
+        socket.emit("error", "User not found");
         return;
       }
 
@@ -125,8 +152,6 @@ module.exports = (io, socket) => {
         status: newStatus,
         lastSeen: new Date().toISOString()
       });
-
-      console.log(`User ${userId} status changed to ${newStatus}`);
     } catch (error) {
       console.error("Error changing user status:", error);
       socket.emit("error", "Failed to update status");

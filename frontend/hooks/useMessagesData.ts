@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMessages, useProfile } from './queries'
 import { useSendMessage, useEditMessage, useDeleteMessage } from './mutations'
-import { useSocket } from '@/providers/SocketProvider'
+import { connectSocket } from '@/lib/socket'
 import { useUIStore } from '@/lib/store'
+import { useQueryClient } from '@tanstack/react-query'
+import { Message } from './queries'
 
 /**
  * Unified hook for message operations
@@ -12,8 +14,56 @@ import { useUIStore } from '@/lib/store'
  * Manages drafts and socket room joining
  */
 export function useMessagesData(channelId: string | null) {
-  const { socket } = useSocket()
+  const [socket, setSocket] = useState<ReturnType<typeof connectSocket> | null>(null)
+  const [isConnected, setIsConnected] = useState(false)
   const joinedChannelRef = useRef<string | null>(null)
+  const queryClient = useQueryClient()
+  
+  // Initialize socket connection and set up message listener
+  useEffect(() => {
+    const socketInstance = connectSocket()
+    setSocket(socketInstance)
+
+    const handleConnect = () => {
+      setIsConnected(true)
+    }
+
+    const handleDisconnect = () => {
+      setIsConnected(false)
+    }
+
+    // Handle incoming messages
+    const handleReceiveMessage = (incoming: any) => {
+      const msg = incoming as Message
+      const msgChannelId = msg.channelId
+      
+      if (!msgChannelId) return
+      
+      // Add message to cache
+      queryClient.setQueryData<Message[]>(['messages', msgChannelId], (old = []) => {
+        const exists = old?.some((m) => m._id === msg._id)
+        if (exists) {
+          return old.map((m) => (m._id === msg._id ? msg : m))
+        }
+        return [...(old || []), msg]
+      })
+    }
+
+    socketInstance.on('connect', handleConnect)
+    socketInstance.on('disconnect', handleDisconnect)
+    socketInstance.on('receive_message', handleReceiveMessage)
+
+    // Check if already connected
+    if (socketInstance.connected) {
+      handleConnect()
+    }
+
+    return () => {
+      socketInstance.off('connect', handleConnect)
+      socketInstance.off('disconnect', handleDisconnect)
+      socketInstance.off('receive_message', handleReceiveMessage)
+    }
+  }, [queryClient])
   
   // Queries
   const { data: messages = [], isLoading: messagesLoading, error: messagesError } = useMessages(channelId)
@@ -40,26 +90,40 @@ export function useMessagesData(channelId: string | null) {
   useEffect(() => {
     if (!socket || !channelId) return
     
-    const prevChannel = joinedChannelRef.current
-    
-    // Leave previous channel
-    if (prevChannel && prevChannel !== channelId) {
-      socket.emit('leave_channel', prevChannel)
+    const joinChannel = () => {
+      if (!socket.connected) return
+      
+      const prevChannel = joinedChannelRef.current
+      
+      // Leave previous channel
+      if (prevChannel && prevChannel !== channelId) {
+        socket.emit('leave_channel', prevChannel)
+      }
+      
+      // Join new channel
+      if (joinedChannelRef.current !== channelId) {
+        socket.emit('join_channel', channelId)
+        joinedChannelRef.current = channelId
+      }
     }
     
-    // Join new channel
-    if (joinedChannelRef.current !== channelId) {
-      socket.emit('join_channel', channelId)
-      joinedChannelRef.current = channelId
+    // Join immediately if already connected
+    if (socket.connected) {
+      joinChannel()
     }
+    
+    // Also join when socket connects
+    socket.on('connect', joinChannel)
     
     return () => {
+      socket.off('connect', joinChannel)
+      
       if (joinedChannelRef.current) {
         socket.emit('leave_channel', joinedChannelRef.current)
         joinedChannelRef.current = null
       }
     }
-  }, [socket, channelId])
+  }, [socket, isConnected, channelId])
   
   // Send message
   const sendMessage = async (content: string) => {

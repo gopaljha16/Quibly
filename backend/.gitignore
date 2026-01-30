@@ -34,3 +34,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 /generated/prisma
+
+# Kafka SSL certificates (sensitive)
+src/config/*.pem
+src/config/*.cert
+src/config/*.key

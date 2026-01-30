@@ -90,9 +90,96 @@ const redisWrapper = {
             console.error('Redis EXISTS error:', error);
             return false;
         }
+    },
+
+    // Message caching operations
+    async cacheMessage(channelId, message) {
+        if (!client || !isConnected) return null;
+        try {
+            const key = `channel:${channelId}:messages`;
+            const score = new Date(message.createdAt).getTime();
+            const value = JSON.stringify(message);
+            
+            // Add to sorted set (sorted by timestamp)
+            await client.zAdd(key, { score, value });
+            
+            // Keep only last 100 messages per channel
+            await client.zRemRangeByRank(key, 0, -101);
+            
+            // Set expiry to 24 hours
+            await client.expire(key, 86400);
+            
+            return true;
+        } catch (error) {
+            console.error('Redis cacheMessage error:', error);
+            return null;
+        }
+    },
+
+    async getCachedMessages(channelId, limit = 50) {
+        if (!client || !isConnected) return null;
+        try {
+            const key = `channel:${channelId}:messages`;
+            
+            // Get messages in reverse order (newest first)
+            const messages = await client.zRange(key, 0, limit - 1, { REV: true });
+            
+            return messages.map(msg => JSON.parse(msg));
+        } catch (error) {
+            console.error('Redis getCachedMessages error:', error);
+            return null;
+        }
+    },
+
+    async addToBatchQueue(message) {
+        if (!client || !isConnected) return null;
+        try {
+            const value = JSON.stringify(message);
+            await client.lPush('messages:pending_db_write', value);
+            return true;
+        } catch (error) {
+            console.error('Redis addToBatchQueue error:', error);
+            return null;
+        }
+    },
+
+    async getBatchQueue(limit = 1000) {
+        if (!client || !isConnected) return [];
+        try {
+            const messages = await client.lRange('messages:pending_db_write', 0, limit - 1);
+            return messages.map(msg => JSON.parse(msg));
+        } catch (error) {
+            console.error('Redis getBatchQueue error:', error);
+            return [];
+        }
+    },
+
+    async clearBatchQueue(count) {
+        if (!client || !isConnected) return null;
+        try {
+            // Remove processed messages from the queue
+            await client.lTrim('messages:pending_db_write', count, -1);
+            return true;
+        } catch (error) {
+            console.error('Redis clearBatchQueue error:', error);
+            return null;
+        }
+    },
+
+    isConnected() {
+        return isConnected;
     }
 };
 
 module.exports = redisWrapper;
+
+// Export disconnect function for graceful shutdown
+module.exports.disconnectRedis = async () => {
+    if (client && isConnected) {
+        await client.quit();
+        isConnected = false;
+        console.log('Redis client disconnected');
+    }
+};
 
 
