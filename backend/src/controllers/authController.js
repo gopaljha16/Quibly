@@ -35,6 +35,14 @@ exports.register = async (req, res) => {
             });
         }
 
+        // NEW: Prevent email as username
+        if (username.includes('@') || username.includes('.com') || username.includes('.net')) {
+            return res.status(400).json({
+                success: false,
+                message: 'Username cannot be an email address'
+            });
+        }
+
         if (password.length < 6) {
             return res.status(400).json({
                 success: false,
@@ -42,27 +50,9 @@ exports.register = async (req, res) => {
             });
         }
 
-        // NEW: Validate interests (optional but recommended)
-        if (interests && (!Array.isArray(interests) || interests.length === 0)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Interests must be a non-empty array if provided'
-            });
-        }
-
-        // NEW: Verify interests exist if provided
-        if (interests && interests.length > 0) {
-            const validInterests = await db.interest.findMany({
-                where: { id: { in: interests } }
-            });
-
-            if (validInterests.length !== interests.length) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Invalid interest IDs provided'
-                });
-            }
-        }
+        // NEW: Validate interests (optional)
+        // Skip interest validation for now - interests are optional
+        // TODO: Sync frontend interest IDs with database or fetch from API
 
         // Check if email already exists
         const existingUser = await db.user.findUnique({
@@ -82,29 +72,15 @@ exports.register = async (req, res) => {
         // Generate verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
-        // NEW: Create user and interests in transaction
-        const user = await db.$transaction(async (tx) => {
-            const newUser = await tx.user.create({
-                data: {
-                    username,
-                    email: email.toLowerCase(),
-                    password: hashedPassword,
-                    discriminator: generateDiscriminator(),
-                    status: 'offline',
-                }
-            });
-
-            // Create user interests if provided
-            if (interests && interests.length > 0) {
-                await tx.userInterest.createMany({
-                    data: interests.map(interestId => ({
-                        userId: newUser.id,
-                        interestId
-                    }))
-                });
+        // Create user (interests skipped for now)
+        const user = await db.user.create({
+            data: {
+                username,
+                email: email.toLowerCase(),
+                password: hashedPassword,
+                discriminator: generateDiscriminator(),
+                status: 'offline',
             }
-
-            return newUser;
         });
 
         // Store verification token in Redis (expires in 24 hours)
@@ -124,13 +100,6 @@ exports.register = async (req, res) => {
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
-        // NEW: Get recommended channels if interests provided
-        let recommendedChannels = [];
-        if (interests && interests.length > 0) {
-            const { getRecommendedChannelsForUser } = require('./channelController');
-            recommendedChannels = await getRecommendedChannelsForUser(user.id);
-        }
-
         res.status(201).json({
             success: true,
             message: 'Registration successful. Please verify your email.',
@@ -142,8 +111,7 @@ exports.register = async (req, res) => {
                 email: user.email,
                 avatar: user.avatar,
                 isVerified: user.isVerified
-            },
-            recommendedChannels // NEW
+            }
         });
     } catch (error) {
         console.error('Registration error:', error);

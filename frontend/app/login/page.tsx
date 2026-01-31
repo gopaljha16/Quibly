@@ -1,10 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowLeft, Sparkles } from 'lucide-react'
-import { apiPost, ApiError } from '@/lib/api'
+import { 
+  Mail, Lock, Eye, EyeOff, LogIn, ArrowLeft, Sparkles, 
+  MessageSquare, Users, Hash, Zap, Terminal, Code, 
+  Activity, Radio, Layers
+} from 'lucide-react'
+import { apiPost, apiGet, ApiError } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +22,21 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Try to fetch user profile to check if logged in
+        await apiGet('/auth/profile')
+        // If successful, user is logged in, redirect to channels
+        router.push('/channels/@me')
+      } catch (error) {
+        // User is not logged in, stay on login page
+      }
+    }
+    checkAuth()
+  }, [router])
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {}
@@ -62,165 +81,286 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-15">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#5865f2] rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-[#5865f2] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+    <div className="min-h-screen bg-[#020204] text-[#ececed] font-sans selection:bg-cyan-500/40 overflow-hidden">
+      
+      {/* --- BACKGROUND ENGINE --- */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#1e1e3a_0%,transparent_50%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:64px_64px]" />
+        <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[10%] right-[15%] w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }} />
       </div>
 
-      {/* Header */}
-      <div className="relative border-b border-[#2a2a2a] bg-[#0a0a0a]/80 backdrop-blur-xl z-10">
-        <div className="container mx-auto px-4 h-16 flex items-center">
-          <Link href="/" className="flex items-center gap-2 text-[#b4b4b4] hover:text-[#5865f2] transition-colors group">
+      {/* --- NAVIGATION --- */}
+      <nav className="fixed top-0 w-full z-[100] py-6 bg-black/40 backdrop-blur-2xl border-b border-white/5">
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 cursor-pointer group">
+            <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">N</div>
+            <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Nexus</span>
+          </Link>
+          
+          <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-all group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to home</span>
+            <span className="text-[10px] font-black uppercase tracking-widest">Back Home</span>
           </Link>
         </div>
-      </div>
+      </nav>
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4 overflow-y-auto py-12 relative z-10">
-        <div className="w-full max-w-md">
-          {/* Title */}
-          <div className="text-center mb-8 space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] backdrop-blur-sm">
-              <Sparkles className="w-4 h-4 text-[#4a9eff]" />
-              <span className="text-sm font-semibold text-[#4a9eff]">Welcome back!</span>
+      {/* --- MAIN CONTENT GRID --- */}
+      <div className="relative min-h-screen pt-32 pb-20 px-6">
+        <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-20 items-center">
+          
+          {/* --- LEFT: LOGIN FORM --- */}
+          <div className="relative z-10 max-w-md mx-auto lg:mx-0 w-full">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-[10px] font-black tracking-[0.2em] text-cyan-400 mb-6 uppercase">
+              <Sparkles size={12} /> Secure Access
             </div>
 
-            <h1 className="text-5xl font-black bg-gradient-to-r from-[#23a559] to-[#4a9eff] bg-clip-text text-transparent">
-              Sign In
+            {/* Title */}
+            <h1 className="text-5xl md:text-6xl font-black leading-[0.9] mb-4 tracking-tighter">
+              WELCOME <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">BACK.</span>
             </h1>
-            <p className="text-[#b4b4b4] text-base">
-              Continue to your account
+            <p className="text-lg text-gray-500 mb-10 font-medium">
+              Sign in to continue your journey with Nexus.
             </p>
-          </div>
 
-          {/* Form Card */}
-          <div className="relative group animate-in fade-in zoom-in-95 duration-500" style={{ animationDelay: '100ms' }}>
-            {/* Glow */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-[#23a559] to-[#4a9eff] rounded-2xl blur opacity-20 group-hover:opacity-30 transition"></div>
-
-            {/* Form */}
-            <div className="relative bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-8 shadow-2xl">
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-[#5865f2] flex items-center gap-2 font-semibold">
-                    <Mail className="w-4 h-4" />
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`bg-[#141414] border-[#2a2a2a] text-white h-12 focus:border-[#5865f2] focus:ring-2 focus:ring-[#5865f2]/20 ${errors.email ? 'border-[#f23f43] ring-2 ring-[#f23f43]/20' : ''
-                      }`}
-                    placeholder="your.email@example.com"
-                    autoFocus
-                  />
-                  {errors.email && <p className="text-xs text-[#f23f43]">{errors.email}</p>}
-                </div>
-
-                {/* Password */}
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-[#5865f2] flex items-center gap-2 font-semibold">
-                    <Lock className="w-4 h-4" />
-                    Password
-                  </Label>
-                  <div className="relative">
+            {/* Form Card */}
+            <div className="relative group">
+              {/* Glow Effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-[30px] blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+              
+              {/* Form Container */}
+              <div className="relative bg-[#08080a] border border-white/10 rounded-[30px] p-8 backdrop-blur-xl">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                      <Mail className="w-3 h-3" />
+                      Email Address
+                    </Label>
                     <Input
-                      id="password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={formData.password}
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
                       onChange={handleChange}
-                      className={`bg-[#141414] border-[#2a2a2a] text-white h-12 pr-10 focus:border-[#5865f2] focus:ring-2 focus:ring-[#5865f2]/20 ${errors.password ? 'border-[#f23f43] ring-2 ring-[#f23f43]/20' : ''
+                      className={`bg-white/5 border-white/10 text-white h-12 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
+                        errors.email ? 'border-red-500 ring-2 ring-red-500/20' : ''
+                      }`}
+                      placeholder="your.email@nexus.com"
+                      autoFocus
+                    />
+                    {errors.email && (
+                      <p className="text-xs text-red-400 flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-red-400"></span>
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                      <Lock className="w-3 h-3" />
+                      Password
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={handleChange}
+                        className={`bg-white/5 border-white/10 text-white h-12 pr-10 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
+                          errors.password ? 'border-red-500 ring-2 ring-red-500/20' : ''
                         }`}
-                      placeholder="Enter your password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#b4b4b4] hover:text-[#5865f2]"
-                    >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
+                        placeholder="Enter your password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <p className="text-xs text-red-400 flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-red-400"></span>
+                        {errors.password}
+                      </p>
+                    )}
                   </div>
-                  {errors.password && <p className="text-xs text-[#f23f43]">{errors.password}</p>}
-                </div>
 
-                {/* Remember & Forgot */}
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      id="remember"
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-[#2a2a2a] bg-[#141414] text-[#4a9eff] focus:ring-[#4a9eff] cursor-pointer"
-                    />
-                    <label htmlFor="remember" className="text-sm text-[#b4b4b4] cursor-pointer hover:text-[#5865f2] transition-colors">
-                      Remember me
-                    </label>
+                  {/* Remember & Forgot */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        id="remember"
+                        type="checkbox"
+                        className="h-3.5 w-3.5 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                      />
+                      <label htmlFor="remember" className="text-xs text-gray-400 cursor-pointer hover:text-cyan-400 transition-colors font-medium">
+                        Remember me
+                      </label>
+                    </div>
+                    <a href="#" className="text-xs text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider hover:underline transition-colors">
+                      Forgot?
+                    </a>
                   </div>
-                  <a href="#" className="text-sm text-[#5865f2] hover:text-[#7289da] font-semibold hover:underline transition-colors">
-                    Forgot password?
-                  </a>
+
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl shadow-white/10 hover:shadow-cyan-400/30 mt-8 relative overflow-hidden group"
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
+                    {isLoading ? (
+                      <span className="flex items-center gap-2 relative z-10">
+                        <div className="h-5 w-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                        Authenticating...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2 relative z-10">
+                        <LogIn className="h-5 w-5" />
+                        Launch Nexus
+                      </span>
+                    )}
+                  </Button>
+                </form>
+
+                {/* Divider */}
+                <div className="relative my-8">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/5"></div>
+                  </div>
+                  <div className="relative flex justify-center text-[10px]">
+                    <span className="px-4 bg-[#08080a] text-gray-600 font-black uppercase tracking-widest">New User?</span>
+                  </div>
                 </div>
 
-                {/* Submit */}
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full h-13 bg-[#5865f2] hover:bg-[#4752c4] text-white font-bold shadow-lg shadow-[#5865f2]/30 transition-all duration-300 mt-6"
-                >
-                  <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/30 to-white/0 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 animate-shimmer"></span>
-                  {isLoading ? (
-                    <span className="flex items-center gap-2 relative z-10">
-                      <div className="h-5 w-5 border-2 border-[#0b0500] border-t-transparent rounded-full animate-spin"></div>
-                      Signing in...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2 relative z-10">
-                      <LogIn className="h-5 w-5" />
-                      Sign In to Account
-                    </span>
-                  )}
-                </Button>
-              </form>
-
-              {/* Divider */}
-              <div className="relative my-8">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-[#2a2a2a]"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="px-4 bg-[#1a1a1a] text-[#b4b4b4] font-medium">Don't have an account?</span>
-                </div>
-              </div>
-
-              {/* Sign Up Link */}
-              <div className="text-center">
-                <p className="text-[#b4b4b4] text-sm mb-4">
-                  Join thousands of users today
-                </p>
+                {/* Sign Up Link */}
                 <Link href="/signup">
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full h-11 border-2 border-[#5865f2] bg-transparent hover:bg-[#5865f2]/10 text-[#5865f2] hover:text-[#7289da] font-semibold transition-all duration-300"
+                    className="w-full h-12 border-2 border-white/10 bg-white/5 hover:bg-white/10 text-white font-black text-xs uppercase tracking-widest transition-all"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Create Free Account
+                    Create Account
                   </Button>
                 </Link>
               </div>
             </div>
           </div>
+
+          {/* --- RIGHT: ANIMATED VISUALIZATION --- */}
+          <div className="relative hidden lg:block">
+            <AnimatedVisualization />
+          </div>
+
         </div>
       </div>
+    </div>
+  )
+}
+
+// Animated Visualization Component
+function AnimatedVisualization() {
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % 6)
+    }, 2000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const features = [
+    { icon: MessageSquare, label: 'Real-time Chat', color: 'text-cyan-400' },
+    { icon: Users, label: 'Communities', color: 'text-purple-400' },
+    { icon: Hash, label: 'Channels', color: 'text-emerald-400' },
+    { icon: Zap, label: 'Lightning Fast', color: 'text-yellow-400' },
+    { icon: Radio, label: 'Voice Rooms', color: 'text-pink-400' },
+    { icon: Layers, label: 'Organized', color: 'text-blue-400' },
+  ]
+
+  return (
+    <div className="relative w-full h-[600px]">
+      {/* Central Hub */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white/5 rounded-full border-2 border-white/10 flex items-center justify-center backdrop-blur-xl">
+        <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full flex items-center justify-center animate-pulse">
+          <Terminal className="w-10 h-10 text-white" />
+        </div>
+      </div>
+
+      {/* Orbiting Features */}
+      {features.map((feature, index) => {
+        const angle = (index / features.length) * 2 * Math.PI
+        const radius = 200
+        const x = Math.cos(angle) * radius
+        const y = Math.sin(angle) * radius
+        const isActive = index === activeIndex
+
+        return (
+          <div
+            key={index}
+            className="absolute top-1/2 left-1/2 transition-all duration-500"
+            style={{
+              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${isActive ? 1.2 : 1})`,
+            }}
+          >
+            <div className={`w-20 h-20 rounded-2xl border ${isActive ? 'border-white/30 bg-white/10' : 'border-white/10 bg-white/5'} backdrop-blur-xl flex flex-col items-center justify-center gap-2 transition-all duration-500 ${isActive ? 'shadow-2xl shadow-cyan-500/20' : ''}`}>
+              <feature.icon className={`w-8 h-8 ${isActive ? feature.color : 'text-gray-500'} transition-colors duration-500`} />
+              <span className={`text-[8px] font-black uppercase tracking-wider ${isActive ? 'text-white' : 'text-gray-600'} transition-colors duration-500`}>
+                {feature.label.split(' ')[0]}
+              </span>
+            </div>
+          </div>
+        )
+      })}
+
+      {/* Connection Lines */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none">
+        {features.map((_, index) => {
+          const angle = (index / features.length) * 2 * Math.PI
+          const radius = 200
+          const x = Math.cos(angle) * radius + 300
+          const y = Math.sin(angle) * radius + 300
+          const isActive = index === activeIndex
+
+          return (
+            <line
+              key={index}
+              x1="300"
+              y1="300"
+              x2={x}
+              y2={y}
+              stroke={isActive ? 'rgba(6, 182, 212, 0.3)' : 'rgba(255, 255, 255, 0.05)'}
+              strokeWidth={isActive ? '2' : '1'}
+              className="transition-all duration-500"
+            />
+          )
+        })}
+      </svg>
+
+      {/* Floating Code Snippets */}
+      <div className="absolute top-10 right-10 p-4 bg-black/60 border border-white/10 rounded-2xl backdrop-blur-xl font-mono text-xs text-cyan-400/80 animate-pulse">
+        <p>$ nexus.connect()</p>
+        <p className="text-white">{'>'} Status: Online</p>
+      </div>
+
+      <div className="absolute bottom-10 left-10 p-4 bg-black/60 border border-white/10 rounded-2xl backdrop-blur-xl font-mono text-xs text-purple-400/80 animate-pulse" style={{ animationDelay: '1s' }}>
+        <p>$ users.active</p>
+        <p className="text-white">{'>'} 42,000+</p>
+      </div>
+
+      {/* Decorative Elements */}
+      <div className="absolute top-20 left-20 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
+      <div className="absolute bottom-32 right-32 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+      <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
     </div>
   )
 }

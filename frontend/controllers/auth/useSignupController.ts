@@ -55,9 +55,10 @@ export function useSignupController() {
         setErrors({})
 
         try {
+            // Skip interests for now - backend doesn't have matching IDs
             const response = await AuthApiService.signup({
                 ...formData,
-                interests: selectedInterests,
+                interests: [], // TODO: Fix interest ID mismatch between frontend and backend
             })
 
             // Show recommendations if available
