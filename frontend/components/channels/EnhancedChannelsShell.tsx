@@ -12,7 +12,9 @@ import CreateChannelModal from './CreateChannelModal'
 import JoinServerModal from './JoinServerModal'
 import ServerSettingsModal from './ServerSettingsModal'
 import InviteServerModal from './InviteServerModal'
+import UserProfileModal from '../profile/UserProfileModal'
 import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/components/LoadingSkeletons'
+import { useUserProfileController } from '@/controllers/profile/useUserProfileController'
 
 
 
@@ -105,6 +107,19 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   const userMenuRef = useRef<HTMLDivElement | null>(null)
   const [serverSettingsOpen, setServerSettingsOpen] = useState(false)
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
+
+  // User profile controller
+  const {
+    user: profileUser,
+    isModalOpen: profileModalOpen,
+    openModal: openProfileModal,
+    closeModal: closeProfileModal,
+    handleUpdateProfile,
+    handleUploadAvatar,
+    handleUploadBanner,
+    handleDeleteAvatar,
+    handleDeleteBanner
+  } = useUserProfileController()
 
   const {
     isConnected,
@@ -708,6 +723,19 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 <div className="border-t border-[#2a2a2a] pt-2 mt-2">
                   <button
                     type="button"
+                    onClick={() => {
+                      openProfileModal()
+                      setUserMenuOpen(false)
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-[#b4b4b4] hover:bg-[#202020] hover:text-white transition-colors"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                    <span className="font-medium">Edit Profile</span>
+                  </button>
+                  <button
+                    type="button"
                     onClick={async () => {
                       try {
                         await apiPost('/auth/logout')
@@ -951,6 +979,17 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           onClose={() => setSelectedMember(null)}
           user={selectedMember?.user || null}
           isOwner={!!selectedMember?.isOwner}
+        />
+
+        <UserProfileModal
+          isOpen={profileModalOpen}
+          onClose={closeProfileModal}
+          user={profileUser}
+          onUpdate={handleUpdateProfile}
+          onUploadAvatar={handleUploadAvatar}
+          onUploadBanner={handleUploadBanner}
+          onDeleteAvatar={handleDeleteAvatar}
+          onDeleteBanner={handleDeleteBanner}
         />
     </div>
   )

@@ -11,14 +11,21 @@ model User {
   id                     String         @id @default(cuid())
   username               String
   discriminator          String
+  displayName            String?
   email                  String         @unique
   pendingEmail           String?
   password               String
-  avatar                 String?
-  banner                 String?
-  bio                    String?
+  avatar                 String?        // Cloudinary URL
+  avatarPublicId         String?        // Cloudinary public ID for deletion
+  banner                 String?        // Cloudinary URL
+  bannerPublicId         String?        // Cloudinary public ID for deletion
+  bio                    String?        @db.Text
+  pronouns               String?
+  themeColor             String?        @default("#5865F2")
   status                 UserStatus     @default(offline)
   customStatus           String?
+  customStatusEmoji      String?
+  badges                 String[]       @default([])
   friends                String[]
   incomingFriendRequests String[]
   outgoingFriendRequests String[]

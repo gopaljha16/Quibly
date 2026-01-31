@@ -4,6 +4,7 @@ import "./globals.css";
 import "@livekit/components-styles";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { SocketProvider } from "@/providers/SocketProvider";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
             {children}
           </SocketProvider>
         </QueryProvider>
+        <Toaster position="bottom-right" theme="dark" />
       </body>
     </html>
   );
