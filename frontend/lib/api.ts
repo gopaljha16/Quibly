@@ -40,12 +40,23 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`
 
+  // Build headers - only add Content-Type for non-FormData bodies
+  const headers: Record<string, string> = {}
+  
+  // Copy existing headers
+  if (options.headers) {
+    const existingHeaders = options.headers as Record<string, string>
+    Object.assign(headers, existingHeaders)
+  }
+  
+  // Add Content-Type for non-FormData bodies if not already set
+  if (!(options.body instanceof FormData) && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json'
+  }
+
   const res = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
     credentials: 'include',
   })
 

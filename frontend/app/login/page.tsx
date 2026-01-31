@@ -270,8 +270,10 @@ export default function LoginPage() {
 // Animated Visualization Component
 function AnimatedVisualization() {
   const [activeIndex, setActiveIndex] = useState(0)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % 6)
     }, 2000)
@@ -287,6 +289,28 @@ function AnimatedVisualization() {
     { icon: Layers, label: 'Organized', color: 'text-blue-400' },
   ]
 
+  // Pre-calculate positions to avoid hydration mismatch
+  const positions = features.map((_, index) => {
+    const angle = (index / features.length) * 2 * Math.PI
+    const radius = 200
+    return {
+      x: Math.round(Math.cos(angle) * radius * 100) / 100,
+      y: Math.round(Math.sin(angle) * radius * 100) / 100,
+    }
+  })
+
+  if (!mounted) {
+    return (
+      <div className="relative w-full h-[600px]">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white/5 rounded-full border-2 border-white/10 flex items-center justify-center backdrop-blur-xl">
+          <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full flex items-center justify-center">
+            <Terminal className="w-10 h-10 text-white" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative w-full h-[600px]">
       {/* Central Hub */}
@@ -298,10 +322,7 @@ function AnimatedVisualization() {
 
       {/* Orbiting Features */}
       {features.map((feature, index) => {
-        const angle = (index / features.length) * 2 * Math.PI
-        const radius = 200
-        const x = Math.cos(angle) * radius
-        const y = Math.sin(angle) * radius
+        const { x, y } = positions[index]
         const isActive = index === activeIndex
 
         return (
@@ -325,10 +346,7 @@ function AnimatedVisualization() {
       {/* Connection Lines */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none">
         {features.map((_, index) => {
-          const angle = (index / features.length) * 2 * Math.PI
-          const radius = 200
-          const x = Math.cos(angle) * radius + 300
-          const y = Math.sin(angle) * radius + 300
+          const { x, y } = positions[index]
           const isActive = index === activeIndex
 
           return (
@@ -336,8 +354,8 @@ function AnimatedVisualization() {
               key={index}
               x1="300"
               y1="300"
-              x2={x}
-              y2={y}
+              x2={x + 300}
+              y2={y + 300}
               stroke={isActive ? 'rgba(6, 182, 212, 0.3)' : 'rgba(255, 255, 255, 0.05)'}
               strokeWidth={isActive ? '2' : '1'}
               className="transition-all duration-500"
