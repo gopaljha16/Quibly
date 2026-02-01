@@ -7,11 +7,11 @@ let intervalId = null;
 /**
  * Batch DB Writer Service
  * Processes messages from Redis queue and saves them to PostgreSQL in batches
- * Runs every 15 minutes (configurable)
+ * Runs every 30 seconds (configurable)
  */
 
-const BATCH_INTERVAL = 15 * 60 * 1000; // 15 minutes in milliseconds
-const MAX_BATCH_SIZE = 1000; // Process max 1000 messages per batch
+const BATCH_INTERVAL = 30000; // 30 seconds
+const MAX_BATCH_SIZE = 500; // Process max 500 messages per batch
 
 async function processBatch() {
     if (!redis.isConnected()) {
@@ -56,14 +56,14 @@ async function processBatch() {
 
 /**
  * Start the batch DB writer service
- * @param {number} intervalMs - Interval in milliseconds (default: 15 minutes)
+ * @param {number} intervalMs - Interval in milliseconds (default: 30 seconds)
  */
 function startBatchWriter(intervalMs = BATCH_INTERVAL) {
     if (isRunning) {
         return;
     }
 
-    console.log(`✅ Batch DB writer started (interval: ${intervalMs / 1000 / 60} minutes)`);
+    console.log(`✅ Batch DB writer started (interval: ${intervalMs / 1000} seconds)`);
 
     // Run immediately on start
     processBatch();
