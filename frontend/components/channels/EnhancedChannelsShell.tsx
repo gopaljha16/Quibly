@@ -252,9 +252,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   }, [route.serverId, route.isMe, isConnected, getServerOnlineUsers])
 
   return (
-    <div className="h-screen w-screen bg-[#0a0a0a] text-white flex overflow-hidden font-sans">
+    <div className="h-screen w-screen bg-[#313338] text-white flex overflow-hidden font-sans">
       {/* Server Sidebar */}
-      <div className="w-[72px] bg-[#141414] flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-hide">
+      <div className="w-[72px] bg-[#1e1f22] flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-hide">
         {/* Home/DM Button */}
         <div className="relative group">
           <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ${route.isMe ? 'h-10' : 'h-2 group-hover:h-5 opacity-0 group-hover:opacity-100'
@@ -332,10 +332,10 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       </div>
 
       {/* Channels Sidebar */}
-      <div className="w-[240px] bg-[#1a1a1a] flex flex-col rounded-tl-[8px]">
+      <div className="w-[240px] bg-[#2b2d31] flex flex-col">
         {/* Server Header */}
         <div className="relative">
-          <div className="h-12 px-4 flex items-center border-b border-[#2a2a2a] shadow-sm cursor-pointer hover:bg-[#202020] transition-colors"
+          <div className="h-12 px-4 flex items-center border-b border-[#1e1f22] shadow-md cursor-pointer hover:bg-[#35373c] transition-colors"
             onClick={() => !route.isMe && route.serverId && setServerMenuOpen((v) => !v)}
           >
             <div className="font-bold text-white truncate flex-1">
@@ -417,14 +417,14 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
         </div>
 
         {/* Search Bar */}
-        <div className="p-2 border-b border-[#2a2a2a] shadow-sm">
-          <button className="w-full h-7 rounded-[4px] bg-[#141414] text-left px-2 text-sm text-[#808080] hover:text-white transition-colors flex items-center">
+        <div className="p-2 border-b border-[#1e1f22]">
+          <button className="w-full h-7 rounded bg-[#1e1f22] text-left px-2 text-sm text-[#949ba4] hover:text-[#dbdee1] transition-colors flex items-center">
             Find or start a conversation
           </button>
         </div>
 
         {/* Channels List */}
-        <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#2a2a2a] scrollbar-track-[#1a1a1a]">
+        <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1e1f22] scrollbar-track-transparent">
           {error && (
             <div className="mx-2 mb-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
               {error instanceof Error ? error.message : String(error)}
@@ -622,10 +622,46 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           )}
         </div>
 
+        {/* Voice Connection Panel - Shows when connected to voice */}
+        {selectedChannel?.type === 'VOICE' && (
+          <div className="bg-[#232428] px-2 py-2.5 border-t border-[#1e1f22]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current text-[#23a559] flex-shrink-0">
+                  <path d="M11.383 3.07904C11.009 2.92504 10.579 3.01004 10.293 3.29604L6 8.00004H3C2.45 8.00004 2 8.45004 2 9.00004V15C2 15.55 2.45 16 3 16H6L10.293 20.71C10.579 20.996 11.009 21.082 11.383 20.927C11.757 20.772 12 20.407 12 20V4.00004C12 3.59304 11.757 3.22804 11.383 3.07904ZM14 5.00004V7.00004C16.757 7.00004 19 9.24304 19 12C19 14.757 16.757 17 14 17V19C17.86 19 21 15.86 21 12C21 8.14004 17.86 5.00004 14 5.00004Z" />
+                </svg>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-[#23a559] truncate">Voice Connected</div>
+                  <div className="text-xs text-[#949ba4] truncate">{selectedChannel.name}</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button 
+                  className="w-8 h-8 rounded hover:bg-[#35373c] flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors"
+                  title="Disconnect"
+                  onClick={() => {
+                    if (route.serverId) {
+                      const textChannel = channels.find(c => c.type === 'TEXT')
+                      if (textChannel) {
+                        selectChannel(route.serverId, textChannel._id)
+                      }
+                    }
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" className="fill-current">
+                    <path d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* User Panel */}
-        <div className="h-[52px] bg-[#141414] px-2 flex items-center gap-1 flex-shrink-0" ref={userMenuRef}>
+        <div className="h-[52px] bg-[#232428] px-2 flex items-center gap-1 flex-shrink-0" ref={userMenuRef}>
           <div
-            className="flex items-center gap-2 hover:bg-[#202020] rounded-[4px] pl-0.5 pr-2 py-1 cursor-pointer transition-colors min-w-0 -ml-1 mr-auto"
+            className="flex items-center gap-2 hover:bg-[#35373c] rounded px-2 py-1 cursor-pointer transition-colors min-w-0 flex-1"
             onClick={() => setUserMenuOpen(!userMenuOpen)}
           >
             <UserAvatar
@@ -636,17 +672,17 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               showStatus
             />
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-white truncate leading-tight">
+              <div className="text-sm font-semibold text-[#f2f3f5] truncate leading-tight">
                 {currentUser?.username || 'Loading...'}
               </div>
-              <div className="text-xs text-[#808080] truncate leading-tight">
+              <div className="text-xs text-[#949ba4] truncate leading-tight">
                 {myStatus === 'online' ? 'Online' : myStatus === 'idle' ? 'Idle' : myStatus === 'dnd' ? 'Do Not Disturb' : 'Invisible'}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center">
-            <button className="w-8 h-8 rounded-[4px] hover:bg-[#2a2a2a] flex items-center justify-center text-white transition-colors relative group">
+          <div className="flex items-center gap-1">
+            <button className="w-8 h-8 rounded hover:bg-[#35373c] flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
               <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
                 <path d="M14.99 11C14.99 12.66 13.66 14 12 14C10.34 14 9 12.66 9 11V5C9 3.34 10.34 2 12 2C13.66 2 15 3.34 15 5L14.99 11ZM12 16.1C14.76 16.1 17.3 14 17.3 11H19C19 14.42 16.28 17.17 13 17.65V21H11V17.65C7.72 17.17 5 14.42 5 11H6.7C6.7 14 9.24 16.1 12 16.1Z" />
               </svg>
@@ -654,7 +690,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 Mute
               </div>
             </button>
-            <button className="w-8 h-8 rounded-[4px] hover:bg-[#2a2a2a] flex items-center justify-center text-white transition-colors relative group">
+            <button className="w-8 h-8 rounded hover:bg-[#35373c] flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
               <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
                 <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10V14C8 16.21 9.79 18 12 18C14.21 18 16 16.21 16 14V10C16 7.79 14.21 6 12 6Z" />
               </svg>
@@ -665,7 +701,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             <button
               type="button"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="w-8 h-8 rounded-[4px] hover:bg-[#2a2a2a] flex items-center justify-center text-white transition-colors relative group"
+              className="w-8 h-8 rounded hover:bg-[#35373c] flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
                 <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
@@ -677,7 +713,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           </div>
 
           {userMenuOpen && (
-            <div className="absolute bottom-16 left-2 w-64 rounded bg-[#1a1a1a] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <div className="absolute bottom-16 left-2 w-64 rounded-lg bg-[#111214] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
               <div className="h-16 bg-[#5865f2] relative">
                 <div className="absolute -bottom-6 left-4 border-[6px] border-[#1a1a1a] rounded-full">
                   <UserAvatar
@@ -759,25 +795,25 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col bg-[#0a0a0a]">
+      <div className="flex-1 flex flex-col bg-[#313338]">
           {/* Channel Header */}
-          <div className="h-12 border-b border-[#2a2a2a] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#0a0a0a]">
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#808080]">
+          <div className="h-12 border-b border-[#26272b] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#313338]">
+            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#80848e]">
               <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
             </svg>
-            <div className="font-bold text-white truncate text-[16px]">
+            <div className="font-bold text-[#f2f3f5] truncate text-[16px]">
               {route.isMe ? 'Friends' : selectedChannel?.name || 'general'}
             </div>
             {selectedChannel?.description && (
               <>
-                <div className="w-px h-6 bg-[#2a2a2a] mx-2" />
-                <div className="text-xs text-[#b4b4b4] truncate max-w-lg font-medium">
+                <div className="w-px h-6 bg-[#3f4147] mx-2" />
+                <div className="text-xs text-[#949ba4] truncate max-w-lg font-medium">
                   {selectedChannel.description}
                 </div>
               </>
             )}
             <div className="ml-auto flex items-center gap-4">
-              <button className="w-6 h-6 text-[#b4b4b4] hover:text-white transition-colors relative group">
+              <button className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
                 <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
                   <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L13.5 2.5L16.17 5.17C15.24 5.06 14.32 5 13.4 5H12C7.58 5 4 8.58 4 13C4 17.42 7.58 21 12 21C16.42 21 20 17.42 20 13H18C18 16.31 15.31 19 12 19C8.69 19 6 16.31 6 13C6 9.69 8.69 7 12 7H13.4C14.8 7 16.2 7.2 17.6 7.7L21 9Z" />
                 </svg>
@@ -785,7 +821,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   Notification Settings
                 </div>
               </button>
-              <button className="w-6 h-6 text-[#b4b4b4] hover:text-white transition-colors relative group">
+              <button className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
                 <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
@@ -794,7 +830,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 </div>
               </button>
               <button
-                className={`w-6 h-6 text-[#b4b4b4] hover:text-white transition-colors relative group ${route.isMe ? 'hidden' : ''}`}
+                className={`w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group ${route.isMe ? 'hidden' : ''}`}
                 onClick={() => {
                   // Toggle member list visibility if I had state for it
                   // For now just visual
@@ -812,9 +848,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 <input
                   type="text"
                   placeholder="Search"
-                  className="bg-[#1a1a1a] text-sm text-white placeholder-[#808080] rounded-[4px] px-2 py-1 w-36 transition-all focus:w-60 focus:outline-none border border-[#2a2a2a] focus:border-[#5865f2]"
+                  className="bg-[#1e1f22] text-sm text-[#f2f3f5] placeholder-[#949ba4] rounded px-2 py-1 w-36 transition-all focus:w-60 focus:outline-none border border-transparent focus:border-[#00a8fc]"
                 />
-                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current text-[#808080] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current text-[#949ba4] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
                   <path d="M21.707 20.293L16.314 14.9C17.403 13.504 18 11.799 18 10C18 6.009 15.363 2.691 11.609 2.133C7.527 1.517 3.966 4.394 3.125 8.406C2.35 12.096 5.167 15.65 8.921 15.957C10.799 16.111 12.504 15.514 13.9 14.425L19.293 19.818C19.488 20.013 19.744 20.11 20 20.11C20.256 20.11 20.512 20.013 20.707 19.818C21.098 19.427 21.098 18.795 21.707 20.293ZM10 14C7.794 14 6 12.206 6 10C6 7.794 7.794 6 10 6C12.206 6 14 7.794 14 10C14 12.206 12.206 14 10 14Z" />
                 </svg>
               </div>
@@ -826,12 +862,12 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
       {/* Members Sidebar */}
       {!route.isMe && route.serverId && (
-        <div className="w-[240px] bg-[#1a1a1a] flex flex-col flex-shrink-0">
+        <div className="w-[240px] bg-[#2b2d31] flex flex-col flex-shrink-0">
             <div className="h-12 px-4 flex items-center shadow-sm flex-shrink-0">
               {/* Use same height as header but transparent or matching bg */}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#2a2a2a] scrollbar-track-[#1a1a1a]">
+            <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1e1f22] scrollbar-track-transparent">
               {membersError && (
                 <div className="mx-2 mb-2 rounded border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
                   {membersError instanceof Error ? membersError.message : String(membersError)}
@@ -839,7 +875,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               )}
 
               {/* Group Members by Status (Simplified for now) */}
-              <div className="px-3 pt-3 pb-1 text-xs text-[#808080] font-bold uppercase tracking-wide">
+              <div className="px-3 pt-3 pb-1 text-xs text-[#949ba4] font-bold uppercase tracking-wide">
                 Online — {members.length}
               </div>
 
@@ -854,7 +890,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     key={m._id}
                     type="button"
                     onClick={() => setSelectedMember({ user: { ...user, status: userStatus }, isOwner })}
-                    className="w-full px-2 py-1.5 rounded-[4px] hover:bg-[#202020] transition-colors flex items-center gap-3 group opacity-90 hover:opacity-100"
+                    className="w-full px-2 py-1.5 rounded hover:bg-[#35373c] transition-colors flex items-center gap-3 group"
                   >
                     <UserAvatar
                       username={user.username}
