@@ -1,25 +1,26 @@
 'use client'
 
-import { Badge, Calendar, Hash, Users, Edit } from 'lucide-react'
+import { useState } from 'react'
+import { Users, Activity, Link as LinkIcon, Settings, Hash, Calendar, Badge as BadgeIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import OverviewTab from './tabs/OverviewTab'
+import ActivityTab from './tabs/ActivityTab'
+import ConnectionsTab from './tabs/ConnectionsTab'
+import SettingsTab from './tabs/SettingsTab'
 
 interface UserProfileViewProps {
   user: any
   isOwnProfile?: boolean
   onEdit?: () => void
+  onUpdate?: (data: any) => void
 }
 
-export default function UserProfileView({ user, isOwnProfile, onEdit }: UserProfileViewProps) {
-  if (!user) return null
+export default function UserProfileView({ user, isOwnProfile, onEdit, onUpdate }: UserProfileViewProps) {
+  const [activeTab, setActiveTab] = useState('overview')
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    })
-  }
+
+  if (!user) return null
 
   const statusColors = {
     online: 'bg-[#23a559]',
@@ -28,35 +29,44 @@ export default function UserProfileView({ user, isOwnProfile, onEdit }: UserProf
     offline: 'bg-[#80848e]'
   }
 
+  const cardStyles = {
+    rounded: 'rounded-2xl',
+    sharp: 'rounded-none',
+    glass: 'rounded-2xl backdrop-blur-lg bg-opacity-80'
+  }
+
+  const cardStyle = user.cardStyle || 'rounded'
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: Users },
+    { id: 'activity', label: 'Activity', icon: Activity },
+    { id: 'connections', label: 'Connections', icon: LinkIcon },
+    ...(isOwnProfile ? [{ id: 'settings', label: 'Settings', icon: Settings }] : [])
+  ]
+
   return (
-    <Card className="bg-[#111214] border-none overflow-hidden shadow-xl">
+    <Card className={`bg-[#111214] border-none overflow-hidden shadow-xl ${cardStyles[cardStyle as keyof typeof cardStyles]}`}>
       {/* Banner */}
-      <div
-        className="h-36 relative"
-        style={{
-          backgroundColor: user.themeColor || '#5865F2',
-          backgroundImage: user.banner ? `url(${user.banner})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
-        }}
-      >
-        {isOwnProfile && onEdit && (
-          <Button
-            onClick={onEdit}
-            size="sm"
-            className="absolute top-4 right-4 bg-[#111214] hover:bg-[#1e1f22] text-white border border-[#3f4147]"
-          >
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Profile
-          </Button>
-        )}
-      </div>
+      {user.showBanner !== false && (
+        <div
+          className="h-36 relative overflow-hidden"
+          style={{ backgroundColor: user.themeColor || '#5865F2' }}
+        >
+          {user.banner && (
+            <img 
+              src={user.banner} 
+              alt="Profile Banner" 
+              className="w-full h-full object-cover" 
+            />
+          )}
+        </div>
+      )}
 
       {/* Profile Content */}
       <div className="px-6 pb-6">
         {/* Avatar */}
-        <div className="relative -mt-16 mb-5">
-          <div className="relative w-32 h-32 rounded-full border-[6px] border-[#111214] overflow-hidden bg-[#5865f2]">
+        <div className={`relative ${user.showBanner !== false ? '-mt-16' : 'mt-6'} mb-5`}>
+          <div className={`relative w-32 h-32 ${cardStyles[cardStyle as keyof typeof cardStyles]} border-[6px] border-[#111214] overflow-hidden bg-[#5865f2]`}>
             {user.avatar ? (
               <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
             ) : (
@@ -73,98 +83,52 @@ export default function UserProfileView({ user, isOwnProfile, onEdit }: UserProf
           </div>
         </div>
 
-        {/* User Info */}
-        <div className="space-y-5">
-          {/* Username and Display Name */}
-          <div className="bg-[#1e1f22] rounded-lg p-4">
-            <h2 className="text-2xl font-bold text-white mb-1">
-              {user.displayName || user.username}
-            </h2>
-            <p className="text-[#b5bac1] text-sm">
-              {user.username}
-              {user.discriminator && `#${user.discriminator}`}
-            </p>
-            {user.pronouns && (
-              <p className="text-sm text-[#949ba4] mt-2">{user.pronouns}</p>
-            )}
+        {/* Username Header */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-white mb-1">
+            {user.displayName || user.username}
+          </h2>
+          <p className="text-[#b5bac1] text-sm">
+            {user.username}
+            {user.discriminator && `#${user.discriminator}`}
+          </p>
+          {user.pronouns && (
+            <p className="text-sm text-[#949ba4] mt-1">{user.pronouns}</p>
+          )}
+          {user.location && (
+            <p className="text-sm text-[#949ba4] mt-1">📍 {user.location}</p>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="w-full">
+          {/* Tab Headers */}
+          <div className="w-full bg-[#1e1f22] border-b border-[#3f4147] rounded-t-lg h-12 flex">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 flex items-center justify-center gap-2 h-full transition-all border-b-2 ${
+                    activeTab === tab.id
+                      ? 'bg-[#2b2d31] text-white border-[#5865f2]'
+                      : 'text-[#949ba4] border-transparent hover:text-white hover:bg-[#2b2d31]/50'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{tab.label}</span>
+                </button>
+              )
+            })}
           </div>
 
-          {/* Custom Status */}
-          {user.customStatus && (
-            <div className="bg-[#1e1f22] rounded-lg p-4">
-              <div className="flex items-center gap-2">
-                {user.customStatusEmoji && <span className="text-xl">{user.customStatusEmoji}</span>}
-                <span className="text-[#dbdee1]">{user.customStatus}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Badges */}
-          {user.badges && user.badges.length > 0 && (
-            <div className="bg-[#1e1f22] rounded-lg p-4">
-              <h3 className="text-xs font-semibold text-[#949ba4] uppercase mb-3">Badges</h3>
-              <div className="flex flex-wrap gap-2">
-                {user.badges.map((badge: string, index: number) => (
-                  <div
-                    key={index}
-                    className="px-3 py-1.5 bg-[#5865f2]/20 text-[#5865f2] rounded-md text-xs font-semibold flex items-center gap-1.5"
-                  >
-                    <Badge className="w-3.5 h-3.5" />
-                    {badge}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Bio */}
-          {user.bio && (
-            <div className="bg-[#1e1f22] rounded-lg p-4">
-              <h3 className="text-xs font-semibold text-[#949ba4] uppercase mb-3">About Me</h3>
-              <p className="text-sm text-[#dbdee1] whitespace-pre-wrap leading-relaxed">{user.bio}</p>
-            </div>
-          )}
-
-          {/* Interests */}
-          {user.userInterests && user.userInterests.length > 0 && (
-            <div className="bg-[#1e1f22] rounded-lg p-4">
-              <h3 className="text-xs font-semibold text-[#949ba4] uppercase mb-3 flex items-center gap-2">
-                <Hash className="w-4 h-4" />
-                Interests
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {user.userInterests.map((ui: any) => (
-                  <span
-                    key={ui.id}
-                    className="px-3 py-1.5 bg-[#2b2d31] text-[#dbdee1] rounded-md text-xs font-medium hover:bg-[#35373c] transition-colors"
-                  >
-                    {ui.interest.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 gap-3">
-            {user._count && (
-              <div className="bg-[#1e1f22] rounded-lg p-4">
-                <div className="flex items-center gap-2 text-[#949ba4] mb-2">
-                  <Users className="w-4 h-4" />
-                  <span className="text-xs font-semibold uppercase">Servers</span>
-                </div>
-                <p className="text-2xl font-bold text-white">
-                  {user._count.serverMembers + user._count.ownedServers}
-                </p>
-              </div>
-            )}
-            <div className="bg-[#1e1f22] rounded-lg p-4">
-              <div className="flex items-center gap-2 text-[#949ba4] mb-2">
-                <Calendar className="w-4 h-4" />
-                <span className="text-xs font-semibold uppercase">Joined</span>
-              </div>
-              <p className="text-sm font-semibold text-white">{formatDate(user.createdAt)}</p>
-            </div>
+          {/* Tab Content */}
+          <div className="mt-6">
+            {activeTab === 'overview' && <OverviewTab user={user} />}
+            {activeTab === 'activity' && <ActivityTab user={user} />}
+            {activeTab === 'connections' && <ConnectionsTab user={user} isOwnProfile={isOwnProfile} onUpdate={onUpdate} />}
+            {activeTab === 'settings' && isOwnProfile && <SettingsTab user={user} onUpdate={onUpdate} />}
           </div>
         </div>
       </div>

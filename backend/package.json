@@ -4,7 +4,14 @@
   "type": "commonjs",
   "private": true,
   "scripts": {
-    "dev": "bun run src/index.js"
+    "dev": "npm run docker:up && bun run src/index.js",
+    "dev:only": "bun run src/index.js",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:restart": "docker-compose restart",
+    "docker:status": "docker-compose ps",
+    "docker:clean": "docker-compose down -v"
   },
   "devDependencies": {
     "@types/bun": "latest"

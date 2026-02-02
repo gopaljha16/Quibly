@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Discord Project - Connect & Chat",
-  description: "A modern communication platform",
+  title: "Quibly - Connect & Chat",
+  description: "A modern communication platform built with Next.js",
 };
 
 export default function RootLayout({

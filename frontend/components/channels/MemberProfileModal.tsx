@@ -7,6 +7,7 @@ type MemberUser = {
   username: string
   discriminator: string
   avatar?: string | null
+  banner?: string | null
   bio?: string
   status?: 'online' | 'idle' | 'dnd' | 'offline'
   customStatus?: string
@@ -57,11 +58,18 @@ export default function MemberProfileModal({
       <div className="absolute inset-0 flex items-center justify-center p-4">
         <div className="w-full max-w-[340px] rounded-[8px] bg-[#12131a] shadow-2xl overflow-hidden animate-scale-in relative">
           {/* Banner */}
-          <div className="h-[60px] bg-gradient-to-r from-cyan-500 to-purple-600 relative">
+          <div className="h-[60px] relative overflow-hidden bg-gradient-to-r from-cyan-500 to-purple-600">
+            {user.banner && (
+              <img
+                src={user.banner}
+                alt="Profile Banner"
+                className="w-full h-full object-cover"
+              />
+            )}
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 transition-colors flex items-center justify-center text-white/80"
+              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 transition-colors flex items-center justify-center text-white/80 z-10"
               aria-label="Close"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" className="fill-current">

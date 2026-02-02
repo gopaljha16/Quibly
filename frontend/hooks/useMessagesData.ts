@@ -18,7 +18,7 @@ export function useMessagesData(channelId: string | null) {
   const [isConnected, setIsConnected] = useState(false)
   const joinedChannelRef = useRef<string | null>(null)
   const queryClient = useQueryClient()
-  
+
   // Initialize socket connection and set up message listener
   useEffect(() => {
     const socketInstance = connectSocket()
@@ -36,9 +36,9 @@ export function useMessagesData(channelId: string | null) {
     const handleReceiveMessage = (incoming: any) => {
       const msg = incoming as Message
       const msgChannelId = msg.channelId
-      
+
       if (!msgChannelId) return
-      
+
       // Add message to cache
       queryClient.setQueryData<Message[]>(['messages', msgChannelId], (old = []) => {
         const exists = old?.some((m) => m._id === msg._id)
@@ -64,20 +64,20 @@ export function useMessagesData(channelId: string | null) {
       socketInstance.off('receive_message', handleReceiveMessage)
     }
   }, [queryClient])
-  
+
   // Queries
   const { data: messages = [], isLoading: messagesLoading, error: messagesError } = useMessages(channelId)
   const { data: currentUser } = useProfile()
-  
+
   // Mutations
   const sendMessageMutation = useSendMessage()
   const editMessageMutation = useEditMessage()
   const deleteMessageMutation = useDeleteMessage()
-  
+
   // Drafts from Zustand
   const { drafts, setDraft, clearDraft } = useUIStore()
   const draft = channelId ? (drafts[channelId] || '') : ''
-  
+
   // Edit state from Zustand
   const {
     editingMessageId,
@@ -85,70 +85,109 @@ export function useMessagesData(channelId: string | null) {
     startEditingMessage,
     stopEditingMessage,
   } = useUIStore()
-  
+
   // Socket room management
   useEffect(() => {
     if (!socket || !channelId) return
-    
+
     const joinChannel = () => {
       if (!socket.connected) return
-      
+
       const prevChannel = joinedChannelRef.current
-      
+
       // Leave previous channel
       if (prevChannel && prevChannel !== channelId) {
         socket.emit('leave_channel', prevChannel)
       }
-      
+
       // Join new channel
       if (joinedChannelRef.current !== channelId) {
         socket.emit('join_channel', channelId)
         joinedChannelRef.current = channelId
       }
     }
-    
+
     // Join immediately if already connected
     if (socket.connected) {
       joinChannel()
     }
-    
+
     // Also join when socket connects
     socket.on('connect', joinChannel)
-    
+
     return () => {
       socket.off('connect', joinChannel)
-      
+
       if (joinedChannelRef.current) {
         socket.emit('leave_channel', joinedChannelRef.current)
         joinedChannelRef.current = null
       }
     }
   }, [socket, isConnected, channelId])
-  
+
   // Send message
   const sendMessage = async (content: string) => {
     if (!channelId || !content.trim()) return
-    
+
+    // Clear draft IMMEDIATELY for instant feedback
+    const trimmedContent = content.trim()
+    if (channelId) {
+      clearDraft(channelId)
+    }
+
+    // Create optimistic message
+    const optimisticId = `optimistic-${Date.now()}`
+    const optimisticMessage: Message = {
+      _id: optimisticId,
+      channelId,
+      serverId: '',
+      senderId: currentUser ? {
+        _id: currentUser._id,
+        username: currentUser.username,
+        avatar: currentUser.avatar
+      } : '',
+      content: trimmedContent,
+      createdAt: new Date().toISOString(),
+    }
+
+    // Add optimistic message to cache IMMEDIATELY
+    queryClient.setQueryData<Message[]>(['messages', channelId], (old = []) => {
+      return [...old, optimisticMessage]
+    })
+
     try {
+      // Send to server in background
       await sendMessageMutation.mutateAsync({
         channelId,
-        content: content.trim(),
+        content: trimmedContent,
       })
-      
-      // Clear draft on success
-      if (channelId) {
-        clearDraft(channelId)
-      }
+
+      // Success! The real message will come via Socket.IO
+      // Remove optimistic message when real one arrives (handled in handleReceiveMessage)
+      queryClient.setQueryData<Message[]>(['messages', channelId], (old = []) => {
+        return old.filter(m => m._id !== optimisticId)
+      })
     } catch (error) {
       console.error('Failed to send message:', error)
+
+      // On error, remove optimistic message
+      queryClient.setQueryData<Message[]>(['messages', channelId], (old = []) => {
+        return old.filter(m => m._id !== optimisticId)
+      })
+
+      // Restore draft so user can retry
+      if (channelId) {
+        setDraft(channelId, trimmedContent)
+      }
+
       throw error
     }
   }
-  
+
   // Edit message
   const editMessage = async (messageId: string, content: string) => {
     if (!content.trim()) return
-    
+
     try {
       await editMessageMutation.mutateAsync({
         messageId,
@@ -160,11 +199,11 @@ export function useMessagesData(channelId: string | null) {
       throw error
     }
   }
-  
+
   // Delete message
   const deleteMessage = async (messageId: string) => {
     if (!channelId) return
-    
+
     try {
       await deleteMessageMutation.mutateAsync({
         messageId,
@@ -175,60 +214,60 @@ export function useMessagesData(channelId: string | null) {
       throw error
     }
   }
-  
+
   // Update draft
   const updateDraft = (content: string) => {
     if (channelId) {
       setDraft(channelId, content)
     }
   }
-  
+
   // Start editing
   const startEditing = (messageId: string, content: string) => {
     startEditingMessage(messageId, content)
   }
-  
+
   // Cancel editing
   const cancelEditing = () => {
     stopEditingMessage()
   }
-  
+
   // Save edit
   const saveEdit = async () => {
     if (editingMessageId && editingMessageContent.trim()) {
       await editMessage(editingMessageId, editingMessageContent)
     }
   }
-  
+
   return {
     // Data
     messages,
     currentUser,
-    
+
     // Loading states
     messagesLoading,
     sending: sendMessageMutation.isPending,
     editing: editMessageMutation.isPending,
     deleting: deleteMessageMutation.isPending,
-    
+
     // Errors
     messagesError,
     sendError: sendMessageMutation.error,
     editError: editMessageMutation.error,
     deleteError: deleteMessageMutation.error,
-    
+
     // Draft state
     draft,
     updateDraft,
     clearDraft: () => channelId && clearDraft(channelId),
-    
+
     // Edit state
     editingMessageId,
     editingMessageContent,
     startEditing,
     cancelEditing,
     saveEdit,
-    
+
     // Operations
     sendMessage,
     editMessage,

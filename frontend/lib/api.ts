@@ -42,13 +42,13 @@ export async function apiRequest<T>(
 
   // Build headers - only add Content-Type for non-FormData bodies
   const headers: Record<string, string> = {}
-  
+
   // Copy existing headers
   if (options.headers) {
     const existingHeaders = options.headers as Record<string, string>
     Object.assign(headers, existingHeaders)
   }
-  
+
   // Add Content-Type for non-FormData bodies if not already set
   if (!(options.body instanceof FormData) && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json'
@@ -81,21 +81,21 @@ export function apiGet<T>(path: string): Promise<T> {
 export function apiPost<T>(path: string, body?: unknown): Promise<T> {
   return apiRequest<T>(path, {
     method: 'POST',
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body instanceof FormData ? body : (body === undefined ? undefined : JSON.stringify(body)),
   })
 }
 
 export function apiPut<T>(path: string, body?: unknown): Promise<T> {
   return apiRequest<T>(path, {
     method: 'PUT',
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body instanceof FormData ? body : (body === undefined ? undefined : JSON.stringify(body)),
   })
 }
 
 export function apiPatch<T>(path: string, body?: unknown): Promise<T> {
   return apiRequest<T>(path, {
     method: 'PATCH',
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body instanceof FormData ? body : (body === undefined ? undefined : JSON.stringify(body)),
   })
 }
 

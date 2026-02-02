@@ -1,20 +1,35 @@
-const {createClient} = require("redis");
+const { createClient } = require("redis");
 require("dotenv").config();
 
 let client = null;
 let isConnected = false;
 
-// Only create client if Redis credentials are provided
-if (process.env.REDIS_STRING && process.env.REDIS_PASSWORD) {
-    client = createClient({
-        username: 'default',
-        password: process.env.REDIS_PASSWORD,
+// Check for cloud Redis (REDIS_STRING) or local Redis (REDIS_HOST)
+const hasCloudRedis = process.env.REDIS_STRING && process.env.REDIS_PASSWORD;
+const hasLocalRedis = process.env.REDIS_HOST || process.env.REDIS_PORT;
+
+if (hasCloudRedis || hasLocalRedis) {
+    const redisConfig = {
         socket: {
-            host: process.env.REDIS_STRING,
-            port: parseInt(process.env.REDIS_PORT_NO),
             connectTimeout: 5000 // 5 second timeout
         }
-    });
+    };
+
+    if (hasCloudRedis) {
+        // Cloud Redis configuration (with password)
+        console.log('🔧 Connecting to Cloud Redis...');
+        redisConfig.username = 'default';
+        redisConfig.password = process.env.REDIS_PASSWORD;
+        redisConfig.socket.host = process.env.REDIS_STRING;
+        redisConfig.socket.port = parseInt(process.env.REDIS_PORT_NO);
+    } else {
+        // Local Redis configuration (no password)
+        console.log('🔧 Connecting to Local Redis...');
+        redisConfig.socket.host = process.env.REDIS_HOST || 'localhost';
+        redisConfig.socket.port = parseInt(process.env.REDIS_PORT) || 6379;
+    }
+
+    client = createClient(redisConfig);
 
     client.on('error', err => console.log('Redis Client Error', err));
 
@@ -34,7 +49,7 @@ if (process.env.REDIS_STRING && process.env.REDIS_PASSWORD) {
     // Initialize connection
     connectRedis();
 } else {
-    console.log('Redis credentials not found, running without cache');
+    console.log('⚠️  Redis not configured (set REDIS_HOST/REDIS_PORT for local or REDIS_STRING/REDIS_PASSWORD for cloud)');
 }
 
 // Redis wrapper with common operations
@@ -99,16 +114,16 @@ const redisWrapper = {
             const key = `channel:${channelId}:messages`;
             const score = new Date(message.createdAt).getTime();
             const value = JSON.stringify(message);
-            
+
             // Add to sorted set (sorted by timestamp)
             await client.zAdd(key, { score, value });
-            
+
             // Keep only last 100 messages per channel
             await client.zRemRangeByRank(key, 0, -101);
-            
+
             // Set expiry to 24 hours
             await client.expire(key, 86400);
-            
+
             return true;
         } catch (error) {
             console.error('Redis cacheMessage error:', error);
@@ -120,10 +135,10 @@ const redisWrapper = {
         if (!client || !isConnected) return null;
         try {
             const key = `channel:${channelId}:messages`;
-            
+
             // Get messages in reverse order (newest first)
             const messages = await client.zRange(key, 0, limit - 1, { REV: true });
-            
+
             return messages.map(msg => JSON.parse(msg));
         } catch (error) {
             console.error('Redis getCachedMessages error:', error);

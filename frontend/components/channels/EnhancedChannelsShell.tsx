@@ -12,7 +12,7 @@ import CreateChannelModal from './CreateChannelModal'
 import JoinServerModal from './JoinServerModal'
 import ServerSettingsModal from './ServerSettingsModal'
 import InviteServerModal from './InviteServerModal'
-import UserProfileModal from '../profile/UserProfileModal'
+import UserProfileViewModal from '../profile/UserProfileViewModal'
 import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/components/LoadingSkeletons'
 import { useUserProfileController } from '@/controllers/profile/useUserProfileController'
 
@@ -97,6 +97,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       username: string
       discriminator: string
       avatar?: string | null
+      banner?: string | null
       bio?: string
       status?: 'online' | 'idle' | 'dnd' | 'offline'
       customStatus?: string
@@ -714,7 +715,14 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
           {userMenuOpen && (
             <div className="absolute bottom-16 left-2 w-64 rounded-lg bg-[#111214] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div className="h-16 bg-[#5865f2] relative">
+              <div 
+                className="h-16 relative bg-[#5865f2]"
+                style={currentUser?.banner ? {
+                  backgroundImage: `url(${currentUser.banner})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                } : {}}
+              >
                 <div className="absolute -bottom-6 left-4 border-[6px] border-[#1a1a1a] rounded-full">
                   <UserAvatar
                     username={currentUser?.username || 'User'}
@@ -889,7 +897,17 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   <button
                     key={m._id}
                     type="button"
-                    onClick={() => setSelectedMember({ user: { ...user, status: userStatus }, isOwner })}
+                    onClick={() => {
+                      setSelectedMember({ 
+                        user: { 
+                          ...user, 
+                          status: userStatus,
+                          banner: user.banner,
+                          bio: user.bio
+                        }, 
+                        isOwner 
+                      })
+                    }}
                     className="w-full px-2 py-1.5 rounded hover:bg-[#35373c] transition-colors flex items-center gap-3 group"
                   >
                     <UserAvatar
@@ -1013,19 +1031,16 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
         <MemberProfileModal
           open={!!selectedMember}
           onClose={() => setSelectedMember(null)}
-          user={selectedMember?.user || null}
+          user={selectedMember?.user && currentUser && selectedMember.user._id === currentUser._id
+            ? { ...currentUser, status: selectedMember.user.status || currentUser.status }
+            : (selectedMember?.user || null)}
           isOwner={!!selectedMember?.isOwner}
         />
 
-        <UserProfileModal
+        <UserProfileViewModal
           isOpen={profileModalOpen}
           onClose={closeProfileModal}
           user={profileUser}
-          onUpdate={handleUpdateProfile}
-          onUploadAvatar={handleUploadAvatar}
-          onUploadBanner={handleUploadBanner}
-          onDeleteAvatar={handleDeleteAvatar}
-          onDeleteBanner={handleDeleteBanner}
         />
     </div>
   )

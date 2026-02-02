@@ -11,7 +11,7 @@ let intervalId = null;
  */
 
 const BATCH_INTERVAL = 30000; // 30 seconds
-const MAX_BATCH_SIZE = 500; // Process max 500 messages per batch
+const MAX_BATCH_SIZE = 500; // Process max 5 messages per batch
 
 async function processBatch() {
     if (!redis.isConnected()) {
@@ -21,7 +21,7 @@ async function processBatch() {
     try {
         // Get messages from batch queue
         const messages = await redis.getBatchQueue(MAX_BATCH_SIZE);
-        
+
         if (messages.length === 0) {
             return;
         }
@@ -46,7 +46,7 @@ async function processBatch() {
         });
 
         console.log(`✅ Saved ${result.count} messages to PostgreSQL`);
-        
+
         // Clear processed messages from queue
         await redis.clearBatchQueue(messages.length);
     } catch (error) {
