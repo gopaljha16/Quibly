@@ -16,19 +16,24 @@ import { MessageListSkeleton } from '@/components/LoadingSkeletons'
 const MessageItem = ({
   message,
   onEdit,
-  onDelete
+  onDelete,
+  currentUser
 }: {
   message: Message
   onEdit: (id: string, content: string) => void
   onDelete: (id: string) => void
+  currentUser?: any
 }) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const { firstUrl } = useLinkPreviews(message.content)
 
-  const sender = typeof message.senderId === 'string'
-    ? 'User' // Fallback if sender info is not populated
-    : message.senderId.username || 'User'
+  const isSenderMe = typeof message.senderId === 'object' && message.senderId._id === currentUser?._id
+  
+  const senderInfo = isSenderMe ? currentUser : (typeof message.senderId === 'object' ? message.senderId : null)
+  
+  const sender = senderInfo?.username || 'User'
+  const avatar = senderInfo?.avatar
 
   const date = new Date(message.createdAt)
   const today = new Date()
@@ -70,9 +75,9 @@ const MessageItem = ({
   return (
     <div className={`group flex gap-4 px-4 py-0.5 hover:bg-[#2e3035] relative mt-[1.0625rem] first:mt-2 ${menuOpen ? 'bg-[#2e3035]' : ''}`}>
       <div className="w-10 h-10 rounded-full bg-[#5865f2] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 cursor-pointer hover:drop-shadow-md transition-all active:translate-y-px">
-        {typeof message.senderId === 'object' && message.senderId.avatar ? (
+        {avatar ? (
           <img
-            src={message.senderId.avatar}
+            src={avatar}
             alt={sender}
             className="w-full h-full rounded-full object-cover"
           />
@@ -363,6 +368,7 @@ export default function ChannelsPage() {
                         message={message}
                         onEdit={startEditing}
                         onDelete={handleDelete}
+                        currentUser={currentUser}
                       />
                     ))}
                   </div>

@@ -10,6 +10,7 @@ const interestRoutes = require('./interest');
 const voiceRoutes = require('./voice');
 const profileRoutes = require('./profileRoutes');
 const accountSecurityRoutes = require('./accountSecurity');
+const inviteRoutes = require('./inviteRoutes');
 
 // Use routes
 router.use('/auth', authRoutes);
@@ -21,6 +22,7 @@ router.use('/interests', interestRoutes);
 router.use('/voice', voiceRoutes);
 router.use('/profile', profileRoutes);
 router.use('/account', accountSecurityRoutes);
+router.use('/invites', inviteRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {

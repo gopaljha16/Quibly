@@ -13,7 +13,6 @@ router.get('/getmy-servers', serverController.getMyServers);
 router.get('/:serverId', serverController.getServerById);
 router.put('/:serverId', serverController.updateServer);
 router.delete('/:serverId', serverController.deleteServer);
-router.post('/:serverId/join', serverController.joinServer);
 router.post('/:serverId/leave', serverController.leaveServer);
 router.get('/:serverId/members', serverController.getMembers);
 

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
   Mail, Lock, Eye, EyeOff, LogIn, ArrowLeft, Sparkles, 
@@ -13,8 +13,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/channels/@me'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -30,13 +32,13 @@ export default function LoginPage() {
         // Try to fetch user profile to check if logged in
         await apiGet('/auth/profile')
         // If successful, user is logged in, redirect to channels
-        router.push('/channels/@me')
+        router.push(redirect)
       } catch (error) {
         // User is not logged in, stay on login page
       }
     }
     checkAuth()
-  }, [router])
+  }, [router, redirect])
 
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {}
@@ -59,7 +61,7 @@ export default function LoginPage() {
 
     try {
       await apiPost<{ user: unknown; token: string }>('/auth/login', formData)
-      router.push('/channels/@me')
+      router.push(redirect)
       router.refresh()
     } catch (error) {
       if (error instanceof ApiError) {
@@ -380,5 +382,17 @@ function AnimatedVisualization() {
       <div className="absolute bottom-32 right-32 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
       <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#020204] flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   )
 }

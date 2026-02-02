@@ -3,6 +3,7 @@ export { useChannels } from './useChannels'
 export { useMessages } from './useMessages'
 export { useMembers } from './useMembers'
 export { useProfile } from './useProfile'
+export { useInviteInfo } from './useInviteInfo'
 
 export type { Server } from './useServers'
 export type { Channel } from './useChannels'

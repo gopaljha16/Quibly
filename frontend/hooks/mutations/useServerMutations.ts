@@ -6,11 +6,11 @@ import { Server } from '../queries'
 
 export function useJoinServer() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: async (serverId: string) => {
-      await apiPost(`/server/${serverId}/join`)
-      return serverId
+    mutationFn: async (inviteCode: string) => {
+      const response = await apiPost<{ success: boolean; serverId: string }>(`/invites/${inviteCode}/join`)
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['servers'] })
@@ -18,9 +18,27 @@ export function useJoinServer() {
   })
 }
 
+export function useCreateInvite() {
+  return useMutation({
+    mutationFn: async ({
+      serverId,
+      data,
+    }: {
+      serverId: string
+      data: { maxUses?: number; expiresInDays?: number }
+    }) => {
+      const response = await apiPost<{
+        success: boolean
+        invite: { code: string; expiresAt: string | null; maxUses: number | null }
+      }>(`/invites/${serverId}`, data)
+      return response.invite
+    },
+  })
+}
+
 export function useLeaveServer() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (serverId: string) => {
       await apiPost(`/server/${serverId}/leave`)
@@ -40,7 +58,7 @@ export function useLeaveServer() {
 
 export function useDeleteServer() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (serverId: string) => {
       await apiRequest(`/server/${serverId}`, { method: 'DELETE' })
@@ -60,7 +78,7 @@ export function useDeleteServer() {
 
 export function useUpdateServer() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({
       serverId,

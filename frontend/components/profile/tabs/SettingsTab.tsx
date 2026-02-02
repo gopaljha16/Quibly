@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Palette, Type, Image as ImageIcon, MapPin, Lock, Save, Upload, Trash2, Camera, Mail, User } from 'lucide-react'
+import { Palette, Type, Image as ImageIcon, MapPin, Lock, Save, Upload, Trash2, Camera, Mail, User, AtSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
+import { Switch } from '../../ui/switch'
 import { apiPatch, apiPost, apiDelete } from '@/lib/api'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface SettingsTabProps {
   user: any
@@ -13,8 +15,11 @@ interface SettingsTabProps {
 }
 
 export default function SettingsTab({ user, onUpdate }: SettingsTabProps) {
+  const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+
+  const [usernameField, setUsernameField] = useState(user.username || '')
 
   const [basicInfo, setBasicInfo] = useState({
     displayName: user.displayName || '',
@@ -50,19 +55,16 @@ export default function SettingsTab({ user, onUpdate }: SettingsTabProps) {
       formData.append('avatar', file)
       const response = await apiPost<any>('/users/avatar', formData)
       
-      // Update with server response
+      // Invalidate profile query to update everywhere
+      await queryClient.invalidateQueries({ queryKey: ['profile'] })
+      
+      toast.success('Avatar updated successfully!')
       if (response.avatar) {
         onUpdate?.({ avatar: response.avatar })
       }
-      
-      // Show success message and reload
-      alert('✅ Avatar updated successfully!')
-      setTimeout(() => {
-        window.location.reload()
-      }, 100)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to upload avatar:', error)
-      alert('Failed to upload avatar. Please try again.')
+      toast.error(error.message || 'Failed to upload avatar')
     } finally {
       setUploading(false)
     }
@@ -78,22 +80,16 @@ export default function SettingsTab({ user, onUpdate }: SettingsTabProps) {
       formData.append('banner', file)
       const response = await apiPost<any>('/users/banner', formData)
       
-      // Update with server response
+      // Invalidate profile query
+      await queryClient.invalidateQueries({ queryKey: ['profile'] })
+      
+      toast.success('Banner updated successfully!')
       if (response.banner) {
         onUpdate?.({ banner: response.banner })
       }
-      
-      // Show success message
-      alert('✅ Banner updated successfully! The modal will refresh to show your new banner.')
-      
-      // Force modal to close and refresh by triggering a page reload or closing modal
-      // This ensures fresh data is fetched
-      setTimeout(() => {
-        window.location.reload()
-      }, 100)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to upload banner:', error)
-      alert('Failed to upload banner. Please try again.')
+      toast.error(error.message || 'Failed to upload banner')
     } finally {
       setUploading(false)
     }
@@ -103,9 +99,12 @@ export default function SettingsTab({ user, onUpdate }: SettingsTabProps) {
     try {
       setUploading(true)
       await apiDelete('/users/avatar')
+      await queryClient.invalidateQueries({ queryKey: ['profile'] })
+      toast.success('Avatar removed')
       onUpdate?.({ avatar: null })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete avatar:', error)
+      toast.error('Failed to remove avatar')
     } finally {
       setUploading(false)
     }
@@ -115,9 +114,12 @@ export default function SettingsTab({ user, onUpdate }: SettingsTabProps) {
     try {
       setUploading(true)
       await apiDelete('/users/banner')
+      await queryClient.invalidateQueries({ queryKey: ['profile'] })
+      toast.success('Banner removed')
       onUpdate?.({ banner: null })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete banner:', error)
+      toast.error('Failed to remove banner')
     } finally {
       setUploading(false)
     }
@@ -127,9 +129,26 @@ export default function SettingsTab({ user, onUpdate }: SettingsTabProps) {
     try {
       setSaving(true)
       await apiPatch('/users/profile', basicInfo)
+      await queryClient.invalidateQueries({ queryKey: ['profile'] })
+      toast.success('Basic information updated!')
       onUpdate?.(basicInfo)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update basic info:', error)
+      toast.error(error.message || 'Failed to update basic info')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleSaveUsername = async () => {
+    try {
+      setSaving(true)
+      await apiPatch('/auth/account/username', { username: usernameField })
+      await queryClient.invalidateQueries({ queryKey: ['profile'] })
+      toast.success('Username updated successfully!')
+    } catch (error: any) {
+      console.error('Failed to update username:', error)
+      toast.error(error.message || 'Failed to update username')
     } finally {
       setSaving(false)
     }
@@ -282,7 +301,32 @@ export default function SettingsTab({ user, onUpdate }: SettingsTabProps) {
           <h3 className="text-lg font-semibold text-white">Basic Information</h3>
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
+          {/* Username */}
+          <div className="space-y-2 pb-6 border-b border-[#3f4147]">
+            <label className="text-xs text-[#949ba4] uppercase mb-2 flex items-center gap-2 font-bold">
+              <AtSign className="w-4 h-4 text-[#5865f2]" />
+              Username
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Input
+                  value={usernameField}
+                  onChange={(e) => setUsernameField(e.target.value.toLowerCase().replace(/\s/g, ''))}
+                  placeholder="username"
+                  className="bg-[#111214] border-[#3f4147] text-white pr-12 focus:border-[#5865f2] transition-colors"
+                />
+              </div>
+              <Button
+                onClick={handleSaveUsername}
+                disabled={saving || !usernameField || usernameField === user.username}
+                className="bg-[#5865f2] hover:bg-[#4752c4] text-white shrink-0"
+              >
+                {saving ? 'Updating...' : 'Update'}
+              </Button>
+            </div>
+            <p className="text-[11px] text-[#949ba4] mt-1 italic">Your unique handle. Cannot contain spaces or uppercase letters.</p>
+          </div>
           {/* Display Name */}
           <div>
             <label className="text-xs text-[#949ba4] uppercase mb-2 block">Display Name</label>
@@ -535,7 +579,7 @@ function AccountSecuritySection({ user }: { user: any }) {
 
   const handleChangePassword = async () => {
     if (passData.newPassword !== passData.confirmPassword) {
-      alert('Passwords do not match')
+      toast.error('Passwords do not match')
       return
     }
 
@@ -545,11 +589,11 @@ function AccountSecuritySection({ user }: { user: any }) {
         currentPassword: passData.currentPassword,
         newPassword: passData.newPassword
       })
-      alert('✅ Password changed successfully!')
+      toast.success('Password changed successfully!')
       setShowPasswordForm(false)
       setPassData({ currentPassword: '', newPassword: '', confirmPassword: '' })
     } catch (error: any) {
-      alert(error.message || 'Failed to change password')
+      toast.error(error.message || 'Failed to change password')
     } finally {
       setLoading(false)
     }
@@ -561,10 +605,14 @@ function AccountSecuritySection({ user }: { user: any }) {
       const response = await apiPost<any>('/account/request-email-change', {
         newEmail: emailData.newEmail
       })
-      alert(`Verification code sent to ${emailData.newEmail}!\nCode: ${response.verificationCode}`)
+      toast.info(`Verification code sent to ${emailData.newEmail}!`)
+      // Still show alert for development since verification code is returned in response
+      if (process.env.NODE_ENV === 'development') {
+         alert(`Code: ${response.verificationCode}`)
+      }
       setEmailChangeStep('verify')
     } catch (error: any) {
-      alert(error.message || 'Failed to send verification code')
+      toast.error(error.message || 'Failed to send verification code')
     } finally {
       setLoading(false)
     }
@@ -576,12 +624,12 @@ function AccountSecuritySection({ user }: { user: any }) {
       await apiPost('/account/verify-email-change', {
         verificationCode: emailData.verificationCode
       })
-      alert('✅ Email changed successfully!')
+      toast.success('Email changed successfully!')
       setShowEmailForm(false)
       setEmailData({ newEmail: '', verificationCode: '' })
       setEmailChangeStep('input')
     } catch (error: any) {
-      alert(error.message || 'Failed to verify email')
+      toast.error(error.message || 'Failed to verify email')
     } finally {
       setLoading(false)
     }
@@ -595,10 +643,10 @@ function AccountSecuritySection({ user }: { user: any }) {
     try {
       setLoading(true)
       await apiPost('/account/disable', {})
-      alert('✅ Account disabled. You have 7 days to reactivate before permanent deletion.')
+      toast.success('Account disabled')
       window.location.href = '/'
     } catch (error: any) {
-      alert(error.message || 'Failed to disable account')
+      toast.error(error.message || 'Failed to disable account')
     } finally {
       setLoading(false)
     }
@@ -608,10 +656,10 @@ function AccountSecuritySection({ user }: { user: any }) {
     try {
       setLoading(true)
       await apiDelete<any>('/account/delete?' + new URLSearchParams({ password: deletePassword }))
-      alert('Account deleted permanently.')
+      toast.success('Account deleted permanently')
       window.location.href = '/'
     } catch (error: any) {
-      alert(error.message || 'Failed to delete account')
+      toast.error(error.message || 'Failed to delete account')
     } finally {
       setLoading(false)
     }
