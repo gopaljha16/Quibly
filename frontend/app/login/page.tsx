@@ -95,8 +95,8 @@ export default function LoginPage() {
       <nav className="fixed top-0 w-full z-[100] py-6 bg-black/40 backdrop-blur-2xl border-b border-white/5">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-            <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">N</div>
-            <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Nexus</span>
+            <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">Q</div>
+            <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Quibly</span>
           </Link>
           
           <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-all group">
@@ -122,7 +122,7 @@ export default function LoginPage() {
               WELCOME <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">BACK.</span>
             </h1>
             <p className="text-lg text-gray-500 mb-10 font-medium">
-              Sign in to continue your journey with Nexus.
+              Sign in to continue your journey with Quibly.
             </p>
 
             {/* Form Card */}
@@ -148,7 +148,7 @@ export default function LoginPage() {
                       className={`bg-white/5 border-white/10 text-white h-12 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
                         errors.email ? 'border-red-500 ring-2 ring-red-500/20' : ''
                       }`}
-                      placeholder="your.email@nexus.com"
+                      placeholder="your.email@quibly.com"
                       autoFocus
                     />
                     {errors.email && (
@@ -225,7 +225,7 @@ export default function LoginPage() {
                     ) : (
                       <span className="flex items-center gap-2 relative z-10">
                         <LogIn className="h-5 w-5" />
-                        Launch Nexus
+                        Launch Quibly
                       </span>
                     )}
                   </Button>
@@ -366,7 +366,7 @@ function AnimatedVisualization() {
 
       {/* Floating Code Snippets */}
       <div className="absolute top-10 right-10 p-4 bg-black/60 border border-white/10 rounded-2xl backdrop-blur-xl font-mono text-xs text-cyan-400/80 animate-pulse">
-        <p>$ nexus.connect()</p>
+        <p>$ quibly.connect()</p>
         <p className="text-white">{'>'} Status: Online</p>
       </div>
 

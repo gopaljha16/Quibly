@@ -106,19 +106,24 @@ const PORT = process.env.PORT || 5000;
 // Initialize Socket.IO
 require('./socket')(server);
 
-// Start batch DB writer service (writes to DB every 15 minutes)
+// Start batch DB writer service (writes to DB every 30 seconds)
 const { startBatchWriter } = require('./services/batchDBWriter');
-if (process.env.REDIS_STRING && process.env.REDIS_PASSWORD) {
-    // Wait a bit for Redis to connect, then start batch writer
-    setTimeout(() => {
-        startBatchWriter(); // Runs every 15 minutes by default
-    }, 2000);
-}
+const redis = require('./config/redis');
+
+// Wait a bit for Redis to connect, then start batch writer
+setTimeout(() => {
+    if (redis.isConnected()) {
+        console.log('🔄 Starting batch DB writer service...');
+        startBatchWriter(); // Runs every 30 seconds, processes 5 messages per batch
+    } else {
+        console.log('⚠️  Batch writer not started (Redis not connected)');
+    }
+}, 2000);
 
 server.listen(PORT, () => {
     console.log(`✅ Server is running on port ${PORT}`);
     console.log(`📧 Email: ${process.env.EMAIL_USER}`);
-    
+
     // Verify LiveKit configuration
     if (process.env.LIVEKIT_API_KEY && process.env.LIVEKIT_API_SECRET && process.env.LIVEKIT_WS_URL) {
         console.log('🎤 LiveKit configured:');
@@ -136,7 +141,7 @@ server.listen(PORT, () => {
 
     console.log(` Frontend URL: ${process.env.FRONTEND_URL}`);
     console.log(` Socket.IO server initialized`);
-    
+
     // Wait for Kafka to connect, then start fanout service
     global.onKafkaConnected = () => {
         console.log("🎯 Kafka connected! Now starting fanout service...");
@@ -144,7 +149,7 @@ server.listen(PORT, () => {
             console.error('Failed to start fanout service:', err);
         });
     };
-    
+
     // Also try to start immediately in case Kafka is already connected
     setTimeout(() => {
         const { isKafkaConnected } = require('./config/kafka');
@@ -160,9 +165,9 @@ server.listen(PORT, () => {
 // Graceful shutdown handler
 const gracefulShutdown = async (signal) => {
     console.log(`\n${signal} received. Starting graceful shutdown...`);
-    
+
     let shutdownComplete = false;
-    
+
     // Force shutdown after 10 seconds
     const forceShutdownTimer = setTimeout(() => {
         if (!shutdownComplete) {
@@ -170,7 +175,7 @@ const gracefulShutdown = async (signal) => {
             process.exit(1);
         }
     }, 10000);
-    
+
     try {
         // Stop accepting new connections
         await new Promise((resolve) => {
@@ -179,7 +184,7 @@ const gracefulShutdown = async (signal) => {
                 resolve();
             });
         });
-        
+
         // Disconnect services in parallel
         await Promise.allSettled([
             (async () => {
@@ -209,7 +214,7 @@ const gracefulShutdown = async (signal) => {
                 }
             })()
         ]);
-        
+
         shutdownComplete = true;
         clearTimeout(forceShutdownTimer);
         console.log('✓ Graceful shutdown complete');

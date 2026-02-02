@@ -32,15 +32,15 @@ if (process.env.KAFKA_BROKERS) {
         };
 
         // Try to load certificates from environment variables (Base64 encoded)
-        const hasCertsInEnv = process.env.KAFKA_CA_CERT_BASE64 && 
-                              process.env.KAFKA_CLIENT_CERT_BASE64 && 
-                              process.env.KAFKA_CLIENT_KEY_BASE64;
+        const hasCertsInEnv = process.env.KAFKA_CA_CERT_BASE64 &&
+            process.env.KAFKA_CLIENT_CERT_BASE64 &&
+            process.env.KAFKA_CLIENT_KEY_BASE64;
 
         // Certificate file paths (fallback)
         const certPath = "./src/config/service.cert";
         const keyPath = "./src/config/service.key";
         const caPath = "./src/config/ca.pem";
-        
+
         const hasClientCertsFiles = fs.existsSync(certPath) && fs.existsSync(keyPath);
         const hasCaCertFile = fs.existsSync(caPath);
 
@@ -63,7 +63,7 @@ if (process.env.KAFKA_BROKERS) {
         // PRIORITY 2: Load from files (fallback for development)
         else if (hasCaCertFile || hasClientCertsFiles) {
             console.log("  ⚠️  Loading certificates from files (fallback mode)");
-            
+
             // Load CA certificate from file
             if (hasCaCertFile) {
                 try {
@@ -90,15 +90,15 @@ if (process.env.KAFKA_BROKERS) {
                 // Method 2: SASL authentication (username/password)
                 console.log("  🔐 Using SASL authentication");
                 kafkaConfig.ssl = sslConfig;
-                
+
                 const saslMechanism = process.env.KAFKA_SASL_MECHANISM || "scram-sha-256";
-                
+
                 kafkaConfig.sasl = {
                     mechanism: saslMechanism,
                     username: process.env.KAFKA_USERNAME,
                     password: process.env.KAFKA_PASSWORD,
                 };
-                
+
                 console.log("  Username:", process.env.KAFKA_USERNAME);
                 console.log("  Password length:", process.env.KAFKA_PASSWORD?.length);
                 console.log("  SASL mechanism:", saslMechanism);
@@ -108,15 +108,15 @@ if (process.env.KAFKA_BROKERS) {
         else {
             console.log("  🔐 Using SASL authentication (no certificates found)");
             kafkaConfig.ssl = sslConfig;
-            
+
             const saslMechanism = process.env.KAFKA_SASL_MECHANISM || "scram-sha-256";
-            
+
             kafkaConfig.sasl = {
                 mechanism: saslMechanism,
                 username: process.env.KAFKA_USERNAME,
                 password: process.env.KAFKA_PASSWORD,
             };
-            
+
             console.log("  Username:", process.env.KAFKA_USERNAME);
             console.log("  Password length:", process.env.KAFKA_PASSWORD?.length);
             console.log("  SASL mechanism:", saslMechanism);
@@ -126,7 +126,7 @@ if (process.env.KAFKA_BROKERS) {
     kafka = new Kafka(kafkaConfig);
 
     producer = kafka.producer({
-        allowAutoTopicCreation: false, // Aiven requires manual topics
+        allowAutoTopicCreation: !useAuth, // Allow auto-creation for local, disable for Aiven
         idempotent: true, // Ensure exactly-once delivery
         maxInFlightRequests: 5,
         transactionalId: undefined,
@@ -134,11 +134,17 @@ if (process.env.KAFKA_BROKERS) {
 
     const connectProducer = async () => {
         try {
+            // For local Kafka, wait a bit for it to be ready
+            if (!useAuth) {
+                console.log("⏳ Waiting for Kafka to be ready...");
+                await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+            }
+
             console.log("🔄 Connecting to Kafka...");
             await producer.connect();
             isConnected = true;
-            console.log("✅ Connected to Aiven Kafka successfully");
-            
+            console.log("✅ Connected to Kafka successfully");
+
             // Notify that Kafka is ready
             if (global.onKafkaConnected) {
                 console.log("📢 Triggering Kafka connected callback...");

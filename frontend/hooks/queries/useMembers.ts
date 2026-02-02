@@ -10,6 +10,7 @@ export type Member = {
     username: string
     discriminator: string
     avatar?: string | null
+    banner?: string | null
     bio?: string
     status?: 'online' | 'idle' | 'dnd' | 'offline'
     customStatus?: string
@@ -27,6 +28,7 @@ type MembersResponse = {
       username: string
       discriminator: string
       avatar?: string | null
+      banner?: string | null
       bio?: string
       status?: 'online' | 'idle' | 'dnd' | 'offline'
       customStatus?: string
@@ -41,9 +43,9 @@ export function useMembers(serverId: string | null) {
     queryKey: ['members', serverId],
     queryFn: async () => {
       if (!serverId) return { ownerId: null, members: [] }
-      
+
       const response = await apiGet<MembersResponse>(`/server/${serverId}/members`)
-      
+
       return {
         ownerId: response.ownerId || null,
         members: (response.members || []).map((m) => ({

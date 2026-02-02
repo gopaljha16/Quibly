@@ -8,37 +8,74 @@ datasource db {
 }
 
 model User {
-  id                     String         @id @default(cuid())
+  id                     String     @id @default(cuid())
   username               String
   discriminator          String
   displayName            String?
-  email                  String         @unique
+  email                  String     @unique
   pendingEmail           String?
   password               String
-  avatar                 String?        // Cloudinary URL
-  avatarPublicId         String?        // Cloudinary public ID for deletion
-  banner                 String?        // Cloudinary URL
-  bannerPublicId         String?        // Cloudinary public ID for deletion
-  bio                    String?        @db.Text
+  avatar                 String? // Cloudinary URL
+  avatarPublicId         String? // Cloudinary public ID for deletion
+  banner                 String? // Cloudinary URL
+  bannerPublicId         String? // Cloudinary public ID for deletion
+  bio                    String?    @db.Text
   pronouns               String?
-  themeColor             String?        @default("#5865F2")
-  status                 UserStatus     @default(offline)
+  themeColor             String?    @default("#5865F2")
+  status                 UserStatus @default(offline)
   customStatus           String?
   customStatusEmoji      String?
-  badges                 String[]       @default([])
+  badges                 String[]   @default([])
   friends                String[]
   incomingFriendRequests String[]
   outgoingFriendRequests String[]
-  servers                Json           @default("[]")
-  settings               Json           @default("{}")
-  isVerified             Boolean        @default(false)
-  isBanned               Boolean        @default(false)
-  lastSeen               DateTime       @default(now())
-  createdAt              DateTime       @default(now())
-  updatedAt              DateTime       @updatedAt
-  ownedServers           Server[]       @relation("ServerOwner")
-  serverMembers          ServerMember[]
-  userInterests          UserInterest[]
+  blockedUsers           String[]   @default([])
+  servers                Json       @default("[]")
+  settings               Json       @default("{}")
+  isVerified             Boolean    @default(false)
+  isBanned               Boolean    @default(false)
+  lastSeen               DateTime   @default(now())
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  
+  // Account Security
+  isDisabled             Boolean    @default(false)
+  disabledAt             DateTime?
+  emailVerificationToken String?
+  emailVerificationTokenExpiry DateTime?
+
+
+  // NEW: Profile Personalization
+  location   String?
+  cardStyle  String? @default("rounded") // rounded, sharp, glass
+  fontStyle  String? @default("default") // default, modern, classic
+  showBanner Boolean @default(true)
+
+  // NEW: Social Links (JSON)
+  socialLinks Json @default("{}")
+  // { github: "", twitter: "", linkedin: "", portfolio: "", website: "" }
+
+  // NEW: Privacy Settings (JSON)
+  privacySettings Json @default("{}")
+  // {
+  //   emailVisible: "friends",
+  //   mutualServersVisible: "everyone",
+  //   friendRequestsFrom: "everyone",
+  //   dmsFrom: "friends",
+  //   showActivityStatus: true,
+  //   showCurrentServer: true
+  // }
+
+  // NEW: Activity Tracking
+  messagesSent     Int @default(0)
+  voiceTimeMinutes Int @default(0)
+
+  // NEW: Achievements
+  achievements String[] @default([])
+
+  ownedServers  Server[]       @relation("ServerOwner")
+  serverMembers ServerMember[]
+  userInterests UserInterest[]
 
   @@index([email])
   @@index([username])
@@ -81,16 +118,16 @@ model ServerMember {
 }
 
 model Channel {
-  id                   String      @id @default(cuid())
+  id                   String           @id @default(cuid())
   serverId             String
   name                 String
-  type                 ChannelType @default(TEXT)
+  type                 ChannelType      @default(TEXT)
   topic                String?
-  position             Int         @default(0)
-  permissionOverwrites Json        @default("[]")
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  server               Server      @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  position             Int              @default(0)
+  permissionOverwrites Json             @default("[]")
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  server               Server           @relation(fields: [serverId], references: [id], onDelete: Cascade)
   messages             Message[]
   hashtags             ChannelHashtag[]
 
@@ -192,4 +229,3 @@ enum VerificationLevel {
   medium
   high
 }
-

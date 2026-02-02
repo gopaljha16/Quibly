@@ -9,7 +9,7 @@ import {
   Bot, Sparkles, BrainCircuit, Share2, Search, Smile
 } from 'lucide-react';
 
-const NexusApex = () => {
+const QuiblyApex = () => {
   const [scrollY, setScrollY] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
 
@@ -34,8 +34,8 @@ const NexusApex = () => {
       <nav className={`fixed top-0 w-full z-[100] transition-all duration-500 ${scrollY > 20 ? 'py-4 bg-black/60 backdrop-blur-2xl border-b border-white/5' : 'py-8 bg-transparent'}`}>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer">
-            <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">N</div>
-            <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Nexus</span>
+            <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">Q</div>
+            <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Quibly</span>
           </div>
           
           {/* Desktop Links */}
@@ -67,7 +67,7 @@ const NexusApex = () => {
             IMAGINE A <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">DIGITAL HOME.</span>
           </h1>
           <p className="text-lg md:text-2xl text-gray-500 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
-            Whether you’re a gaming squad, a study group, or a global community, Nexus provides the space to belong. Now powered by advanced AI protocols.
+            Whether you’re a gaming squad, a study group, or a global community, Quibly provides the space to belong. Now powered by advanced AI protocols.
           </p>
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
             <button className="px-10 py-5 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all flex items-center justify-center gap-3">
@@ -92,7 +92,7 @@ const NexusApex = () => {
                       <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                       <div className="w-3 h-3 rounded-full bg-green-500/50" />
                    </div>
-                   <span className="text-gray-500">nexus_ai_core.sh</span>
+                   <span className="text-gray-500">quibly_ai_core.sh</span>
                 </div>
                 <div className="p-8 space-y-4 text-cyan-400/80">
                    <p className="">$ initializing_neural_protocols...</p>
@@ -107,7 +107,7 @@ const NexusApex = () => {
             <div className="w-16 h-1 bg-cyan-500 mb-8" />
             <h2 className="text-4xl md:text-6xl font-black mb-8 italic uppercase tracking-tighter">THE NEURAL <br /> <span className="text-cyan-400">EDGE.</span></h2>
             <p className="text-xl text-gray-500 mb-10 leading-relaxed font-medium">
-              We’ve integrated AI into the very core of Nexus. From automated server summaries and smart moderation to studio-quality AI noise cancellation.
+              We’ve integrated AI into the very core of Quibly. From automated server summaries and smart moderation to studio-quality AI noise cancellation.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                <div className="flex gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
@@ -130,7 +130,7 @@ const NexusApex = () => {
         <div className="grid lg:grid-cols-2 gap-20 items-center">
           <div>
             <h2 className="text-4xl md:text-6xl font-black mb-8 italic uppercase tracking-tighter">Invite-only <br /> spaces.</h2>
-            <p className="text-xl text-gray-500 leading-relaxed mb-8 font-medium">Nexus servers are organized into topic-based channels where you can collaborate, share, and just talk about your day.</p>
+            <p className="text-xl text-gray-500 leading-relaxed mb-8 font-medium">Quibly servers are organized into topic-based channels where you can collaborate, share, and just talk about your day.</p>
             <ul className="space-y-4">
               {['Topic-based channels', 'Custom member roles', 'Private node access'].map(i => (
                 <li key={i} className="flex items-center gap-3 text-xs font-black uppercase tracking-widest text-cyan-400/70">
@@ -161,7 +161,7 @@ const NexusApex = () => {
             <h2 className="text-4xl md:text-6xl font-black mb-8 italic uppercase tracking-tighter">Where hanging <br /> out is easy.</h2>
             <p className="text-xl text-gray-500 mb-10 leading-relaxed font-medium">Grab a seat in a voice channel when you’re free. Friends in your server can see you’re around and instantly pop in.</p>
             <div className="p-6 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl italic text-sm text-cyan-400 font-bold">
-               "The latency is so low, it feels like we're in the same room." — Nexus Beta User
+               "The latency is so low, it feels like we're in the same room." — Quibly Beta User
             </div>
           </div>
         </div>
@@ -191,7 +191,7 @@ const NexusApex = () => {
       <section id="nitro" className="py-40 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-20">
-             <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-4">Nexus Nitro</h2>
+             <h2 className="text-5xl font-black italic uppercase tracking-tighter mb-4">Quibly Nitro</h2>
              <p className="text-gray-500 font-bold uppercase text-[10px] tracking-[0.3em]">Support the protocol & get perks</p>
           </div>
           <div className="grid md:grid-cols-2 gap-10">
@@ -226,13 +226,13 @@ const NexusApex = () => {
           <div className="text-center mb-40">
              <h2 className="text-5xl md:text-8xl font-black mb-12 italic tracking-tighter uppercase">Ready to join?</h2>
              <button className="px-16 py-6 bg-cyan-500 text-black font-black text-xl uppercase tracking-widest hover:shadow-[0_0_50px_rgba(6,182,212,0.4)] transition-all transform hover:scale-105">
-                Launch Nexus Core
+                Launch Quibly Core
              </button>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-16 mb-24">
              <div className="col-span-2">
-                <div className="text-3xl font-black italic tracking-tighter mb-8">NEXUS<span className="text-cyan-500">.</span></div>
+                <div className="text-3xl font-black italic tracking-tighter mb-8">QUIBLY<span className="text-cyan-500">.</span></div>
                 <div className="flex gap-4">
                    <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-all"><Globe size={18}/></div>
                    <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-all"><Smartphone size={18}/></div>
@@ -251,7 +251,7 @@ const NexusApex = () => {
              ))}
           </div>
           <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-[4px] text-gray-800">
-             <span>© 2026 Nexus Systems Group</span>
+             <span>© 2026 Quibly Systems Group</span>
              <div className="flex gap-8">
                 <span>Terms</span>
                 <span>Privacy</span>
@@ -263,4 +263,4 @@ const NexusApex = () => {
   );
 };
 
-export default NexusApex;
+export default QuiblyApex;

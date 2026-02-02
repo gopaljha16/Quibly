@@ -423,6 +423,8 @@ exports.getMembers = async (req, res) => {
                         username: true,
                         discriminator: true,
                         avatar: true,
+                        banner: true,
+                        bio: true,
                         status: true,
                         customStatus: true
                     }

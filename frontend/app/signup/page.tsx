@@ -113,8 +113,8 @@ export default function SignupPage() {
       <nav className="fixed top-0 w-full z-[100] py-6 bg-black/40 backdrop-blur-2xl border-b border-white/5">
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-            <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">N</div>
-            <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Nexus</span>
+            <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">Q</div>
+            <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Quibly</span>
           </Link>
           
           <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-all group">
@@ -140,7 +140,7 @@ export default function SignupPage() {
               CREATE YOUR <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">ACCOUNT.</span>
             </h1>
             <p className="text-lg text-gray-500 mb-10 font-medium">
-              Join thousands of users in the Nexus community.
+              Join thousands of users in the Quibly community.
             </p>
 
             {/* Form Card */}
@@ -196,7 +196,7 @@ export default function SignupPage() {
                         className={`bg-white/5 border-white/10 text-white h-12 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 placeholder:text-gray-600 ${
                           errors.email ? 'border-red-500 ring-2 ring-red-500/20' : ''
                         }`}
-                        placeholder="your.email@nexus.com"
+                        placeholder="your.email@quibly.com"
                       />
                       {!errors.email && formData.email && /\S+@\S+\.\S+/.test(formData.email) && (
                         <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400" />
@@ -318,7 +318,7 @@ export default function SignupPage() {
                     ) : (
                       <span className="flex items-center gap-2 relative z-10">
                         <Rocket className="h-5 w-5" />
-                        Join Nexus Now
+                        Join Quibly Now
                       </span>
                     )}
                   </Button>

@@ -3,10 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run docker:check && next dev",
+    "dev:only": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "docker:check": "cd ../backend && docker-compose ps --quiet postgres redis kafka || docker-compose up -d",
+    "docker:up": "cd ../backend && docker-compose up -d",
+    "docker:down": "cd ../backend && docker-compose down",
+    "docker:logs": "cd ../backend && docker-compose logs -f",
+    "docker:restart": "cd ../backend && docker-compose restart",
+    "docker:status": "cd ../backend && docker-compose ps"
   },
   "dependencies": {
     "@livekit/components-react": "^2.9.19",
