@@ -6,7 +6,7 @@ const { authenticate } = require('../middleware/auth');
 // Test endpoint to verify LiveKit configuration
 router.get('/test-config', authenticate, (req, res) => {
   const { LIVEKIT_WS_URL } = require('../config/livekit');
-  
+
   res.json({
     configured: !!(process.env.LIVEKIT_API_KEY && process.env.LIVEKIT_API_SECRET && process.env.LIVEKIT_WS_URL),
     wsUrl: LIVEKIT_WS_URL,
@@ -20,5 +20,9 @@ router.get('/token/:channelId', authenticate, voiceController.getVoiceToken);
 
 // Get active participants in voice channel
 router.get('/participants/:channelId', authenticate, voiceController.getVoiceParticipants);
+
+// Activity tracking
+router.post('/track-join/:channelId', authenticate, voiceController.trackVoiceJoin);
+router.post('/track-leave', authenticate, voiceController.trackVoiceLeave);
 
 module.exports = router;

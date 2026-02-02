@@ -77,8 +77,38 @@ model User {
   serverMembers ServerMember[]
   userInterests UserInterest[]
 
+  // Activity Tracking Relations
+  dailyActivities UserDailyActivity[]
+  activitySessions UserActivitySession[]
+  invitesCreated   Invite[] @relation("Inviter")
+
   @@index([email])
   @@index([username])
+}
+
+model UserDailyActivity {
+  id           String   @id @default(cuid())
+  userId       String
+  date         DateTime // Normalized to midnight
+  count        Int      @default(0) // Total weighted activity
+  messageCount Int      @default(0)
+  voiceMinutes Int      @default(0)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model UserActivitySession {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String    // VOICE, etc.
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  metadata  Json?     // { channelId: "..." }
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
 }
 
 model Server {
@@ -95,6 +125,7 @@ model Server {
   updatedAt         DateTime          @updatedAt
   channels          Channel[]
   roles             Role[]
+  invites           Invite[]
   owner             User              @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members           ServerMember[]
 
@@ -115,6 +146,24 @@ model ServerMember {
   @@unique([serverId, userId])
   @@index([serverId])
   @@index([userId])
+}
+
+model Invite {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  serverId  String
+  channelId String?
+  inviterId String
+  uses      Int       @default(0)
+  maxUses   Int?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  server    Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  inviter   User      @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([serverId])
+  @@index([inviterId])
 }
 
 model Channel {

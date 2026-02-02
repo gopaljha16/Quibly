@@ -15,6 +15,62 @@ interface UserStats {
   friendsCount: number
   accountAge: number
   achievements: string[]
+  heatmap?: Array<{
+    date: string
+    count: number
+    messages: number
+    voice: number
+  }>
+}
+
+function DailyHeatmap({ data }: { data: UserStats['heatmap'] }) {
+  const days = 365
+  const today = new Date()
+  
+  // Create a map for easy lookup
+  const activityMap = new Map(data?.map(d => [new Date(d.date).toDateString(), d]))
+
+  // Generate last 365 days
+  const grid = Array.from({ length: days }).map((_, i) => {
+    const date = new Date()
+    date.setDate(today.getDate() - (days - 1 - i))
+    return {
+      date,
+      activity: activityMap.get(date.toDateString())
+    }
+  })
+
+  const getColor = (count: number) => {
+    if (!count) return 'bg-[#2b2d31]'
+    if (count < 3) return 'bg-[#23a559]/30'
+    if (count < 7) return 'bg-[#23a559]/60'
+    return 'bg-[#23a559]'
+  }
+
+  return (
+    <div className="bg-[#1e1f22] rounded-lg p-6">
+      <h3 className="text-xs font-semibold text-[#949ba4] uppercase mb-4 text-center">Activity Heatmap (Past Year)</h3>
+      <div className="flex flex-wrap gap-1 justify-center">
+        {grid.map((day, i) => (
+          <div
+            key={i}
+            className={`w-3 h-3 rounded-sm ${getColor(day.activity?.count || 0)} transition-colors cursor-help`}
+            title={`${day.date.toDateString()}: ${day.activity?.messages || 0} messages, ${day.activity?.voice || 0}m voice`}
+          />
+        ))}
+      </div>
+      <div className="mt-4 flex justify-center items-center gap-4 text-[10px] text-[#949ba4]">
+        <span>Less</span>
+        <div className="flex gap-1">
+          <div className="w-3 h-3 rounded-sm bg-[#2b2d31]" />
+          <div className="w-3 h-3 rounded-sm bg-[#23a559]/30" />
+          <div className="w-3 h-3 rounded-sm bg-[#23a559]/60" />
+          <div className="w-3 h-3 rounded-sm bg-[#23a559]" />
+        </div>
+        <span>More</span>
+      </div>
+    </div>
+  )
 }
 
 export default function ActivityTab({ user }: ActivityTabProps) {
@@ -86,17 +142,6 @@ export default function ActivityTab({ user }: ActivityTabProps) {
           <p className="text-3xl font-bold text-white">{formatVoiceTime(stats.voiceTimeMinutes)}</p>
         </div>
 
-        {/* Servers Joined */}
-        <div className="bg-[#1e1f22] rounded-lg p-6 hover:bg-[#2b2d31] transition-colors">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-[#f0b232]/20 flex items-center justify-center">
-              <Hash className="w-5 h-5 text-[#f0b232]" />
-            </div>
-            <span className="text-xs font-semibold text-[#949ba4] uppercase">Servers</span>
-          </div>
-          <p className="text-3xl font-bold text-white">{stats.serversJoined}</p>
-        </div>
-
         {/* Friends */}
         <div className="bg-[#1e1f22] rounded-lg p-6 hover:bg-[#2b2d31] transition-colors">
           <div className="flex items-center gap-3 mb-3">
@@ -107,28 +152,28 @@ export default function ActivityTab({ user }: ActivityTabProps) {
           </div>
           <p className="text-3xl font-bold text-white">{stats.friendsCount}</p>
         </div>
-      </div>
 
-      {/* Account Info */}
-      <div className="bg-[#1e1f22] rounded-lg p-6">
-        <h3 className="text-xs font-semibold text-[#949ba4] uppercase mb-4">Account Info</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-[#949ba4]">Account Age</span>
-            <span className="text-sm font-semibold text-white">{stats.accountAge} days</span>
+        {/* Account Age */}
+        <div className="bg-[#1e1f22] rounded-lg p-6 hover:bg-[#2b2d31] transition-colors">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-cyan-500" />
+            </div>
+            <span className="text-xs font-semibold text-[#949ba4] uppercase">Account Age</span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-[#949ba4]">Total Achievements</span>
-            <span className="text-sm font-semibold text-white">{stats.achievements.length}</span>
-          </div>
+          <p className="text-3xl font-bold text-white">{stats.accountAge} <span className="text-sm font-normal text-[#949ba4]">days</span></p>
         </div>
       </div>
 
-      {/* Placeholder for Activity Heatmap (Future Enhancement) */}
+      {/* Activity Heatmap */}
+      <DailyHeatmap data={stats.heatmap} />
+
+      {/* Account Info (Secondary) */}
       <div className="bg-[#1e1f22] rounded-lg p-6">
-        <h3 className="text-xs font-semibold text-[#949ba4] uppercase mb-4">Activity Heatmap</h3>
-        <div className="text-center text-sm text-[#949ba4] py-8">
-          Coming soon: GitHub-style activity visualization
+        <h3 className="text-xs font-semibold text-[#949ba4] uppercase mb-4">Achievements</h3>
+        <div className="flex justify-between items-center">
+          <span className="text-sm text-[#949ba4]">Total Achievements</span>
+          <span className="text-sm font-semibold text-white">{stats.achievements.length}</span>
         </div>
       </div>
     </div>

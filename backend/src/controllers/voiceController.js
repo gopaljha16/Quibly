@@ -75,7 +75,7 @@ exports.getVoiceToken = async (req, res) => {
       );
     } catch (tokenError) {
       console.error('❌ Token generation failed:', tokenError);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: 'Failed to generate voice token',
         details: tokenError.message,
         hint: 'Check LiveKit credentials in .env file'
@@ -160,5 +160,89 @@ exports.getVoiceParticipants = async (req, res) => {
   } catch (error) {
     console.error('Error getting voice participants:', error);
     res.status(500).json({ error: 'Failed to get participants' });
+  }
+};
+
+// Track voice join
+exports.trackVoiceJoin = async (req, res) => {
+  try {
+    const { channelId } = req.params;
+    const userId = req.user.id;
+
+    // Start a new session
+    await prisma.userActivitySession.create({
+      data: {
+        userId,
+        type: 'VOICE',
+        metadata: { channelId }
+      }
+    });
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error tracking voice join:', error);
+    res.status(500).json({ success: false });
+  }
+};
+
+// Track voice leave
+exports.trackVoiceLeave = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find recent open session
+    const session = await prisma.userActivitySession.findFirst({
+      where: {
+        userId,
+        type: 'VOICE',
+        endTime: null
+      },
+      orderBy: { startTime: 'desc' }
+    });
+
+    if (session) {
+      const endTime = new Date();
+      const durationMs = endTime.getTime() - session.startTime.getTime();
+      const durationMinutes = Math.max(1, Math.round(durationMs / (1000 * 60)));
+
+      // Close session
+      await prisma.userActivitySession.update({
+        where: { id: session.id },
+        data: { endTime }
+      });
+
+      // Update user total stats
+      await prisma.user.update({
+        where: { id: userId },
+        data: { voiceTimeMinutes: { increment: durationMinutes } }
+      });
+
+      // Update daily heatmap (weighted activity)
+      await prisma.userDailyActivity.upsert({
+        where: {
+          userId_date: {
+            userId,
+            date: today
+          }
+        },
+        update: {
+          count: { increment: Math.ceil(durationMinutes / 10) }, // 1 activity count per 10 mins
+          voiceMinutes: { increment: durationMinutes }
+        },
+        create: {
+          userId: req.user.id,
+          date: today,
+          count: Math.ceil(durationMinutes / 10),
+          voiceMinutes: durationMinutes
+        }
+      });
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error tracking voice leave:', error);
+    res.status(500).json({ success: false });
   }
 };

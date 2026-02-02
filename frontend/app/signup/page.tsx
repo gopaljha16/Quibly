@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { 
   Mail, Lock, User, Eye, EyeOff, Sparkles, Loader2, ArrowLeft, Check,
@@ -15,8 +15,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-export default function SignupPage() {
+function SignupContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get('redirect') || '/channels/@me'
+  
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -38,13 +41,13 @@ export default function SignupPage() {
         // Try to fetch user profile to check if logged in
         await apiGet('/auth/profile')
         // If successful, user is logged in, redirect to channels
-        router.push('/channels/@me')
+        router.push(redirect)
       } catch (error) {
         // User is not logged in, stay on signup page
       }
     }
     checkAuth()
-  }, [router])
+  }, [router, redirect])
 
   const validateForm = () => {
     const newErrors: any = {}
@@ -79,7 +82,7 @@ export default function SignupPage() {
         setRecommendedChannels(response.recommendedChannels)
         setShowRecommendations(true)
       } else {
-        router.push('/channels/@me')
+        router.push(redirect)
       }
     } catch (error) {
       if (error instanceof ApiError) {
@@ -101,6 +104,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-[#020204] text-[#ececed] font-sans selection:bg-cyan-500/40 overflow-hidden">
       
+      {/* ... (rest of the UI remains exactly the same as original) */}
       {/* --- BACKGROUND ENGINE --- */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#1e1e3a_0%,transparent_50%)]" />
@@ -335,7 +339,7 @@ export default function SignupPage() {
                 </div>
 
                 {/* Login Link */}
-                <Link href="/login">
+                <Link href={`/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''}`}>
                   <Button
                     type="button"
                     variant="outline"
@@ -361,11 +365,23 @@ export default function SignupPage() {
           channels={recommendedChannels}
           onClose={() => {
             setShowRecommendations(false)
-            router.push('/channels/@me')
+            router.push(redirect)
           }}
         />
       )}
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#020204] flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <SignupContent />
+    </Suspense>
   )
 }
 

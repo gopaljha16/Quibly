@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useChannelsData } from '@/hooks/useChannelsData'
 
 export default function InviteServerModal({
   open,
@@ -11,27 +12,32 @@ export default function InviteServerModal({
   onClose: () => void
   server: { _id: string; name?: string } | null
 }) {
+  const { createInvite } = useChannelsData()
   const [copied, setCopied] = useState(false)
-  const [inviteLink, setInviteLink] = useState('')
+  const [inviteCode, setInviteCode] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (server) {
-      // Generate invite link (you can customize this based on your app's URL structure)
-      const baseUrl = window.location.origin
-      setInviteLink(`${baseUrl}/invite/${server._id}`)
+    if (server && open && !inviteCode) {
+      const getInvite = async () => {
+        setLoading(true)
+        try {
+          const invite = await createInvite(server._id, { expiresInDays: 7 })
+          setInviteCode(invite.code)
+        } catch (error) {
+          console.error('Failed to create invite:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+      getInvite()
     }
-  }, [server])
+  }, [server, open, inviteCode, createInvite])
 
-  useEffect(() => {
-    if (!open) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [open, onClose])
+  const inviteLink = inviteCode ? `${window.location.origin}/invite/${inviteCode}` : 'Generating...'
 
   const copyToClipboard = async () => {
+    if (!inviteCode) return
     try {
       await navigator.clipboard.writeText(inviteLink)
       setCopied(true)

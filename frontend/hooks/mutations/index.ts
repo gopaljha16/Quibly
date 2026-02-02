@@ -2,6 +2,7 @@ export { useCreateServer } from './useCreateServer'
 export { useSendMessage } from './useSendMessage'
 export {
   useJoinServer,
+  useCreateInvite,
   useLeaveServer,
   useDeleteServer,
   useUpdateServer,

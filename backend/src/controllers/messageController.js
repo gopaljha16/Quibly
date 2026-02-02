@@ -80,7 +80,7 @@ exports.createMessage = async (req, res) => {
 
         // Generate message ID
         const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        
+
         // Create message object
         const messageData = {
             id: messageId,
@@ -97,11 +97,11 @@ exports.createMessage = async (req, res) => {
 
         // Use Kafka for scalable message processing
         const useKafka = true;
-        
+
         // Try to publish to Kafka first
         if (useKafka && isKafkaConnected()) {
             const published = await publishMessage(messageData);
-            
+
             if (published) {
                 // HYBRID APPROACH: Broadcast immediately via WebSocket for instant delivery
                 // Kafka will still save to DB for durability
@@ -122,12 +122,46 @@ exports.createMessage = async (req, res) => {
                     createdAt: messageData.createdAt,
                     isDeleted: false
                 };
-                
+
                 // Broadcast immediately for instant delivery
                 if (global.io) {
                     global.io.to(channelId).emit('receive_message', responseData);
                 }
-                
+
+                // Track activity (Sync/Async)
+                try {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    // 1. Increment total messages for user
+                    await db.user.update({
+                        where: { id: req.user.id },
+                        data: { messagesSent: { increment: 1 } }
+                    });
+
+                    // 2. Update daily activity heatmap
+                    await db.userDailyActivity.upsert({
+                        where: {
+                            userId_date: {
+                                userId: req.user.id,
+                                date: today
+                            }
+                        },
+                        update: {
+                            count: { increment: 1 },
+                            messageCount: { increment: 1 }
+                        },
+                        create: {
+                            userId: req.user.id,
+                            date: today,
+                            count: 1,
+                            messageCount: 1
+                        }
+                    });
+                } catch (activityError) {
+                    console.error('⚠️ Failed to track activity metrics (Kafka branch):', activityError);
+                }
+
                 return res.status(201).json(responseData);
             } else {
                 console.error('⚠️  Kafka publish failed, falling back to direct DB');
@@ -149,6 +183,40 @@ exports.createMessage = async (req, res) => {
                 mentions: mentions || []
             }
         });
+
+        // Track activity (Sync/Async)
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // 1. Increment total messages for user
+            await db.user.update({
+                where: { id: req.user.id },
+                data: { messagesSent: { increment: 1 } }
+            });
+
+            // 2. Update daily activity heatmap
+            await db.userDailyActivity.upsert({
+                where: {
+                    userId_date: {
+                        userId: req.user.id,
+                        date: today
+                    }
+                },
+                update: {
+                    count: { increment: 1 },
+                    messageCount: { increment: 1 }
+                },
+                create: {
+                    userId: req.user.id,
+                    date: today,
+                    count: 1,
+                    messageCount: 1
+                }
+            });
+        } catch (activityError) {
+            console.error('⚠️ Failed to track activity metrics:', activityError);
+        }
 
         const responseData = {
             _id: message.id,
@@ -218,24 +286,24 @@ exports.getMessages = async (req, res) => {
         // STEP 1: Try to get messages from Redis cache (fast!)
         let messages = [];
         let fromCache = false;
-        
+
         if (redis.isConnected()) {
             // Get all cached messages (up to 100)
             const cachedMessages = await redis.getCachedMessages(channelId, 100);
-            
+
             if (cachedMessages && cachedMessages.length > 0) {
                 // Apply pagination filter if 'before' timestamp is provided
                 let filteredMessages = cachedMessages;
                 if (before) {
                     const beforeDate = new Date(before);
-                    filteredMessages = cachedMessages.filter(msg => 
+                    filteredMessages = cachedMessages.filter(msg =>
                         new Date(msg.createdAt) < beforeDate
                     );
                 }
-                
+
                 // Take only the requested limit
                 messages = filteredMessages.slice(0, parseInt(limit));
-                
+
                 // Only use cache if we got enough messages
                 if (messages.length > 0) {
                     fromCache = true;
@@ -307,7 +375,7 @@ exports.getMessages = async (req, res) => {
 
         // Return in chronological order (oldest first)
         const sortedMessages = messagesWithSenders.reverse();
-        
+
         res.status(200).json(sortedMessages);
     } catch (error) {
         console.error('Get messages error:', error);

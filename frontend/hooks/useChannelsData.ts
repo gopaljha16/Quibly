@@ -6,6 +6,7 @@ import { useServers, useChannels, useMembers } from './queries'
 import {
   useCreateServer,
   useJoinServer,
+  useCreateInvite,
   useLeaveServer,
   useDeleteServer,
   useUpdateServer,
@@ -54,6 +55,7 @@ export function useChannelsData() {
   // Mutations
   const createServerMutation = useCreateServer()
   const joinServerMutation = useJoinServer()
+  const createInviteMutation = useCreateInvite()
   const leaveServerMutation = useLeaveServer()
   const deleteServerMutation = useDeleteServer()
   const updateServerMutation = useUpdateServer()
@@ -98,9 +100,15 @@ export function useChannelsData() {
     return server
   }
 
-  const joinServer = async (serverId: string) => {
-    await joinServerMutation.mutateAsync(serverId)
-    await selectServer(serverId)
+  const joinServer = async (inviteCode: string) => {
+    const response = await joinServerMutation.mutateAsync(inviteCode)
+    if (response && response.serverId) {
+      await selectServer(response.serverId)
+    }
+  }
+
+  const createInvite = async (serverId: string, data: { maxUses?: number; expiresInDays?: number } = {}) => {
+    return await createInviteMutation.mutateAsync({ serverId, data })
   }
 
   const leaveServer = async (serverId: string) => {
@@ -147,7 +155,7 @@ export function useChannelsData() {
       serverId: route.serverId,
       channelId,
     })
-    
+
     // Navigate to first remaining channel or server
     const remainingChannels = channels.filter((c) => c._id !== channelId)
     if (route.channelId === channelId) {
@@ -171,7 +179,7 @@ export function useChannelsData() {
   return {
     // Route info
     route,
-    
+
     // Data
     servers,
     channels,
@@ -179,18 +187,18 @@ export function useChannelsData() {
     ownerId: membersData?.ownerId || null,
     selectedServer,
     selectedChannel,
-    
+
     // Loading states
     serversLoading,
     channelsLoading,
     membersLoading,
-    
+
     // Errors
     serversError,
     channelsError,
     membersError,
     error: serversError || channelsError || membersError,
-    
+
     // Mutation states
     creatingServer: createServerMutation.isPending,
     createServerError: createServerMutation.error?.message || null,
@@ -202,19 +210,20 @@ export function useChannelsData() {
     deleteServerError: deleteServerMutation.error?.message || null,
     creatingChannel: createChannelMutation.isPending,
     createChannelError: createChannelMutation.error?.message || null,
-    
+
     // Navigation
     goToMe,
     selectServer,
     selectChannel,
-    
+
     // Server operations
     createServer,
     joinServer,
+    createInvite,
     leaveServer,
     deleteServer,
     updateServer,
-    
+
     // Channel operations
     createChannel,
     updateChannel,

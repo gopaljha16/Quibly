@@ -82,7 +82,7 @@ export function useVoice(channelId: string | null) {
 
     try {
       console.log('🎤 Requesting voice token for channel:', channelId);
-      
+
       // Get LiveKit token from backend
       const response = await apiGet<{
         token: string;
@@ -119,7 +119,7 @@ export function useVoice(channelId: string | null) {
       });
 
       // Set up room event listeners
-      newRoom.on(RoomEvent.Connected, () => {
+      newRoom.on(RoomEvent.Connected, async () => {
         console.log('🟢 Connected to voice channel');
         setIsConnected(true);
         setIsConnecting(false);
@@ -133,18 +133,34 @@ export function useVoice(channelId: string | null) {
             avatar: user.avatar,
           });
         }
+
+        // Track activity (Async)
+        try {
+          const { apiPost } = await import('@/lib/api');
+          apiPost(`/voice/track-join/${channelId}`);
+        } catch (e) {
+          console.error('Failed to track voice join activity');
+        }
       });
 
-      newRoom.on(RoomEvent.Disconnected, () => {
+      newRoom.on(RoomEvent.Disconnected, async () => {
         console.log('🔴 Disconnected from voice channel');
         setIsConnected(false);
-        
+
         // Notify server via socket
         if (socket) {
           socket.emit('voice:leave', {
             channelId,
             userId: identity,
           });
+        }
+
+        // Track activity (Async)
+        try {
+          const { apiPost } = await import('@/lib/api');
+          apiPost('/voice/track-leave');
+        } catch (e) {
+          console.error('Failed to track voice leave activity');
         }
       });
 
@@ -181,10 +197,10 @@ export function useVoice(channelId: string | null) {
       console.log('✅ Successfully connected to LiveKit room');
     } catch (err: any) {
       console.error('❌ Failed to connect to voice:', err);
-      
+
       // Provide more helpful error messages
       let errorMessage = 'Failed to connect to voice channel';
-      
+
       if (err.message?.includes('invalid authorization token')) {
         errorMessage = 'Voice service authentication failed. Please contact support.';
       } else if (err.message?.includes('network')) {
@@ -192,7 +208,7 @@ export function useVoice(channelId: string | null) {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
       setIsConnecting(false);
     }
@@ -216,7 +232,7 @@ export function useVoice(channelId: string | null) {
 
     const newMuted = !voiceState.muted;
     await room.localParticipant.setMicrophoneEnabled(!newMuted);
-    
+
     const newState = { ...voiceState, muted: newMuted };
     setVoiceState(newState);
 
@@ -234,14 +250,14 @@ export function useVoice(channelId: string | null) {
     if (!room) return;
 
     const newDeafened = !voiceState.deafened;
-    
+
     // When deafening, also mute
     if (newDeafened) {
       await room.localParticipant.setMicrophoneEnabled(false);
     }
 
-    const newState = { 
-      ...voiceState, 
+    const newState = {
+      ...voiceState,
       deafened: newDeafened,
       muted: newDeafened ? true : voiceState.muted,
     };
@@ -262,7 +278,7 @@ export function useVoice(channelId: string | null) {
 
     const newVideo = !voiceState.video;
     await room.localParticipant.setCameraEnabled(newVideo);
-    
+
     const newState = { ...voiceState, video: newVideo };
     setVoiceState(newState);
 
