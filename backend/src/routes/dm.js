@@ -8,5 +8,6 @@ router.use(authenticate);
 router.get('/conversations', dmController.getConversations);
 router.post('/room', dmController.getOrCreateDM);
 router.get('/room/:roomId', dmController.getDMByRoomId);
+router.get('/token/:roomId', dmController.getDMToken);
 
 module.exports = router;

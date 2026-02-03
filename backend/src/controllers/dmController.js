@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { generateToken, LIVEKIT_WS_URL } = require('../config/livekit');
 
 // Get all DM conversations for the current user
 exports.getConversations = async (req, res) => {
@@ -211,5 +212,50 @@ exports.getDMByRoomId = async (req, res) => {
     } catch (error) {
         console.error('Get DM by ID error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
+    }
+};
+
+// Get LiveKit token for DM call
+exports.getDMToken = async (req, res) => {
+    try {
+        const { roomId } = req.params;
+        const userId = req.user.id;
+
+        // Verify user is a participant of the DM room
+        const participant = await db.dMParticipant.findFirst({
+            where: { dmRoomId: roomId, userId }
+        });
+
+        if (!participant) {
+            return res.status(403).json({ success: false, message: 'Access denied' });
+        }
+
+        // Get current user details
+        const user = await db.user.findUnique({
+            where: { id: userId },
+            select: { username: true, discriminator: true, avatar: true }
+        });
+
+        // Generate token
+        const token = await generateToken(
+            roomId,
+            userId,
+            {
+                username: user.username,
+                discriminator: user.discriminator,
+                avatar: user.avatar,
+            }
+        );
+
+        res.json({
+            success: true,
+            token,
+            wsUrl: LIVEKIT_WS_URL,
+            roomName: roomId,
+            identity: userId
+        });
+    } catch (error) {
+        console.error('Error generating DM token:', error);
+        res.status(500).json({ success: false, message: 'Failed to generate voice token' });
     }
 };
