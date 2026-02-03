@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChannelsData } from '@/hooks/useChannelsData'
-import { useProfile } from '@/hooks/queries'
+import { useProfile, useDMConversations } from '@/hooks/queries'
+import { Users, MoreVertical, Settings } from 'lucide-react'
 import { usePresenceContext } from '@/components/PresenceProvider'
 import { apiPost } from '@/lib/api'
 import CreateServerModal from './CreateServerModal'
@@ -12,6 +13,7 @@ import CreateChannelModal from './CreateChannelModal'
 import JoinServerModal from './JoinServerModal'
 import ServerSettingsModal from './ServerSettingsModal'
 import InviteServerModal from './InviteServerModal'
+import LeaveServerModal from './LeaveServerModal'
 import UserProfileViewModal from '../profile/UserProfileViewModal'
 import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/components/LoadingSkeletons'
 import { useUserProfileController } from '@/controllers/profile/useUserProfileController'
@@ -108,6 +110,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   const userMenuRef = useRef<HTMLDivElement | null>(null)
   const [serverSettingsOpen, setServerSettingsOpen] = useState(false)
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
+  const [leaveModalOpen, setLeaveModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
   // User profile controller
   const {
@@ -130,6 +134,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     isUserOnline,
     getServerOnlineUsers
   } = usePresenceContext()
+  
+  const { data: conversations = [], isLoading: conversationsLoading } = useDMConversations()
 
   // Use new hooks instead of ChannelsProvider
   const {
@@ -385,13 +391,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               <div className="h-px bg-[#1F2023] my-1" />
               <button
                 type="button"
-                onClick={async () => {
+                onClick={() => {
                   setServerMenuOpen(false)
-                  if (confirm('Leave this server?')) {
-                    if (route.serverId) {
-                      await leaveServer(route.serverId)
-                    }
-                  }
+                  setLeaveModalOpen(true)
                 }}
                 className="w-full text-left px-2 py-1.5 text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white rounded-[2px] transition-colors"
               >
@@ -400,13 +402,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               {ownerId === currentUser?._id && (
                 <button
                   type="button"
-                  onClick={async () => {
+                  onClick={() => {
                     setServerMenuOpen(false)
-                    if (confirm('Delete this server permanently? This action cannot be undone.')) {
-                      if (route.serverId) {
-                        await deleteServer(route.serverId)
-                      }
-                    }
+                    setDeleteModalOpen(true)
                   }}
                   className="w-full text-left px-2 py-1.5 text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white rounded-[2px] transition-colors"
                 >
@@ -440,14 +438,48 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               </div>
-              <button className="group w-full px-2 py-2 rounded-[4px] hover:bg-[#202020] text-[15px] text-[#b4b4b4] hover:text-white text-left flex items-center gap-3 transition-colors">
-                <div className="w-8 h-8 rounded-full bg-[#202020] flex items-center justify-center overflow-hidden">
-                  <svg width="18" height="18" viewBox="0 0 24 24" className="fill-current">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
+              <button 
+                onClick={goToMe}
+                className={`group w-full px-2 py-2 rounded-[4px] hover:bg-[#35373c] text-[15px] ${!route.channelId ? 'bg-[#3f4147] text-white' : 'text-[#949ba4] hover:text-[#dbdee1]'} text-left flex items-center gap-3 transition-colors`}
+              >
+                <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+                  <Users className="w-5 h-5" />
                 </div>
                 <span className="font-medium">Friends</span>
               </button>
+
+              <div className="mt-4 space-y-[2px]">
+                {conversations.map((conv) => (
+                  <button
+                    key={conv.id}
+                    onClick={() => router.push(`/channels/@me/${conv.id}`)}
+                    className={`group w-full px-2 py-2 rounded-[4px] hover:bg-[#35373c] text-[15px] ${route.channelId === conv.id ? 'bg-[#3f4147] text-white' : 'text-[#949ba4] hover:text-[#dbdee1]'} text-left flex items-center gap-3 transition-colors`}
+                  >
+                    <div className="relative">
+                      <div className="w-8 h-8 rounded-full bg-[#5865f2] flex items-center justify-center text-white font-bold overflow-hidden">
+                        {conv.otherUser?.avatar ? (
+                          <img src={conv.otherUser.avatar} className="w-full h-full object-cover" />
+                        ) : (
+                          conv.otherUser?.username[0].toUpperCase()
+                        )}
+                      </div>
+                      <div className={`absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full border-[3px] border-[#2b2d31] ${
+                        conv.otherUser?.status === 'online' ? 'bg-[#23a55a]' : 
+                        conv.otherUser?.status === 'idle' ? 'bg-[#f0b232]' : 
+                        conv.otherUser?.status === 'dnd' ? 'bg-[#f23f43]' : 'bg-[#80848e]'
+                      }`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{conv.otherUser?.username}</div>
+                      {conv.lastMessage && (
+                        <div className="text-[12px] text-[#b5bac1] truncate group-hover:text-[#dbdee1]">
+                          {conv.lastMessage?.senderId === currentUser?._id ? 'You: ' : ''}{conv.lastMessage?.content}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="space-y-[2px]">
@@ -806,12 +838,40 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       <div className="flex-1 flex flex-col bg-[#313338]">
           {/* Channel Header */}
           <div className="h-12 border-b border-[#26272b] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#313338]">
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#80848e]">
-              <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
-            </svg>
-            <div className="font-bold text-[#f2f3f5] truncate text-[16px]">
-              {route.isMe ? 'Friends' : selectedChannel?.name || 'general'}
-            </div>
+            {(() => {
+              const isDM = route.isMe && route.channelId
+              const conv = isDM ? conversations.find(c => c.id === route.channelId) : null
+              const title = isDM ? (conv?.otherUser?.username || 'Friends') : (selectedChannel?.name || 'general')
+              const avatar = conv?.otherUser?.avatar
+
+              return (
+                <>
+                  {isDM && (
+                    <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0">
+                      {avatar ? (
+                        <img 
+                          src={avatar} 
+                          className="w-full h-full object-cover"
+                          alt=""
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-[#5865f2] flex items-center justify-center text-[10px] font-bold text-white uppercase">
+                          {conv?.otherUser?.username?.[0] || 'U'}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {!isDM && (
+                    <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current text-[#80848e]">
+                      <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
+                    </svg>
+                  )}
+                  <div className="font-bold text-[#f2f3f5] truncate text-[16px]">
+                    {title}
+                  </div>
+                </>
+              )
+            })()}
             {selectedChannel?.description && (
               <>
                 <div className="w-px h-6 bg-[#3f4147] mx-2" />
@@ -1027,6 +1087,29 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           onClose={() => setInviteModalOpen(false)}
           server={selectedServer}
         />
+
+        {selectedServer && (
+          <>
+            <LeaveServerModal
+              open={leaveModalOpen}
+              onClose={() => setLeaveModalOpen(false)}
+              serverName={selectedServer.name || 'Server'}
+              type="leave"
+              onConfirm={async () => {
+                await leaveServer(selectedServer._id)
+              }}
+            />
+            <LeaveServerModal
+              open={deleteModalOpen}
+              onClose={() => setDeleteModalOpen(false)}
+              serverName={selectedServer.name || 'Server'}
+              type="delete"
+              onConfirm={async () => {
+                await deleteServer(selectedServer._id)
+              }}
+            />
+          </>
+        )}
 
         <MemberProfileModal
           open={!!selectedMember}

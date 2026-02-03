@@ -29,13 +29,11 @@ function parseRoute(pathname: string): RouteInfo {
   }
 
   const slug = parts.slice(1)
-  if (slug.length === 1 && slug[0] === '@me') {
-    return { isMe: true, serverId: null, channelId: null }
-  }
-
   const serverId = slug.length >= 1 ? slug[0] : null
   const channelId = slug.length >= 2 ? slug[1] : null
-  return { isMe: false, serverId, channelId }
+  const isMe = serverId === '@me'
+
+  return { isMe, serverId: isMe ? null : serverId, channelId }
 }
 
 /**
@@ -66,7 +64,7 @@ export function useChannelsData() {
 
   // Derived state
   const selectedServer = useMemo(() => {
-    if (!route.serverId) return null
+    if (!route.serverId || route.serverId === '@me') return null
     return servers.find((s) => s._id === route.serverId) || null
   }, [route.serverId, servers])
 

@@ -8,6 +8,7 @@ router.use(authenticate);
 
 router.post('/', messageController.createMessage);
 router.get('/:channelId', messageController.getMessages);
+router.get('/dm/:dmRoomId', messageController.getMessages);
 router.put('/:id', messageController.editMessage);
 router.delete('/:id', messageController.deleteMessage);
 
