@@ -39,7 +39,7 @@ export function useDMConversations() {
     return useQuery({
         queryKey: ['dm-conversations'],
         queryFn: async () => {
-            const response = await apiGet<{ success: boolean; conversations: DMConversation[] }>('/dms/conversations')
+            const response = await apiGet<{ success: boolean; conversations: DMConversation[] }>('/dm/conversations')
             return response.conversations
         },
         staleTime: 30 * 1000,
@@ -51,7 +51,7 @@ export function useDMRoom(roomId: string | null) {
         queryKey: ['dm-room', roomId],
         queryFn: async () => {
             if (!roomId) return null
-            const response = await apiGet<{ success: boolean; room: DMRoom }>(`/dms/room/${roomId}`)
+            const response = await apiGet<{ success: boolean; room: DMRoom }>(`/dm/room/${roomId}`)
             return response.room
         },
         enabled: !!roomId,

@@ -26,7 +26,7 @@ router.use('/profile', profileRoutes);
 router.use('/account', accountSecurityRoutes);
 router.use('/invites', inviteRoutes);
 router.use('/friends', friendRoutes);
-router.use('/dms', dmRoutes);
+router.use('/dm', dmRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {

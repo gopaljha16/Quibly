@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChannelsData } from '@/hooks/useChannelsData'
 import { useProfile, useDMConversations } from '@/hooks/queries'
-import { Users, MoreVertical, Settings } from 'lucide-react'
+
 import { usePresenceContext } from '@/components/PresenceProvider'
 import { apiPost } from '@/lib/api'
 import CreateServerModal from './CreateServerModal'
@@ -15,8 +15,12 @@ import ServerSettingsModal from './ServerSettingsModal'
 import InviteServerModal from './InviteServerModal'
 import LeaveServerModal from './LeaveServerModal'
 import UserProfileViewModal from '../profile/UserProfileViewModal'
+import CallOverlay from '../calls/CallOverlay'
+import { Phone, Video, Users, MoreVertical, Settings } from 'lucide-react'
+import { useCallStore } from '@/lib/store'
 import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/components/LoadingSkeletons'
 import { useUserProfileController } from '@/controllers/profile/useUserProfileController'
+import { connectSocket } from '@/lib/socket'
 
 
 
@@ -177,6 +181,12 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   const [createChannelOpen, setCreateChannelOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
 
+  // Add logs for socket status
+  useEffect(() => {
+    const socket = connectSocket()
+    console.log('📞 UseCall: Socket status (Shell):', { connected: socket.connected, id: socket.id })
+  }, []) // Run once on mount
+
   // Event handlers for menus
   useEffect(() => {
     if (!serverMenuOpen) return
@@ -257,6 +267,22 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       getServerOnlineUsers(route.serverId)
     }
   }, [route.serverId, route.isMe, isConnected, getServerOnlineUsers])
+
+  // Direct call initiation function (don't use useCall hook here to avoid duplicate listeners)
+  const initiateCall = (targetUser: any, dmRoomId: string, hasVideo: boolean) => {
+    const socket = connectSocket()
+    const { setCalling } = useCallStore.getState()
+    
+    console.log('📞 [Shell] Initiating call to:', targetUser, 'in room:', dmRoomId)
+    setCalling(targetUser, dmRoomId, hasVideo)
+    
+    socket.emit('call:initiate', {
+      toUserId: targetUser.id || targetUser._id,
+      dmRoomId,
+      hasVideo,
+      fromUser: currentUser || { id: 'unknown', username: 'Unknown' }
+    })
+  }
 
   return (
     <div className="h-screen w-screen bg-[#313338] text-white flex overflow-hidden font-sans">
@@ -881,6 +907,48 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               </>
             )}
             <div className="ml-auto flex items-center gap-4">
+              {route.isMe && route.channelId && (
+                <>
+                  <button 
+                    onClick={() => {
+                      const conv = conversations.find(c => c.id === route.channelId)
+                      console.log('[Header] Initiate Voice Call Clicked', { 
+                        channelId: route.channelId, 
+                        otherUser: conv?.otherUser,
+                        otherUserId: (conv?.otherUser as any)?.id || (conv?.otherUser as any)?._id
+                      })
+                      if (conv?.otherUser) {
+                        initiateCall(conv.otherUser, route.channelId!, false)
+                      }
+                    }}
+                    className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
+                  >
+                    <Phone className="w-5 h-5" />
+                    <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                      Start Voice Call
+                    </div>
+                  </button>
+                  <button 
+                    onClick={() => {
+                      const conv = conversations.find(c => c.id === route.channelId)
+                      console.log('[Header] Initiate Video Call Clicked', { 
+                        channelId: route.channelId, 
+                        otherUser: conv?.otherUser,
+                        otherUserId: (conv?.otherUser as any)?.id || (conv?.otherUser as any)?._id
+                      })
+                      if (conv?.otherUser) {
+                        initiateCall(conv.otherUser, route.channelId!, true)
+                      }
+                    }}
+                    className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
+                  >
+                    <Video className="w-5 h-5" />
+                    <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                      Start Video Call
+                    </div>
+                  </button>
+                </>
+              )}
               <button className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
                 <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
                   <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L13.5 2.5L16.17 5.17C15.24 5.06 14.32 5 13.4 5H12C7.58 5 4 8.58 4 13C4 17.42 7.58 21 12 21C16.42 21 20 17.42 20 13H18C18 16.31 15.31 19 12 19C8.69 19 6 16.31 6 13C6 9.69 8.69 7 12 7H13.4C14.8 7 16.2 7.2 17.6 7.7L21 9Z" />
@@ -1125,6 +1193,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           onClose={closeProfileModal}
           user={profileUser}
         />
+
+        <CallOverlay />
     </div>
   )
 }

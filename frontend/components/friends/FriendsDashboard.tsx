@@ -67,7 +67,7 @@ export default function FriendsDashboard() {
   })
 
   const createDMMutation = useMutation({
-    mutationFn: (userId: string) => apiPost<{ success: boolean; room: { id: string } }>('/dms/room', { userId }),
+    mutationFn: (userId: string) => apiPost<{ success: boolean; room: { id: string } }>('/dm/room', { userId }),
     onSuccess: (data) => {
       console.log('DM Created/Retrieved:', data)
       router.push(`/channels/@me/${data.room.id}`)

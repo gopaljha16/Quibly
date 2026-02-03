@@ -40,6 +40,7 @@ module.exports = (httpServer) => {
     require("./message.socket")(io, socket);
     require("./presence.socket")(io, socket);
     require("./voice.socket")(io, socket);
+    require("./call.socket")(io, socket);
 
     socket.on("disconnect", () => {
       // Silent disconnect
