@@ -26,10 +26,14 @@ model User {
   customStatus           String?
   customStatusEmoji      String?
   badges                 String[]   @default([])
-  friends                String[]
-  incomingFriendRequests String[]
-  outgoingFriendRequests String[]
   blockedUsers           String[]   @default([])
+  
+  // Relations
+  sentFriendRequests     Friendship[] @relation("SentFriendships")
+  receivedFriendRequests Friendship[] @relation("ReceivedFriendships")
+  
+  dmParticipants         DMParticipant[]
+  
   servers                Json       @default("[]")
   settings               Json       @default("{}")
   isVerified             Boolean    @default(false)
@@ -185,7 +189,8 @@ model Channel {
 
 model Message {
   id          String      @id @default(cuid())
-  channelId   String
+  channelId   String?
+  dmRoomId    String?
   serverId    String?
   senderId    String
   content     String
@@ -195,11 +200,59 @@ model Message {
   isDeleted   Boolean     @default(false)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  channel     Channel     @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  
+  channel     Channel?    @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  dmRoom      DMRoom?     @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
 
   @@index([channelId, createdAt(sort: Desc)])
+  @@index([dmRoomId, createdAt(sort: Desc)])
   @@index([senderId])
   @@index([serverId])
+}
+
+model Friendship {
+  id         String           @id @default(cuid())
+  senderId   String
+  receiverId String
+  status     FriendshipStatus @default(PENDING)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  sender     User             @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User             @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+model DMRoom {
+  id           String          @id @default(cuid())
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  
+  participants DMParticipant[]
+  messages     Message[]
+}
+
+model DMParticipant {
+  id        String   @id @default(cuid())
+  dmRoomId  String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  dmRoom    DMRoom   @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([dmRoomId, userId])
+  @@index([dmRoomId])
+  @@index([userId])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
 }
 
 model Role {

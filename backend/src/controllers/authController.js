@@ -517,7 +517,7 @@ exports.getProfile = async (req, res) => {
             select: {
                 id: true, username: true, discriminator: true, email: true,
                 avatar: true, banner: true, bio: true, status: true, customStatus: true,
-                friends: true, isVerified: true, createdAt: true, lastSeen: true
+                isVerified: true, createdAt: true, lastSeen: true
             }
         });
 

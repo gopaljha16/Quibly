@@ -11,6 +11,8 @@ const voiceRoutes = require('./voice');
 const profileRoutes = require('./profileRoutes');
 const accountSecurityRoutes = require('./accountSecurity');
 const inviteRoutes = require('./inviteRoutes');
+const friendRoutes = require('./friends');
+const dmRoutes = require('./dm');
 
 // Use routes
 router.use('/auth', authRoutes);
@@ -23,6 +25,8 @@ router.use('/voice', voiceRoutes);
 router.use('/profile', profileRoutes);
 router.use('/account', accountSecurityRoutes);
 router.use('/invites', inviteRoutes);
+router.use('/friends', friendRoutes);
+router.use('/dms', dmRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {

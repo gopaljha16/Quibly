@@ -6,14 +6,12 @@ const { isKafkaConnected } = require('../config/kafka');
 // Send new message
 exports.createMessage = async (req, res) => {
     try {
-        const { channelId, content, type, attachments, mentions } = req.body;
+        const { channelId, dmRoomId, content, type, attachments, mentions } = req.body;
 
-
-
-        if (!channelId) {
+        if (!channelId && !dmRoomId) {
             return res.status(400).json({
                 success: false,
-                message: 'Channel ID is required'
+                message: 'Channel ID or DM Room ID is required'
             });
         }
 
@@ -33,37 +31,68 @@ exports.createMessage = async (req, res) => {
             });
         }
 
-        // Check if channel exists and user has access
-        const channel = await db.channel.findUnique({
-            where: { id: channelId }
-        });
+        let serverId = null;
+        let targetId = null;
 
-        if (!channel) {
-            return res.status(404).json({
-                success: false,
-                message: 'Channel not found'
+        if (channelId) {
+            // Check if channel exists and user has access
+            const channel = await db.channel.findUnique({
+                where: { id: channelId }
             });
-        }
 
-        // Check if user is a member of the server
-        const member = await db.serverMember.findFirst({
-            where: {
-                serverId: channel.serverId,
-                userId: req.user.id
+            if (!channel) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Channel not found'
+                });
             }
-        });
 
-        if (!member) {
-            return res.status(403).json({
-                success: false,
-                message: 'You do not have access to this channel'
+            // Check if user is a member of the server
+            const member = await db.serverMember.findFirst({
+                where: {
+                    serverId: channel.serverId,
+                    userId: req.user.id
+                }
             });
-        }
 
-        if (member.isMuted) {
-            return res.status(403).json({
-                success: false,
-                message: 'You are muted in this server'
+            if (!member) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You do not have access to this channel'
+                });
+            }
+
+            if (member.isMuted) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You are muted in this server'
+                });
+            }
+
+            serverId = channel.serverId;
+            targetId = channelId;
+        } else if (dmRoomId) {
+            // Check if user is a participant of the DM room
+            const participant = await db.dMParticipant.findFirst({
+                where: {
+                    dmRoomId,
+                    userId: req.user.id
+                }
+            });
+
+            if (!participant) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You do not have access to this DM room'
+                });
+            }
+
+            targetId = dmRoomId;
+
+            // Update DMRoom updatedAt to bring it to top of list
+            await db.dMRoom.update({
+                where: { id: dmRoomId },
+                data: { updatedAt: new Date() }
             });
         }
 
@@ -84,11 +113,12 @@ exports.createMessage = async (req, res) => {
         // Create message object
         const messageData = {
             id: messageId,
-            channelId: channelId,
-            serverId: channel.serverId,
+            channelId: channelId || null,
+            dmRoomId: dmRoomId || null,
+            serverId: serverId,
             senderId: req.user.id,
             content: content?.trim() || '',
-            type: type || 'TEXT', // Changed from 'DEFAULT' to 'TEXT'
+            type: type || 'TEXT',
             sender: sender,
             createdAt: new Date().toISOString(),
             attachments: attachments || [],
@@ -107,8 +137,9 @@ exports.createMessage = async (req, res) => {
                 // Kafka will still save to DB for durability
                 const responseData = {
                     _id: messageId,
-                    channelId: channelId,
-                    serverId: channel.serverId,
+                    channelId: channelId || null,
+                    dmRoomId: dmRoomId || null,
+                    serverId: serverId,
                     senderId: {
                         _id: sender.id,
                         username: sender.username,
@@ -125,7 +156,7 @@ exports.createMessage = async (req, res) => {
 
                 // Broadcast immediately for instant delivery
                 if (global.io) {
-                    global.io.to(channelId).emit('receive_message', responseData);
+                    global.io.to(targetId).emit('receive_message', responseData);
                 }
 
                 // Track activity (Sync/Async)
@@ -174,8 +205,9 @@ exports.createMessage = async (req, res) => {
         const message = await db.message.create({
             data: {
                 id: messageId,
-                channelId,
-                serverId: channel.serverId,
+                channelId: channelId || null,
+                dmRoomId: dmRoomId || null,
+                serverId: serverId,
                 senderId: req.user.id,
                 content: content || '',
                 type: type || 'TEXT',
@@ -221,6 +253,7 @@ exports.createMessage = async (req, res) => {
         const responseData = {
             _id: message.id,
             channelId: message.channelId,
+            dmRoomId: message.dmRoomId,
             serverId: message.serverId,
             senderId: {
                 _id: sender.id,
@@ -237,7 +270,7 @@ exports.createMessage = async (req, res) => {
 
         // Emit socket event (fallback mode)
         if (global.io) {
-            global.io.to(channelId).emit('receive_message', responseData);
+            global.io.to(targetId).emit('receive_message', responseData);
         }
 
         res.status(201).json(responseData);
@@ -253,34 +286,57 @@ exports.createMessage = async (req, res) => {
 // Get messages in a channel
 exports.getMessages = async (req, res) => {
     try {
-        const { channelId } = req.params;
+        const { channelId, dmRoomId } = req.params;
         const { limit = 50, before } = req.query;
 
-        // Check if channel exists
-        const channel = await db.channel.findUnique({
-            where: { id: channelId }
-        });
+        const targetId = channelId || dmRoomId;
 
-        if (!channel) {
-            return res.status(404).json({
-                success: false,
-                message: 'Channel not found'
-            });
+        if (!targetId) {
+            return res.status(400).json({ success: false, message: 'ID is required' });
         }
 
-        // Check if user is a member of the server
-        const member = await db.serverMember.findFirst({
-            where: {
-                serverId: channel.serverId,
-                userId: req.user.id
-            }
-        });
-
-        if (!member) {
-            return res.status(403).json({
-                success: false,
-                message: 'You do not have access to this channel'
+        if (channelId) {
+            // Check if channel exists
+            const channel = await db.channel.findUnique({
+                where: { id: channelId }
             });
+
+            if (!channel) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Channel not found'
+                });
+            }
+
+            // Check if user is a member of the server
+            const member = await db.serverMember.findFirst({
+                where: {
+                    serverId: channel.serverId,
+                    userId: req.user.id
+                }
+            });
+
+            if (!member) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You do not have access to this channel'
+                });
+            }
+        } else if (dmRoomId) {
+            // Check if user is a participant of the DM room
+            const participant = await db.dMParticipant.findFirst({
+                where: {
+                    dmRoomId,
+                    userId: req.user.id
+                }
+            });
+
+            if (!participant) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You do not have access to this DM room'
+                });
+            }
         }
 
         // STEP 1: Try to get messages from Redis cache (fast!)
@@ -289,7 +345,7 @@ exports.getMessages = async (req, res) => {
 
         if (redis.isConnected()) {
             // Get all cached messages (up to 100)
-            const cachedMessages = await redis.getCachedMessages(channelId, 100);
+            const cachedMessages = await redis.getCachedMessages(targetId, 100);
 
             if (cachedMessages && cachedMessages.length > 0) {
                 // Apply pagination filter if 'before' timestamp is provided
@@ -315,7 +371,8 @@ exports.getMessages = async (req, res) => {
         if (!fromCache) {
             // Build query
             const where = {
-                channelId,
+                channelId: channelId || null,
+                dmRoomId: dmRoomId || null,
                 isDeleted: false
             };
 

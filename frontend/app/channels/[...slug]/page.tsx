@@ -9,6 +9,9 @@ import { useProfile } from '@/hooks/queries'
 import LinkPreview from '@/components/LinkPreview'
 import LinkifiedText from '@/components/LinkifiedText'
 import { VoiceChannelPanel } from '@/components/channels/VoiceChannelPanel'
+import FriendsDashboard from '@/components/friends/FriendsDashboard'
+import { useDMRoom } from '@/hooks/queries'
+import { useRemoveFriend, useBlockUser, useAddFriend } from '@/hooks/queries/useFriendQueries'
 import { Message } from '@/hooks/queries'
 import { MessageListSkeleton } from '@/components/LoadingSkeletons'
 
@@ -171,13 +174,15 @@ const MessageInput = ({
   value,
   onChange,
   onSend,
-  disabled
+  disabled,
+  isMe
 }: {
   channelName: string
   value: string
   onChange: (value: string) => void
   onSend: () => void
   disabled: boolean
+  isMe?: boolean
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -210,7 +215,7 @@ const MessageInput = ({
         <textarea
           ref={textareaRef}
           className="w-full bg-transparent pl-[52px] pr-12 py-[11px] text-[#dbdee1] placeholder-[#87898c] resize-none outline-none min-h-[44px] max-h-[200px] leading-[1.375rem] font-normal"
-          placeholder={`Message #${channelName}`}
+          placeholder={isMe ? `Message @${channelName}` : `Message #${channelName}`}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -252,6 +257,9 @@ export default function ChannelsPage() {
   const { data: currentUser } = useProfile()
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
+  // Fetch DM room data if applicable
+  const { data: dmRoom, isLoading: dmLoading } = useDMRoom(route.isMe ? route.channelId : null)
+
   // Use new messages hook
   const {
     messages,
@@ -268,7 +276,36 @@ export default function ChannelsPage() {
     saveEdit,
     editing,
     deleteMessage,
-  } = useMessagesData(selectedChannel?._id || null)
+  } = useMessagesData(
+    route.isMe ? (route.channelId || null) : (selectedChannel?._id || null),
+    route.isMe ? 'dm' : 'channel'
+  )
+
+  const { mutate: removeFriend, isPending: removingFriend } = useRemoveFriend()
+  const { mutate: blockUser, isPending: blockingUser } = useBlockUser()
+  const { mutate: addFriend, isPending: addingFriend } = useAddFriend()
+
+  const handleAddFriendAction = () => {
+    const username = dmRoom?.otherUser?.username;
+    const discriminator = dmRoom?.otherUser?.discriminator;
+    if (username && discriminator) {
+      addFriend({ username, discriminator });
+    }
+  }
+
+  const handleRemoveFriendAction = () => {
+    const friendId = dmRoom?.otherUser?.id;
+    if (friendId && window.confirm(`Are you sure you want to remove ${dmRoom.otherUser?.username} as a friend?`)) {
+      removeFriend(friendId);
+    }
+  }
+
+  const handleBlockUserAction = () => {
+    const userIdToBlock = dmRoom?.otherUser?.id;
+    if (userIdToBlock && window.confirm(`Are you sure you want to block ${dmRoom.otherUser?.username}?`)) {
+      blockUser(userIdToBlock);
+    }
+  }
 
   const sortedMessages = useMemo(() => {
     return [...messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
@@ -300,6 +337,11 @@ export default function ChannelsPage() {
   // Check if current channel is a voice channel
   const isVoiceChannel = selectedChannel?.type === 'VOICE'
 
+  // If we are in the "Me" section but no channel is selected, show Friends Dashboard
+  if (route.isMe && !route.channelId) {
+    return <FriendsDashboard />
+  }
+
   // If it's a voice channel, show the voice panel
   if (!route.isMe && selectedChannel && isVoiceChannel && currentUser) {
     return (
@@ -318,23 +360,24 @@ export default function ChannelsPage() {
   return (
     <>
       <div className="flex-1 flex flex-col min-h-0 bg-[#313338]">
-        {route.isMe ? (
+        {/* Show placeholder if no conversation selected */}
+        {((!selectedChannel && !route.isMe) || (route.isMe && !route.channelId)) ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-[#5865f2] flex items-center justify-center">
-                <svg width="48" height="48" viewBox="0 0 24 24" className="fill-current text-white">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                </svg>
+            {route.isMe ? (
+              <div className="text-center">
+                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-[#5865f2] flex items-center justify-center">
+                  <svg width="48" height="48" viewBox="0 0 24 24" className="fill-current text-white">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Friends</h2>
+                <p className="text-[#b4b4b4]">Start a conversation with your friends!</p>
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Friends</h2>
-              <p className="text-[#b4b4b4]">Start a conversation with your friends!</p>
-            </div>
-          </div>
-        ) : !selectedChannel ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <div className="text-[#b4b4b4] text-lg">Select a channel to start chatting</div>
-            </div>
+            ) : (
+              <div className="text-center">
+                <div className="text-[#b4b4b4] text-lg">Select a conversation to start chatting</div>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -342,15 +385,116 @@ export default function ChannelsPage() {
               <div className="flex flex-col justify-end min-h-full">
                 {!messagesLoading && sortedMessages.length < 50 && (
                   <div className="px-4 pt-12 pb-4">
-                    <div className="w-[68px] h-[68px] rounded-full bg-[#1a1a1a] flex items-center justify-center mb-4">
-                      <svg width="42" height="42" viewBox="0 0 24 24" className="fill-current text-white">
-                        <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
-                      </svg>
+                    <div className={`w-[80px] h-[80px] rounded-full flex items-center justify-center mb-4 ${route.isMe ? 'bg-[#5865f2]' : 'bg-[#1a1a1a]'} overflow-hidden`}>
+                      {route.isMe ? (
+                        dmRoom?.otherUser?.avatar ? (
+                          <img src={dmRoom.otherUser.avatar} alt={dmRoom.otherUser.username} className="w-full h-full object-cover" />
+                        ) : (
+                          <svg width="48" height="48" viewBox="0 0 28 20" className="fill-current text-white">
+                            <path d="M23.0212 1.67671C21.3107 0.879656 19.5079 0.318797 17.6584 0C17.4062 0.461742 17.1749 0.934541 16.9708 1.4184C15.003 1.12145 12.9974 1.12145 11.0283 1.4184C10.819 0.934541 10.589 0.461744 10.3368 0.00546311C8.48074 0.324393 6.67795 0.885118 4.96746 1.68231C1.56727 6.77853 0.649666 11.7538 1.11108 16.652C3.10102 18.1418 5.3262 19.2743 7.69177 20C8.22338 19.2743 8.69519 18.4993 9.09812 17.691C8.32996 17.3997 7.58522 17.0424 6.87684 16.6291C7.06531 16.4979 7.25183 16.3615 7.43624 16.2202C11.4193 18.0402 15.9176 18.0402 19.8555 16.2202C20.0403 16.3615 20.2268 16.4979 20.4148 16.6291C19.7059 17.0427 18.9606 17.4 18.1921 17.691C18.5949 18.4993 19.0667 19.2743 19.5984 20C21.9639 19.2743 24.1894 18.1418 26.1794 16.652C26.7228 11.0369 25.2119 6.10654 23.0212 1.67671ZM9.68041 13.6383C8.39754 13.6383 7.34085 12.4453 7.34085 10.994C7.34085 9.54272 8.37155 8.34973 9.68041 8.34973C10.9893 8.34973 12.0395 9.54272 12.0187 10.994C12.0187 12.4453 10.9893 13.6383 9.68041 13.6383ZM18.5129 13.6383C17.2271 13.6383 16.1703 12.4453 16.1703 10.994C16.1703 9.54272 17.2009 8.34973 18.5129 8.34973C19.8248 8.34973 20.8751 9.54272 20.8542 10.994C20.8542 12.4453 19.8228 13.6383 18.5129 13.6383Z" />
+                          </svg>
+                        )
+                      ) : (
+                        <svg width="42" height="42" viewBox="0 0 24 24" className="fill-current text-white">
+                          <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
+                        </svg>
+                      )}
                     </div>
-                    <h1 className="text-[32px] font-bold text-white mb-2">Welcome to #{selectedChannel.name}!</h1>
-                    <p className="text-[#b4b4b4] text-base">This is the start of the <span className="font-semibold text-white">#{selectedChannel.name}</span> channel.</p>
-                  </div>
-                )}
+                    <h1 className="text-[32px] font-bold text-white mb-0 flex items-baseline gap-2">
+                      {route.isMe ? (dmRoom?.otherUser?.username || 'User') : `Welcome to #${selectedChannel?.name}!`}
+                      {route.isMe && dmRoom?.otherUser && (
+                        <span className="text-[#b5bac1] text-2xl font-medium ml-1">
+                          #{dmRoom.otherUser.discriminator || '0000'}
+                        </span>
+                      )}
+                    </h1>
+                    {route.isMe && (
+                      <div className="text-[20px] font-medium text-[#f2f3f5] mb-4">
+                        {dmRoom?.otherUser?.username?.toLowerCase()}.{dmRoom?.otherUser?.discriminator || '0000'}
+                      </div>
+                    )}
+                    <p className="text-[#b4b4b4] text-base mb-4">
+                      This is the beginning of your {route.isMe ? 'direct message history' : 'conversation'} with{' '}
+                      <span className="font-semibold text-white">
+                        {route.isMe ? `${dmRoom?.otherUser?.username || 'this user'}` : `#${selectedChannel?.name}`}
+                      </span>.
+                    </p>
+                    {route.isMe && (
+                      <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-3">
+                          {dmLoading ? (
+                            <span className="text-[#b4b4b4] text-sm animate-pulse italic">Checking for mutual servers...</span>
+                          ) : dmRoom?.mutualServers && dmRoom.mutualServers.length > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <div className="flex -space-x-2">
+                                {dmRoom.mutualServers.slice(0, 3).map((server) => (
+                                  <div 
+                                    key={server.id} 
+                                    className="w-8 h-8 rounded-full border-[3px] border-[#313338] bg-[#2b2d31] flex items-center justify-center overflow-hidden"
+                                    title={server.name}
+                                  >
+                                    {server.icon ? (
+                                      <img src={server.icon} alt={server.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <span className="text-[10px] font-bold text-[#b5bac1]">{server.name[0]}</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                              <span className="text-[#00aff4] hover:underline cursor-pointer text-sm font-medium">
+                                {dmRoom.mutualServers.length} Mutual Server{dmRoom.mutualServers.length !== 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-[#b4b4b4] text-sm">No servers in common</span>
+                          )}
+                        </div>
+                        
+                         <div className="flex items-center gap-3">
+                        {dmRoom?.friendshipStatus === 'ACCEPTED' ? (
+                          <button 
+                            onClick={handleRemoveFriendAction}
+                            disabled={removingFriend}
+                            className="px-4 py-1.5 rounded-[4px] bg-[#35373c] hover:bg-[#4e5058] text-white text-sm font-medium transition-colors disabled:opacity-50"
+                          >
+                            {removingFriend ? 'Removing...' : 'Remove Friend'}
+                          </button>
+                        ) : dmRoom?.friendshipStatus === 'PENDING' ? (
+                          <button 
+                            disabled
+                            className="px-4 py-1.5 rounded-[4px] bg-[#35373c] text-[#b5bac1] text-sm font-medium opacity-50 cursor-not-allowed"
+                          >
+                            Friend Request Sent
+                          </button>
+                        ) : dmRoom?.friendshipStatus !== 'BLOCKED' ? (
+                          <button 
+                            onClick={handleAddFriendAction}
+                            disabled={addingFriend}
+                            className="px-4 py-1.5 rounded-[4px] bg-[#248046] hover:bg-[#1a5b32] text-white text-sm font-medium transition-colors disabled:opacity-50"
+                          >
+                            {addingFriend ? 'Adding...' : 'Add Friend'}
+                          </button>
+                        ) : (
+                          <button 
+                            disabled
+                            className="px-4 py-1.5 rounded-[4px] bg-[#35373c] text-[#b5bac1] text-sm font-medium opacity-50 cursor-not-allowed"
+                          >
+                            Blocked
+                          </button>
+                        )}
+
+                        <button 
+                          onClick={handleBlockUserAction}
+                          disabled={blockingUser}
+                          className="px-4 py-1.5 rounded-[4px] bg-[#35373c] hover:bg-[#4e5058] text-white text-sm font-medium transition-colors disabled:opacity-50"
+                        >
+                          {blockingUser ? 'Blocking...' : 'Block'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
                 {messagesError && (
                   <div className="mx-4 my-2 rounded border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
@@ -379,11 +523,12 @@ export default function ChannelsPage() {
             </div>
 
             <MessageInput
-              channelName={selectedChannel.name}
+              channelName={route.isMe ? (dmRoom?.otherUser?.username || 'User') : (selectedChannel?.name || 'channel')}
               value={draft}
               onChange={updateDraft}
               onSend={handleSend}
               disabled={sending}
+              isMe={route.isMe}
             />
           </>
         )}

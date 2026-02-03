@@ -65,11 +65,14 @@ async function startFanoutService() {
  */
 async function processMessage(messageData) {
     try {
+        const targetId = messageData.channelId || messageData.dmRoomId;
+
         // STEP 1: Cache in Redis
         if (redis.isConnected()) {
-            await redis.cacheMessage(messageData.channelId, {
+            await redis.cacheMessage(targetId, {
                 _id: messageData.id,
-                channelId: messageData.channelId,
+                channelId: messageData.channelId || null,
+                dmRoomId: messageData.dmRoomId || null,
                 serverId: messageData.serverId,
                 senderId: {
                     _id: messageData.senderId,
@@ -97,7 +100,8 @@ async function processMessage(messageData) {
                 await db.message.create({
                     data: {
                         id: messageData.id,
-                        channelId: messageData.channelId,
+                        channelId: messageData.channelId || null,
+                        dmRoomId: messageData.dmRoomId || null,
                         serverId: messageData.serverId,
                         senderId: messageData.senderId,
                         content: messageData.content,
@@ -110,27 +114,10 @@ async function processMessage(messageData) {
             }
         }
 
-        // STEP 3: Broadcast to WebSocket clients
-        if (global.io) {
-            const broadcastData = {
-                _id: messageData.id,
-                content: messageData.content,
-                senderId: {
-                    _id: messageData.senderId,
-                    username: messageData.sender?.username,
-                    discriminator: messageData.sender?.discriminator,
-                    avatar: messageData.sender?.avatar
-                },
-                createdAt: messageData.createdAt,
-                channelId: messageData.channelId,
-                serverId: messageData.serverId,
-                type: messageData.type,
-                attachments: messageData.attachments || [],
-                mentions: messageData.mentions || []
-            };
-            
-            global.io.to(messageData.channelId).emit('receive_message', broadcastData);
-        }
+        // STEP 3: Broadcast is REMOVED here.
+        // Direct broadcast happens in messageController.js or message.socket.js
+        // for instant delivery, before the message even hits Kafka.
+        // Re-broadcasting here causes duplicate messages.
 
     } catch (error) {
         console.error('Error in processMessage:', error);

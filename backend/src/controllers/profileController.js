@@ -142,7 +142,6 @@ exports.getUserStats = async (req, res) => {
                 voiceTimeMinutes: true,
                 achievements: true,
                 createdAt: true,
-                friends: true,
                 _count: {
                     select: {
                         serverMembers: true,
@@ -215,7 +214,7 @@ exports.blockUser = async (req, res) => {
 
         const currentUser = await db.user.findUnique({
             where: { id: currentUserId },
-            select: { blockedUsers: true, friends: true }
+            select: { blockedUsers: true }
         });
 
         if (currentUser.blockedUsers.includes(targetUserId)) {

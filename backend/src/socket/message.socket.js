@@ -19,7 +19,7 @@ module.exports = (io, socket) => {
       where: { id: channelId },
       select: { id: true, serverId: true }
     });
-    
+
     if (!channel) {
       throw new Error("Channel not found");
     }
@@ -31,12 +31,33 @@ module.exports = (io, socket) => {
         isBanned: false,
       }
     });
-    
+
     if (!isMember) {
       throw new Error("Not a member of this server");
     }
 
     return { userId, channel };
+  };
+
+  const ensureDMRoomAccess = async (dmRoomId) => {
+    const userId = getSocketUserId();
+
+    if (!dmRoomId || !userId) {
+      throw new Error("Invalid dmRoomId or userId");
+    }
+
+    const participant = await db.dMParticipant.findFirst({
+      where: {
+        dmRoomId,
+        userId
+      }
+    });
+
+    if (!participant) {
+      throw new Error("Not a participant of this DM room");
+    }
+
+    return { userId };
   };
 
   socket.on("join_channel", async (channelId) => {
@@ -46,6 +67,16 @@ module.exports = (io, socket) => {
     } catch (err) {
       console.error(`Join channel failed:`, err.message);
       socket.emit("error_message", err.message || "Join channel failed");
+    }
+  });
+
+  socket.on("join_dm", async (dmRoomId) => {
+    try {
+      await ensureDMRoomAccess(dmRoomId);
+      socket.join(dmRoomId);
+    } catch (err) {
+      console.error(`Join DM failed:`, err.message);
+      socket.emit("error_message", err.message || "Join DM failed");
     }
   });
 
@@ -92,7 +123,7 @@ module.exports = (io, socket) => {
       // Try to publish to Kafka first
       if (isKafkaConnected()) {
         const published = await publishMessage(messageData);
-        
+
         if (published) {
           // Send immediate acknowledgment to sender
           socket.emit("message_sent", {
@@ -122,7 +153,7 @@ module.exports = (io, socket) => {
 
       // Broadcast directly
       io.to(channelId).emit("receive_message", {
-        id: message.id,
+        _id: message.id,
         content: message.content,
         senderId: userId,
         sender: sender,

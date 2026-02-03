@@ -13,11 +13,31 @@ import { Message } from './queries'
  * Handles fetching, sending, editing, deleting messages
  * Manages drafts and socket room joining
  */
-export function useMessagesData(channelId: string | null) {
+export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'channel') {
   const [socket, setSocket] = useState<ReturnType<typeof connectSocket> | null>(null)
   const [isConnected, setIsConnected] = useState(false)
-  const joinedChannelRef = useRef<string | null>(null)
+  const joinedRoomRef = useRef<{ id: string; type: 'channel' | 'dm' } | null>(null)
   const queryClient = useQueryClient()
+  const { data: currentUser } = useProfile()
+
+  // Use a Ref to avoid closure staleness in the socket listener
+  const currentUserIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (currentUser?._id) {
+      currentUserIdRef.current = currentUser._id
+    }
+  }, [currentUser])
+
+  // Helper to deduplicate messages by ID and sort them by date if needed
+  const deduplicate = (messages: Message[]) => {
+    const seen = new Set()
+    return messages.filter(m => {
+      const id = m._id
+      if (seen.has(id)) return false
+      seen.add(id)
+      return true
+    })
+  }
 
   // Initialize socket connection and set up message listener
   useEffect(() => {
@@ -35,17 +55,37 @@ export function useMessagesData(channelId: string | null) {
     // Handle incoming messages
     const handleReceiveMessage = (incoming: any) => {
       const msg = incoming as Message
-      const msgChannelId = msg.channelId
+      const msgTargetId = msg.channelId || msg.dmRoomId
 
-      if (!msgChannelId) return
+      if (!msgTargetId) return
 
-      // Add message to cache
-      queryClient.setQueryData<Message[]>(['messages', msgChannelId], (old = []) => {
-        const exists = old?.some((m) => m._id === msg._id)
-        if (exists) {
+      // Add message to cache with IRONCLAD DEDUPLICATION
+      queryClient.setQueryData<Message[]>(['messages', msgTargetId], (old = []) => {
+        // 1. If this exact message ID already exists, update it but don't add a new one
+        if (old?.some((m) => m._id === msg._id)) {
           return old.map((m) => (m._id === msg._id ? msg : m))
         }
-        return [...(old || []), msg]
+
+        // 2. SOCIAL DEDUPLICATION: Replace optimistic match for CURRENT USER
+        const msgSenderId = typeof msg.senderId === 'object' ? msg.senderId._id : msg.senderId
+        const currentUserId = currentUserIdRef.current
+
+        // If it's from me, look for an optimistic message to replace
+        if (msgSenderId && currentUserId && msgSenderId === currentUserId) {
+          const optimisticIndex = old.findIndex(m =>
+            m._id.startsWith('optimistic-') &&
+            m.content.trim() === msg.content.trim()
+          )
+
+          if (optimisticIndex !== -1) {
+            const newMessages = [...old]
+            newMessages[optimisticIndex] = msg
+            return deduplicate(newMessages)
+          }
+        }
+
+        // 3. Normal addition + Final Deduplication Layer
+        return deduplicate([...(old || []), msg])
       })
     }
 
@@ -63,11 +103,37 @@ export function useMessagesData(channelId: string | null) {
       socketInstance.off('disconnect', handleDisconnect)
       socketInstance.off('receive_message', handleReceiveMessage)
     }
-  }, [queryClient])
+  }, [queryClient]) // This listener is global and persistent
+
+  // Socket room management (separate effect for clean room hopping)
+  useEffect(() => {
+    if (!socket || !id) return
+
+    const joinRoom = () => {
+      if (!socket.connected) return
+
+      const prevRoom = joinedRoomRef.current
+
+      // Leave previous room if different
+      if (prevRoom && (prevRoom.id !== id || prevRoom.type !== type)) {
+        socket.emit(prevRoom.type === 'channel' ? 'leave_channel' : 'leave_dm', prevRoom.id)
+      }
+
+      // Join new room
+      socket.emit(type === 'channel' ? 'join_channel' : 'join_dm', id)
+      joinedRoomRef.current = { id, type }
+    }
+
+    if (socket.connected) joinRoom()
+    socket.on('connect', joinRoom)
+
+    return () => {
+      socket.off('connect', joinRoom)
+    }
+  }, [socket, isConnected, id, type])
 
   // Queries
-  const { data: messages = [], isLoading: messagesLoading, error: messagesError } = useMessages(channelId)
-  const { data: currentUser } = useProfile()
+  const { data: messages = [], isLoading: messagesLoading, error: messagesError } = useMessages(id, type)
 
   // Mutations
   const sendMessageMutation = useSendMessage()
@@ -76,7 +142,7 @@ export function useMessagesData(channelId: string | null) {
 
   // Drafts from Zustand
   const { drafts, setDraft, clearDraft } = useUIStore()
-  const draft = channelId ? (drafts[channelId] || '') : ''
+  const draft = id ? (drafts[id] || '') : ''
 
   // Edit state from Zustand
   const {
@@ -86,60 +152,22 @@ export function useMessagesData(channelId: string | null) {
     stopEditingMessage,
   } = useUIStore()
 
-  // Socket room management
-  useEffect(() => {
-    if (!socket || !channelId) return
-
-    const joinChannel = () => {
-      if (!socket.connected) return
-
-      const prevChannel = joinedChannelRef.current
-
-      // Leave previous channel
-      if (prevChannel && prevChannel !== channelId) {
-        socket.emit('leave_channel', prevChannel)
-      }
-
-      // Join new channel
-      if (joinedChannelRef.current !== channelId) {
-        socket.emit('join_channel', channelId)
-        joinedChannelRef.current = channelId
-      }
-    }
-
-    // Join immediately if already connected
-    if (socket.connected) {
-      joinChannel()
-    }
-
-    // Also join when socket connects
-    socket.on('connect', joinChannel)
-
-    return () => {
-      socket.off('connect', joinChannel)
-
-      if (joinedChannelRef.current) {
-        socket.emit('leave_channel', joinedChannelRef.current)
-        joinedChannelRef.current = null
-      }
-    }
-  }, [socket, isConnected, channelId])
-
   // Send message
   const sendMessage = async (content: string) => {
-    if (!channelId || !content.trim()) return
+    if (!id || !content.trim()) return
 
     // Clear draft IMMEDIATELY for instant feedback
     const trimmedContent = content.trim()
-    if (channelId) {
-      clearDraft(channelId)
+    if (id) {
+      clearDraft(id)
     }
 
     // Create optimistic message
     const optimisticId = `optimistic-${Date.now()}`
     const optimisticMessage: Message = {
       _id: optimisticId,
-      channelId,
+      channelId: type === 'channel' ? id : undefined,
+      dmRoomId: type === 'dm' ? id : undefined,
       serverId: '',
       senderId: currentUser ? {
         _id: currentUser._id,
@@ -151,33 +179,35 @@ export function useMessagesData(channelId: string | null) {
     }
 
     // Add optimistic message to cache IMMEDIATELY
-    queryClient.setQueryData<Message[]>(['messages', channelId], (old = []) => {
+    queryClient.setQueryData<Message[]>(['messages', id], (old = []) => {
       return [...old, optimisticMessage]
     })
 
     try {
-      // Send to server in background
-      await sendMessageMutation.mutateAsync({
-        channelId,
+      // Send to server
+      const newMessage = await sendMessageMutation.mutateAsync({
+        channelId: type === 'channel' ? id : undefined,
+        dmRoomId: type === 'dm' ? id : undefined,
         content: trimmedContent,
       })
 
-      // Success! The real message will come via Socket.IO
-      // Remove optimistic message when real one arrives (handled in handleReceiveMessage)
-      queryClient.setQueryData<Message[]>(['messages', channelId], (old = []) => {
-        return old.filter(m => m._id !== optimisticId)
+      // REPLACE optimistic message with real one IMMEDIATELY
+      // This prevents the flicker while waiting for the socket
+      queryClient.setQueryData<Message[]>(['messages', id], (old = []) => {
+        const withReal = old.map(m => m._id === optimisticId ? newMessage : m)
+        return deduplicate(withReal)
       })
     } catch (error) {
       console.error('Failed to send message:', error)
 
       // On error, remove optimistic message
-      queryClient.setQueryData<Message[]>(['messages', channelId], (old = []) => {
+      queryClient.setQueryData<Message[]>(['messages', id], (old = []) => {
         return old.filter(m => m._id !== optimisticId)
       })
 
       // Restore draft so user can retry
-      if (channelId) {
-        setDraft(channelId, trimmedContent)
+      if (id) {
+        setDraft(id, trimmedContent)
       }
 
       throw error
@@ -202,12 +232,13 @@ export function useMessagesData(channelId: string | null) {
 
   // Delete message
   const deleteMessage = async (messageId: string) => {
-    if (!channelId) return
+    if (!id) return
 
     try {
       await deleteMessageMutation.mutateAsync({
         messageId,
-        channelId,
+        channelId: type === 'channel' ? id : undefined,
+        dmRoomId: type === 'dm' ? id : undefined,
       })
     } catch (error) {
       console.error('Failed to delete message:', error)
@@ -217,8 +248,8 @@ export function useMessagesData(channelId: string | null) {
 
   // Update draft
   const updateDraft = (content: string) => {
-    if (channelId) {
-      setDraft(channelId, content)
+    if (id) {
+      setDraft(id, content)
     }
   }
 
@@ -241,7 +272,7 @@ export function useMessagesData(channelId: string | null) {
 
   return {
     // Data
-    messages,
+    messages: deduplicate(messages),
     currentUser,
 
     // Loading states
@@ -259,7 +290,7 @@ export function useMessagesData(channelId: string | null) {
     // Draft state
     draft,
     updateDraft,
-    clearDraft: () => channelId && clearDraft(channelId),
+    clearDraft: () => id && clearDraft(id),
 
     // Edit state
     editingMessageId,
