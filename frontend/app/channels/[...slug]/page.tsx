@@ -14,21 +14,34 @@ import { useDMRoom } from '@/hooks/queries'
 import { useRemoveFriend, useBlockUser, useAddFriend } from '@/hooks/queries/useFriendQueries'
 import { Message } from '@/hooks/queries'
 import { MessageListSkeleton } from '@/components/LoadingSkeletons'
+import { useTypingIndicator } from '@/hooks/useTypingIndicator'
+import { TypingIndicator } from '@/components/TypingIndicator'
 
 // Message Item Component
 const MessageItem = ({
   message,
   onEdit,
   onDelete,
-  currentUser
+  currentUser,
+  isEditing,
+  editContent,
+  onEditContentChange,
+  onSaveEdit,
+  onCancelEdit
 }: {
   message: Message
   onEdit: (id: string, content: string) => void
   onDelete: (id: string) => void
   currentUser?: any
+  isEditing?: boolean
+  editContent?: string
+  onEditContentChange?: (content: string) => void
+  onSaveEdit?: () => void
+  onCancelEdit?: () => void
 }) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null)
   const { firstUrl } = useLinkPreviews(message.content)
 
   const isSenderMe = typeof message.senderId === 'object' && message.senderId._id === currentUser?._id
@@ -62,7 +75,7 @@ const MessageItem = ({
       : `${date.toLocaleDateString()} ${timeStr}`
 
   const initials = sender?.slice(0, 1).toUpperCase() || 'U'
-  const canAct = !message._id.startsWith('optimistic-')
+  const canAct = !message._id.startsWith('optimistic-') && isSenderMe
 
   useEffect(() => {
     if (!menuOpen) return
@@ -74,6 +87,27 @@ const MessageItem = ({
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [menuOpen])
+
+  // Auto-resize textarea and focus when editing
+  useEffect(() => {
+    if (isEditing && editTextareaRef.current) {
+      const textarea = editTextareaRef.current
+      textarea.focus()
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length)
+      textarea.style.height = 'auto'
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px'
+    }
+  }, [isEditing])
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      onSaveEdit?.()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      onCancelEdit?.()
+    }
+  }
 
   return (
     <div className={`group flex gap-4 px-4 py-0.5 hover:bg-[#2e3035] relative mt-[1.0625rem] first:mt-2 ${menuOpen ? 'bg-[#2e3035]' : ''}`}>
@@ -100,22 +134,42 @@ const MessageItem = ({
           )}
         </div>
 
-        <div className="text-[#dbdee1] break-words leading-[1.375rem]">
-          <LinkifiedText
-            text={message.content}
-            className="whitespace-pre-wrap"
-            linkClassName="text-[#5865f2] hover:underline cursor-pointer transition-colors"
-          />
-        </div>
-
-        {firstUrl && (
-          <div className="mt-2 max-w-[432px]">
-            <LinkPreview url={firstUrl} />
+        {isEditing ? (
+          <div className="flex flex-col gap-2">
+            <textarea
+              ref={editTextareaRef}
+              value={editContent}
+              onChange={(e) => onEditContentChange?.(e.target.value)}
+              onKeyDown={handleEditKeyDown}
+              className="w-full bg-[#383a40] text-[#dbdee1] rounded px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#5865f2] min-h-[44px] max-h-[200px]"
+              placeholder="Edit message..."
+            />
+            <div className="flex items-center gap-2 text-xs text-[#949ba4]">
+              <span>escape to <button onClick={onCancelEdit} className="text-[#5865f2] hover:underline">cancel</button></span>
+              <span>•</span>
+              <span>enter to <button onClick={onSaveEdit} className="text-[#5865f2] hover:underline">save</button></span>
+            </div>
           </div>
+        ) : (
+          <>
+            <div className="text-[#dbdee1] break-words leading-[1.375rem]">
+              <LinkifiedText
+                text={message.content}
+                className="whitespace-pre-wrap"
+                linkClassName="text-[#5865f2] hover:underline cursor-pointer transition-colors"
+              />
+            </div>
+
+            {firstUrl && (
+              <div className="mt-2 max-w-[432px]">
+                <LinkPreview url={firstUrl} />
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {canAct && (
+      {canAct && !isEditing && (
         <div className={`absolute -top-4 right-4 ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity z-10`}>
           <div className="bg-[#1a1a1a] rounded shadow-sm border border-[#2a2a2a] flex items-center p-0.5 transition-transform hover:scale-[1.02]">
             <button
@@ -217,7 +271,10 @@ const MessageInput = ({
           className="w-full bg-transparent pl-[52px] pr-12 py-[11px] text-[#dbdee1] placeholder-[#87898c] resize-none outline-none min-h-[44px] max-h-[200px] leading-[1.375rem] font-normal"
           placeholder={isMe ? `Message @${channelName}` : `Message #${channelName}`}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            console.log('⌨️ MessageInput onChange called', e.target.value)
+            onChange(e.target.value)
+          }}
           onKeyDown={handleKeyDown}
           disabled={disabled}
           rows={1}
@@ -255,6 +312,7 @@ const MessageInput = ({
 export default function ChannelsPage() {
   const { route, channels, channelsLoading, selectedChannel } = useChannelsData()
   const { data: currentUser } = useProfile()
+  console.log(currentUser);
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   // Fetch DM room data if applicable
@@ -284,6 +342,15 @@ export default function ChannelsPage() {
   const { mutate: removeFriend, isPending: removingFriend } = useRemoveFriend()
   const { mutate: blockUser, isPending: blockingUser } = useBlockUser()
   const { mutate: addFriend, isPending: addingFriend } = useAddFriend()
+
+  // Typing indicator
+  const { typingUsers, handleTyping, handleStopTyping } = useTypingIndicator(
+    route.isMe ? null : (selectedChannel?._id || null),
+    route.isMe ? (route.channelId || null) : null
+  )
+
+  // Get setEditingMessageContent from store for the handler
+  const { setEditingMessageContent } = useUIStore()
 
   const handleAddFriendAction = () => {
     const username = dmRoom?.otherUser?.username;
@@ -332,6 +399,10 @@ export default function ChannelsPage() {
     } catch (error) {
       console.error('Failed to delete message:', error)
     }
+  }
+
+  const handleEditContentChange = (content: string) => {
+    setEditingMessageContent(content)
   }
 
   // Check if current channel is a voice channel
@@ -513,6 +584,11 @@ export default function ChannelsPage() {
                         onEdit={startEditing}
                         onDelete={handleDelete}
                         currentUser={currentUser}
+                        isEditing={editingMessageId === message._id}
+                        editContent={editingMessageContent}
+                        onEditContentChange={handleEditContentChange}
+                        onSaveEdit={saveEdit}
+                        onCancelEdit={cancelEditing}
                       />
                     ))}
                   </div>
@@ -522,11 +598,20 @@ export default function ChannelsPage() {
               </div>
             </div>
 
+            {/* Typing Indicator */}
+            <TypingIndicator typingUsers={typingUsers} />
+
             <MessageInput
               channelName={route.isMe ? (dmRoom?.otherUser?.username || 'User') : (selectedChannel?.name || 'channel')}
               value={draft}
-              onChange={updateDraft}
-              onSend={handleSend}
+              onChange={(value) => {
+                updateDraft(value)
+                handleTyping()
+              }}
+              onSend={() => {
+                handleSend()
+                handleStopTyping()
+              }}
               disabled={sending}
               isMe={route.isMe}
             />
@@ -552,8 +637,8 @@ export default function ChannelsPage() {
               value={editingMessageContent}
               onChange={(e) => {
                 // Update editing content in Zustand
-                const { startEditingMessage } = useUIStore.getState()
-                startEditingMessage(editingMessageId, e.target.value)
+                const { setEditingMessageContent } = useUIStore.getState()
+                setEditingMessageContent(e.target.value)
               }}
               autoFocus
             />

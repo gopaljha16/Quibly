@@ -27,34 +27,57 @@ type ProfileResponse = {
 }
 
 export function useProfile() {
+  // For httpOnly cookies, we can't check document.cookie
+  // Instead, we always try to fetch if we're not on auth pages
+  const isAuthPage = typeof window !== 'undefined' && (
+    window.location.pathname.includes('/login') ||
+    window.location.pathname.includes('/signup')
+  )
+
   return useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      const response = await apiGet<ProfileResponse>('/auth/profile')
+      console.log('📡 Fetching user profile...')
+      try {
+        const response = await apiGet<ProfileResponse>('/auth/profile')
+        console.log('✅ Profile response:', response)
+        
+        // Handle different response formats
+        let user: UserProfile | null = null;
 
-      // Handle different response formats
-      let user: UserProfile | null = null;
+        if (response.user) {
+          user = {
+            ...response.user,
+            _id: response.user._id || (response.user as any).id || ''
+          } as UserProfile
+        } else if (response._id || (response as any).id) {
+          // Fallback for flat response
+          user = {
+            _id: response._id || (response as any).id || '',
+            username: response.username || '',
+            email: response.email || '',
+            discriminator: '0000',
+            avatar: response.avatar,
+            banner: response.banner,
+            bio: response.bio
+          } as UserProfile
+        }
 
-      if (response.user) {
-        user = {
-          ...response.user,
-          _id: response.user._id || (response.user as any).id || ''
-        } as UserProfile
-      } else if (response._id || (response as any).id) {
-        // Fallback for flat response
-        user = {
-          _id: response._id || (response as any).id || '',
-          username: response.username || '',
-          email: response.email || '',
-          discriminator: '0000',
-          avatar: response.avatar,
-          banner: response.banner,
-          bio: response.bio
-        } as UserProfile
+        console.log('👤 Parsed user:', user)
+        return user
+        
+      } catch (error: any) {
+        console.error('❌ Profile fetch error:', error)
+        // Don't clear anything - just throw the error
+        throw error
       }
-
-      return user
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes - profile rarely changes
+    enabled: !isAuthPage, // Always try to fetch if not on auth page
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    throwOnError: false,
   })
 }

@@ -89,9 +89,23 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
       })
     }
 
+    // Handle message updates (edits)
+    const handleMessageUpdated = (incoming: any) => {
+      const msg = incoming as Message
+      const msgTargetId = msg.channelId || msg.dmRoomId
+
+      if (!msgTargetId) return
+
+      // Update message in cache
+      queryClient.setQueryData<Message[]>(['messages', msgTargetId], (old = []) => {
+        return old.map((m) => (m._id === msg._id ? msg : m))
+      })
+    }
+
     socketInstance.on('connect', handleConnect)
     socketInstance.on('disconnect', handleDisconnect)
     socketInstance.on('receive_message', handleReceiveMessage)
+    socketInstance.on('message_updated', handleMessageUpdated)
 
     // Check if already connected
     if (socketInstance.connected) {
@@ -102,6 +116,7 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
       socketInstance.off('connect', handleConnect)
       socketInstance.off('disconnect', handleDisconnect)
       socketInstance.off('receive_message', handleReceiveMessage)
+      socketInstance.off('message_updated', handleMessageUpdated)
     }
   }, [queryClient]) // This listener is global and persistent
 

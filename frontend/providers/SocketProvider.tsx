@@ -5,6 +5,7 @@ import { Socket } from 'socket.io-client'
 import { connectSocket, disconnectSocket } from '@/lib/socket'
 import { setupSocketQuerySync } from '@/lib/socketQuerySync'
 import { queryClient } from '@/lib/queryClient'
+import { useProfile } from '@/hooks/queries/useProfile'
 
 type SocketContextValue = {
   socket: Socket | null
@@ -16,38 +17,20 @@ const SocketContext = createContext<SocketContextValue>({
   isConnected: false,
 })
 
-// Helper to check if user has a token
-const hasAuthToken = (): boolean => {
-  if (typeof document === 'undefined') return false
-  return document.cookie.includes('token=')
-}
-
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const cleanupRef = useRef<(() => void) | null>(null)
-  const [hasToken, setHasToken] = useState(false)
-  const [renderKey, setRenderKey] = useState(0) // Force re-render
-
-  // Check for token on mount and periodically
-  useEffect(() => {
-    const checkToken = () => {
-      const tokenExists = hasAuthToken()
-      setHasToken(tokenExists)
-    }
-
-    checkToken()
-    
-    // Check for token changes every second (e.g., after login)
-    const interval = setInterval(checkToken, 1000)
-    
-    return () => clearInterval(interval)
-  }, [])
+  const [renderKey, setRenderKey] = useState(0)
+  
+  // Use profile to determine if user is authenticated
+  const { data: currentUser } = useProfile()
+  const hasUser = !!currentUser
 
   useEffect(() => {
     // Only connect if user is authenticated
-    if (!hasToken) {
-      console.log('📵 No auth token found, skipping socket connection')
+    if (!hasUser) {
+      console.log('📵 No user found, skipping socket connection')
       
       // Disconnect if previously connected
       if (socket) {
@@ -107,7 +90,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         cleanupRef.current()
       }
     }
-  }, [hasToken])
+  }, [hasUser])
 
   console.log('🔄 SocketProvider render - socket:', !!socket, 'connected:', isConnected, 'key:', renderKey)
 

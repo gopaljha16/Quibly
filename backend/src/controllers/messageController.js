@@ -493,12 +493,51 @@ exports.editMessage = async (req, res) => {
             data: { content, editedAt: new Date() }
         });
 
-        const { id: msgId, ...rest } = updatedMessage;
-        const responseData = { _id: msgId, ...rest };
+        // Get sender info for response
+        const sender = await db.user.findUnique({
+            where: { id: updatedMessage.senderId },
+            select: {
+                id: true,
+                username: true,
+                discriminator: true,
+                avatar: true
+            }
+        });
 
-        // Emit socket event
+        if (!sender) {
+            console.error('Edit message error: Sender not found for message:', id);
+            return res.status(500).json({
+                success: false,
+                message: 'Sender information not found'
+            });
+        }
+
+        const responseData = {
+            _id: updatedMessage.id,
+            channelId: updatedMessage.channelId,
+            dmRoomId: updatedMessage.dmRoomId,
+            serverId: updatedMessage.serverId,
+            senderId: {
+                _id: sender.id,
+                username: sender.username,
+                discriminator: sender.discriminator,
+                avatar: sender.avatar
+            },
+            content: updatedMessage.content,
+            type: updatedMessage.type,
+            attachments: updatedMessage.attachments,
+            mentions: updatedMessage.mentions,
+            createdAt: updatedMessage.createdAt,
+            editedAt: updatedMessage.editedAt,
+            isDeleted: updatedMessage.isDeleted
+        };
+
+        // Emit socket event to the correct room (channel or DM)
         if (global.io) {
-            global.io.to(updatedMessage.channelId).emit('message_updated', responseData);
+            const targetRoom = updatedMessage.channelId || updatedMessage.dmRoomId;
+            if (targetRoom) {
+                global.io.to(targetRoom).emit('message_updated', responseData);
+            }
         }
 
         res.status(200).json(responseData);
@@ -506,7 +545,8 @@ exports.editMessage = async (req, res) => {
         console.error('Edit message error:', error);
         res.status(500).json({
             success: false,
-            message: 'Server error while editing message'
+            message: 'Server error while editing message',
+            error: error.message
         });
     }
 };

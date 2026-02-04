@@ -7,12 +7,14 @@ export function middleware(request: NextRequest) {
 
   // If user is logged in and tries to access login/signup, redirect to channels
   if (token && (pathname === '/login' || pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/channels/@me', request.url))
+    const response = NextResponse.redirect(new URL('/channels/@me', request.url))
+    return response
   }
 
   // If user is not logged in and tries to access protected routes, redirect to login
   if (!token && pathname.startsWith('/channels')) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    const response = NextResponse.redirect(new URL('/login', request.url))
+    return response
   }
 
   return NextResponse.next()

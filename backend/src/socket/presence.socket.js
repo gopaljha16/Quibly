@@ -22,6 +22,8 @@ module.exports = (io, socket) => {
 
       if (!userExists) {
         console.error(`User ${userId} not found in database`);
+        socket.emit('auth_error', { message: 'User not found' });
+        socket.disconnect(true);
         return;
       }
 
@@ -64,11 +66,11 @@ module.exports = (io, socket) => {
       // Remove this socket from user's connections
       if (activeConnections.has(userId)) {
         activeConnections.get(userId).delete(socket.id);
-        
+
         // If no more connections for this user, mark as offline
         if (activeConnections.get(userId).size === 0) {
           activeConnections.delete(userId);
-          
+
           // Check if user exists before updating
           const userExists = await db.user.findUnique({
             where: { id: userId },
@@ -100,7 +102,7 @@ module.exports = (io, socket) => {
           }
         }
       }
-      
+
       socketToUser.delete(socket.id);
     } catch (error) {
       console.error("Error handling user offline:", error);
@@ -127,7 +129,8 @@ module.exports = (io, socket) => {
 
       if (!userExists) {
         console.error(`User ${userId} not found in database`);
-        socket.emit("error", "User not found");
+        socket.emit("auth_error", { message: "User not found" });
+        socket.disconnect(true);
         return;
       }
 
@@ -166,9 +169,9 @@ module.exports = (io, socket) => {
 
       // Get all members of the server
       const members = await db.serverMember.findMany({
-        where: { 
-          serverId: serverId, 
-          isBanned: false 
+        where: {
+          serverId: serverId,
+          isBanned: false
         },
         include: {
           user: {
@@ -185,7 +188,7 @@ module.exports = (io, socket) => {
       });
 
       const onlineUsers = [];
-      
+
       for (const member of members) {
         const user = member.user;
         if (!user) continue;
@@ -198,7 +201,7 @@ module.exports = (io, socket) => {
           try {
             const redisStatus = await redis.client.get(`user:${user.id}:status`);
             const redisLastSeen = await redis.client.get(`user:${user.id}:lastSeen`);
-            
+
             if (redisStatus) status = redisStatus;
             if (redisLastSeen) lastSeen = new Date(redisLastSeen);
           } catch (redisError) {

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import "@livekit/components-styles";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { SocketProvider } from "@/providers/SocketProvider";
+import { AuthGuard } from "@/components/AuthGuard";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -28,13 +30,39 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* TEMPORARILY DISABLED - UNCOMMENT AFTER CLEARING TOKEN */}
+        {/* <Script
+          id="auth-check"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const protectedRoutes = ['/channels', '/invite'];
+                const currentPath = window.location.pathname;
+                const isProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
+                
+                if (isProtectedRoute) {
+                  const hasToken = document.cookie.includes('token=');
+                  if (!hasToken) {
+                    console.log('🔒 No token - redirecting to login');
+                    window.location.href = '/login';
+                  }
+                }
+              })();
+            `
+          }}
+        /> */}
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
         <QueryProvider>
           <SocketProvider>
-            {children}
+            <AuthGuard>
+              {children}
+            </AuthGuard>
           </SocketProvider>
         </QueryProvider>
         <Toaster position="bottom-right" theme="dark" />
