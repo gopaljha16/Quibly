@@ -45,7 +45,6 @@ const StatusBadge = ({ status }: { status?: 'online' | 'idle' | 'dnd' | 'offline
     </div>
   )
 }
-
 // User avatar component
 const UserAvatar = ({
   username,
@@ -88,12 +87,13 @@ const UserAvatar = ({
 
 export default function EnhancedChannelsShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { data: currentUser } = useProfile()
+  const { data: currentUser, isLoading: profileLoading, error: profileError } = useProfile()
+  
+  // ALL useState calls MUST be at the top, before any conditional returns
+  const [redirecting, setRedirecting] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [serverMenuOpen, setServerMenuOpen] = useState(false)
-  const serverMenuRef = useRef<HTMLDivElement | null>(null)
   const [channelMenuOpenId, setChannelMenuOpenId] = useState<string | null>(null)
-  const channelMenuRef = useRef<HTMLDivElement | null>(null)
   const [renameChannelId, setRenameChannelId] = useState<string | null>(null)
   const [renameChannelValue, setRenameChannelValue] = useState('')
   const [renamingChannel, setRenamingChannel] = useState(false)
@@ -111,13 +111,19 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     isOwner: boolean
   } | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const userMenuRef = useRef<HTMLDivElement | null>(null)
   const [serverSettingsOpen, setServerSettingsOpen] = useState(false)
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const [leaveModalOpen, setLeaveModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-
-  // User profile controller
+  const [createChannelOpen, setCreateChannelOpen] = useState(false)
+  const [joinOpen, setJoinOpen] = useState(false)
+  
+  // ALL useRef calls
+  const serverMenuRef = useRef<HTMLDivElement | null>(null)
+  const channelMenuRef = useRef<HTMLDivElement | null>(null)
+  const userMenuRef = useRef<HTMLDivElement | null>(null)
+  
+  // ALL custom hooks that use hooks internally
   const {
     user: profileUser,
     isModalOpen: profileModalOpen,
@@ -129,6 +135,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     handleDeleteAvatar,
     handleDeleteBanner
   } = useUserProfileController()
+  
+  const { data: conversations = [], isLoading: conversationsLoading } = useDMConversations()
 
   const {
     isConnected,
@@ -139,9 +147,6 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     getServerOnlineUsers
   } = usePresenceContext()
   
-  const { data: conversations = [], isLoading: conversationsLoading } = useDMConversations()
-
-  // Use new hooks instead of ChannelsProvider
   const {
     route,
     serversLoading,
@@ -177,17 +182,30 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     ownerId,
     updateServer,
   } = useChannelsData()
-
-  const [createChannelOpen, setCreateChannelOpen] = useState(false)
-  const [joinOpen, setJoinOpen] = useState(false)
-
-  // Add logs for socket status
+  
+  // If profile fails to load, redirect to login ONCE
   useEffect(() => {
-    const socket = connectSocket()
-    console.log('📞 UseCall: Socket status (Shell):', { connected: socket.connected, id: socket.id })
-  }, []) // Run once on mount
+    // Don't do anything if already redirecting
+    if (redirecting) return
+    
+    // If not loading and there's an error or no user, redirect
+    if (!profileLoading && (profileError || !currentUser)) {
+      console.error('❌ No user profile, redirecting to login')
+      setRedirecting(true)
+      
+      // Clear token
+      if (typeof document !== 'undefined') {
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      }
+      
+      // Wait a bit then redirect
+      setTimeout(() => {
+        router.push('/login')
+      }, 100)
+    }
+  }, [profileLoading, profileError, currentUser, router, redirecting])
 
-  // Event handlers for menus
+  // Event handlers for menus - MUST be before conditional returns
   useEffect(() => {
     if (!serverMenuOpen) return
     const onMouseDown = (e: MouseEvent) => {
@@ -248,25 +266,31 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     }
   }, [userMenuOpen])
 
-  // Logout handler
-  const handleLogout = async () => {
-    try {
-      const { disconnectSocket } = await import('@/lib/socket')
-      disconnectSocket()
-      await apiPost('/auth/logout')
-      router.replace('/login')
-      router.refresh()
-    } catch (e) {
-      console.error('Logout error:', e)
-    }
-  }
-
-  // Load server online users when server changes
+  // Load server online users when server changes - MUST be before conditional returns
   useEffect(() => {
     if (route.serverId && !route.isMe && isConnected) {
       getServerOnlineUsers(route.serverId)
     }
   }, [route.serverId, route.isMe, isConnected, getServerOnlineUsers])
+
+  // Show loading state
+  if (profileLoading || redirecting) {
+    return (
+      <div className="h-screen w-screen bg-[#313338] text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
+          <div className="text-lg text-[#b5bac1]">Loading...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // Don't render if no user
+  if (!currentUser) {
+    return null
+  }
+
+  // Logout handler
 
   // Direct call initiation function (don't use useCall hook here to avoid duplicate listeners)
   const initiateCall = (targetUser: any, dmRoomId: string, hasVideo: boolean) => {

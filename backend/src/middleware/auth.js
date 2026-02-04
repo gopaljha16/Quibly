@@ -44,9 +44,16 @@ exports.authenticate = async (req, res, next) => {
         });
 
         if (!user) {
+            // Clear the invalid token with the same options used when setting it
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                path: '/'
+            });
             return res.status(401).json({
                 success: false,
-                message: 'User not found'
+                message: 'User not found. Please log in again.'
             });
         }
 

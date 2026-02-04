@@ -8,83 +8,54 @@ datasource db {
 }
 
 model User {
-  id                     String     @id @default(cuid())
-  username               String
-  discriminator          String
-  displayName            String?
-  email                  String     @unique
-  pendingEmail           String?
-  password               String
-  avatar                 String? // Cloudinary URL
-  avatarPublicId         String? // Cloudinary public ID for deletion
-  banner                 String? // Cloudinary URL
-  bannerPublicId         String? // Cloudinary public ID for deletion
-  bio                    String?    @db.Text
-  pronouns               String?
-  themeColor             String?    @default("#5865F2")
-  status                 UserStatus @default(offline)
-  customStatus           String?
-  customStatusEmoji      String?
-  badges                 String[]   @default([])
-  blockedUsers           String[]   @default([])
-  
-  // Relations
-  sentFriendRequests     Friendship[] @relation("SentFriendships")
-  receivedFriendRequests Friendship[] @relation("ReceivedFriendships")
-  
-  dmParticipants         DMParticipant[]
-  
-  servers                Json       @default("[]")
-  settings               Json       @default("{}")
-  isVerified             Boolean    @default(false)
-  isBanned               Boolean    @default(false)
-  lastSeen               DateTime   @default(now())
-  createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
-  
-  // Account Security
-  isDisabled             Boolean    @default(false)
-  disabledAt             DateTime?
-  emailVerificationToken String?
+  id                           String                @id @default(cuid())
+  username                     String
+  discriminator                String
+  email                        String                @unique
+  pendingEmail                 String?
+  password                     String
+  avatar                       String?
+  banner                       String?
+  bio                          String?
+  status                       UserStatus            @default(offline)
+  customStatus                 String?
+  servers                      Json                  @default("[]")
+  settings                     Json                  @default("{}")
+  isVerified                   Boolean               @default(false)
+  isBanned                     Boolean               @default(false)
+  lastSeen                     DateTime              @default(now())
+  createdAt                    DateTime              @default(now())
+  updatedAt                    DateTime              @updatedAt
+  avatarPublicId               String?
+  badges                       String[]              @default([])
+  bannerPublicId               String?
+  customStatusEmoji            String?
+  displayName                  String?
+  pronouns                     String?
+  themeColor                   String?               @default("#5865F2")
+  achievements                 String[]              @default([])
+  blockedUsers                 String[]              @default([])
+  cardStyle                    String?               @default("rounded")
+  fontStyle                    String?               @default("default")
+  location                     String?
+  messagesSent                 Int                   @default(0)
+  privacySettings              Json                  @default("{}")
+  showBanner                   Boolean               @default(true)
+  socialLinks                  Json                  @default("{}")
+  voiceTimeMinutes             Int                   @default(0)
+  disabledAt                   DateTime?
+  emailVerificationToken       String?
   emailVerificationTokenExpiry DateTime?
-
-
-  // NEW: Profile Personalization
-  location   String?
-  cardStyle  String? @default("rounded") // rounded, sharp, glass
-  fontStyle  String? @default("default") // default, modern, classic
-  showBanner Boolean @default(true)
-
-  // NEW: Social Links (JSON)
-  socialLinks Json @default("{}")
-  // { github: "", twitter: "", linkedin: "", portfolio: "", website: "" }
-
-  // NEW: Privacy Settings (JSON)
-  privacySettings Json @default("{}")
-  // {
-  //   emailVisible: "friends",
-  //   mutualServersVisible: "everyone",
-  //   friendRequestsFrom: "everyone",
-  //   dmsFrom: "friends",
-  //   showActivityStatus: true,
-  //   showCurrentServer: true
-  // }
-
-  // NEW: Activity Tracking
-  messagesSent     Int @default(0)
-  voiceTimeMinutes Int @default(0)
-
-  // NEW: Achievements
-  achievements String[] @default([])
-
-  ownedServers  Server[]       @relation("ServerOwner")
-  serverMembers ServerMember[]
-  userInterests UserInterest[]
-
-  // Activity Tracking Relations
-  dailyActivities UserDailyActivity[]
-  activitySessions UserActivitySession[]
-  invitesCreated   Invite[] @relation("Inviter")
+  isDisabled                   Boolean               @default(false)
+  dmParticipants               DMParticipant[]
+  receivedFriendRequests       Friendship[]          @relation("ReceivedFriendships")
+  sentFriendRequests           Friendship[]          @relation("SentFriendships")
+  invitesCreated               Invite[]              @relation("Inviter")
+  ownedServers                 Server[]              @relation("ServerOwner")
+  serverMembers                ServerMember[]
+  activitySessions             UserActivitySession[]
+  dailyActivities              UserDailyActivity[]
+  userInterests                UserInterest[]
 
   @@index([email])
   @@index([username])
@@ -93,8 +64,8 @@ model User {
 model UserDailyActivity {
   id           String   @id @default(cuid())
   userId       String
-  date         DateTime // Normalized to midnight
-  count        Int      @default(0) // Total weighted activity
+  date         DateTime
+  count        Int      @default(0)
   messageCount Int      @default(0)
   voiceMinutes Int      @default(0)
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -106,10 +77,10 @@ model UserDailyActivity {
 model UserActivitySession {
   id        String    @id @default(cuid())
   userId    String
-  type      String    // VOICE, etc.
+  type      String
   startTime DateTime  @default(now())
   endTime   DateTime?
-  metadata  Json?     // { channelId: "..." }
+  metadata  Json?
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type])
@@ -128,8 +99,8 @@ model Server {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
   channels          Channel[]
-  roles             Role[]
   invites           Invite[]
+  roles             Role[]
   owner             User              @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members           ServerMember[]
 
@@ -162,9 +133,8 @@ model Invite {
   maxUses   Int?
   expiresAt DateTime?
   createdAt DateTime  @default(now())
-
-  server    Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
   inviter   User      @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  server    Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
 
   @@index([serverId])
   @@index([inviterId])
@@ -181,8 +151,8 @@ model Channel {
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   server               Server           @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  messages             Message[]
   hashtags             ChannelHashtag[]
+  messages             Message[]
 
   @@index([serverId])
 }
@@ -190,7 +160,6 @@ model Channel {
 model Message {
   id          String      @id @default(cuid())
   channelId   String?
-  dmRoomId    String?
   serverId    String?
   senderId    String
   content     String
@@ -200,7 +169,8 @@ model Message {
   isDeleted   Boolean     @default(false)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  
+  dmRoomId    String?
+  editedAt    DateTime?
   channel     Channel?    @relation(fields: [channelId], references: [id], onDelete: Cascade)
   dmRoom      DMRoom?     @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
 
@@ -217,9 +187,8 @@ model Friendship {
   status     FriendshipStatus @default(PENDING)
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
-
-  sender     User             @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
   receiver   User             @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User             @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
   @@index([senderId])
@@ -230,29 +199,21 @@ model DMRoom {
   id           String          @id @default(cuid())
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
-  
   participants DMParticipant[]
   messages     Message[]
 }
 
 model DMParticipant {
-  id        String   @id @default(cuid())
-  dmRoomId  String
-  userId    String
-  joinedAt  DateTime @default(now())
-
-  dmRoom    DMRoom   @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String   @id @default(cuid())
+  dmRoomId String
+  userId   String
+  joinedAt DateTime @default(now())
+  dmRoom   DMRoom   @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([dmRoomId, userId])
   @@index([dmRoomId])
   @@index([userId])
-}
-
-enum FriendshipStatus {
-  PENDING
-  ACCEPTED
-  BLOCKED
 }
 
 model Role {
@@ -275,8 +236,8 @@ model Interest {
   name            String           @unique
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
-  userInterests   UserInterest[]
   channelHashtags ChannelHashtag[]
+  userInterests   UserInterest[]
 
   @@index([name])
 }
@@ -286,8 +247,8 @@ model UserInterest {
   userId     String
   interestId String
   createdAt  DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, interestId])
   @@index([userId])
@@ -305,6 +266,12 @@ model ChannelHashtag {
   @@unique([channelId, interestId])
   @@index([channelId])
   @@index([interestId])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  BLOCKED
 }
 
 enum ChannelType {

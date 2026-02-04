@@ -41,6 +41,7 @@ module.exports = (httpServer) => {
     require("./presence.socket")(io, socket);
     require("./voice.socket")(io, socket);
     require("./call.socket")(io, socket);
+    require("./typing.socket")(io, socket);
 
     socket.on("disconnect", () => {
       // Silent disconnect

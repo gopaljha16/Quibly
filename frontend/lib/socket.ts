@@ -34,18 +34,39 @@ export const getSocket = (): Socket => {
       }
     })
 
-    // Debug events
+    // Capture socket instance for use in event handlers
+    const socketInstance = socket
+
     socket.on('connect', () => {
-      console.log('🔌 Socket connected:', socket?.id)
+      console.log('🔌 Socket connected:', socketInstance?.id)
     })
 
     socket.on('connect_error', (err) => {
       console.error('🔌 Socket connection error:', err.message)
-      console.error('Make sure you are logged in and have a valid token')
+      // Don't redirect on connection errors - these can happen for many reasons
+      // Only redirect on explicit auth_error events from the backend
     })
 
     socket.on('disconnect', (reason) => {
       console.log('🔌 Socket disconnected:', reason)
+    })
+
+    socket.on('auth_error', (data) => {
+      console.error('🔌 Socket authentication error:', data?.message || 'User not found')
+      // Only redirect if we're not already on the login or signup page
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname
+        if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
+          // Clear authentication cookie
+          if (typeof document !== 'undefined') {
+            document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+            // Disconnect socket
+            socketInstance.disconnect()
+            // Redirect to login page
+            window.location.href = '/login'
+          }
+        }
+      }
     })
   }
 

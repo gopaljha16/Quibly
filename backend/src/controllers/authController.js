@@ -176,9 +176,9 @@ exports.login = async (req, res) => {
 
         // Set token as HTTP-only cookie
         res.cookie('token', token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
+            // httpOnly: true,
+            // secure: false,
+            // sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
@@ -520,6 +520,20 @@ exports.getProfile = async (req, res) => {
                 isVerified: true, createdAt: true, lastSeen: true
             }
         });
+
+        if (!user) {
+            // User doesn't exist in database - clear the token with same options
+            res.clearCookie('token', {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax',
+                path: '/'
+            });
+            return res.status(401).json({ 
+                success: false, 
+                message: 'User not found. Please log in again.' 
+            });
+        }
 
         res.status(200).json({ success: true, user });
     } catch (error) {

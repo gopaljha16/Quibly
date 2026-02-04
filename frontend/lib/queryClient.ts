@@ -7,12 +7,14 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000,
       // Cache time: how long unused data stays in cache (10 minutes)
       gcTime: 10 * 60 * 1000,
-      // Retry failed requests
-      retry: 1,
-      // Refetch on window focus for real-time feel
-      refetchOnWindowFocus: true,
-      // Don't refetch on mount if data is fresh
+      // Don't retry failed requests automatically
+      retry: false,
+      // Don't refetch on window focus
+      refetchOnWindowFocus: false,
+      // Don't refetch on mount if data exists
       refetchOnMount: false,
+      // Don't refetch on reconnect
+      refetchOnReconnect: false,
     },
     mutations: {
       // Retry mutations once on failure

@@ -7,19 +7,19 @@
   --color-dark-surface: #1a1a1a;
   --color-dark-elevated: #202020;
   --color-dark-hover: #2a2a2a;
-  
+
   --color-accent-blue: #5865f2;
   --color-accent-blue-hover: #4752c4;
   --color-accent-blue-light: #7289da;
-  
+
   --color-text-primary: #ffffff;
   --color-text-secondary: #b4b4b4;
   --color-text-muted: #808080;
   --color-text-dim: #5a5a5a;
-  
+
   --color-border: #2a2a2a;
   --color-border-subtle: #1f1f1f;
-  
+
   --gradient-primary: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
   --gradient-hover: linear-gradient(135deg, #4752c4 0%, #5865f2 100%);
 }
@@ -86,6 +86,7 @@ body {
   0% {
     background-position: -1000px 0;
   }
+
   100% {
     background-position: 1000px 0;
   }
@@ -96,6 +97,7 @@ body {
     opacity: 0;
     transform: translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -104,12 +106,10 @@ body {
 
 .animate-shimmer {
   animation: shimmer 2s linear infinite;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.03) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      transparent 100%);
   background-size: 1000px 100%;
 }
 
@@ -181,4 +181,35 @@ body {
   background: rgba(250, 166, 26, 0.15);
   color: #faa61a;
   border: 1px solid rgba(250, 166, 26, 0.3);
+}
+
+/* Typing Indicator Animations */
+@keyframes bounce-dot {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.animate-bounce-dot {
+  animation: bounce-dot 1.4s infinite ease-in-out;
+}
+
+.animation-delay-0 {
+  animation-delay: 0s;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
 }
