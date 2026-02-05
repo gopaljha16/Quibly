@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { createSystemMessage } = require('../utils/systemMessage');
 
 // Generate a random code (7 characters)
 const generateInviteCode = () => {
@@ -38,6 +39,29 @@ exports.createInvite = async (req, res) => {
             return res.status(403).json({
                 success: false,
                 message: 'You must be a member of the server to create an invite'
+            });
+        }
+
+        // Check if a valid invite already exists for this server created by this user
+        // with the same or better constraints
+        const existingInvite = await db.invite.findFirst({
+            where: {
+                serverId,
+                inviterId: userId,
+                expiresAt: expiresInDays ? { gte: new Date() } : null,
+                maxUses: maxUses ? parseInt(maxUses) : null,
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (existingInvite && (!existingInvite.expiresAt || existingInvite.expiresAt > new Date())) {
+            return res.status(200).json({
+                success: true,
+                invite: {
+                    code: existingInvite.code,
+                    expiresAt: existingInvite.expiresAt,
+                    maxUses: existingInvite.maxUses
+                }
             });
         }
 
@@ -211,6 +235,24 @@ exports.joinByInvite = async (req, res) => {
             where: { id: invite.id },
             data: { uses: { increment: 1 } }
         });
+
+        // 4. Send welcome message to general channel
+        const general = await db.channel.findFirst({
+            where: { serverId: invite.serverId, name: 'general' }
+        });
+
+        if (general) {
+            await createSystemMessage({
+                channelId: general.id,
+                serverId: invite.serverId,
+                content: `Welcome **${req.user.username}**. Say hi!`,
+                metadata: {
+                    type: 'WELCOME',
+                    userId: req.user.id,
+                    username: req.user.username
+                }
+            });
+        }
 
         res.status(200).json({
             success: true,

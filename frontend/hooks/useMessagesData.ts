@@ -202,10 +202,12 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
     editingMessageContent,
     startEditingMessage,
     stopEditingMessage,
+    replyingToMessage,
+    setReplyingToMessage,
   } = useUIStore()
 
   // Send message
-  const sendMessage = async (content: string, typeMod: 'TEXT' | 'FILE' = 'TEXT', attachments: any[] = []) => {
+  const sendMessage = async (content: string, typeMod: 'TEXT' | 'FILE' = 'TEXT', attachments: any[] = [], parentId?: string | null) => {
     if (!id || (!content.trim() && attachments.length === 0)) return
 
     // Clear draft IMMEDIATELY for instant feedback
@@ -213,6 +215,7 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
     if (id) {
       clearDraft(id)
     }
+    setReplyingToMessage(null)
 
     // Create optimistic message
     const optimisticId = `optimistic-${Date.now()}`
@@ -229,6 +232,7 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
       content: trimmedContent,
       type: typeMod,
       attachments,
+      parentId: parentId || null,
       createdAt: new Date().toISOString(),
     }
 
@@ -245,6 +249,7 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
         content: trimmedContent,
         type: typeMod,
         attachments,
+        parentId: parentId || null,
       })
 
       // REPLACE optimistic message with real one IMMEDIATELY
@@ -391,5 +396,9 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
     sendMessage,
     editMessage,
     deleteMessage,
+
+    // Reply state
+    replyingToMessage,
+    setReplyingToMessage,
   }
 }

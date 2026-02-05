@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { toast } from 'sonner'
 import EmojiPicker, { Theme, EmojiStyle } from 'emoji-picker-react'
 import { useChannelsData } from '@/hooks/useChannelsData'
 import { useMessagesData } from '@/hooks/useMessagesData'
@@ -19,7 +20,7 @@ import { useTypingIndicator } from '@/hooks/useTypingIndicator'
 import { TypingIndicator } from '@/components/TypingIndicator'
 import GifPicker from '@/components/GifPicker'
 import { useUploadThing } from '@/lib/uploadthing'
-import { Loader2, Plus, Pin, Ban, Clock } from 'lucide-react'
+import { Loader2, Plus, Pin, Ban, Clock, CornerUpLeft, X } from 'lucide-react'
 import { connectSocket } from '@/lib/socket'
 import { useQueryClient } from '@tanstack/react-query'
 import { usePinMessage, useUnpinMessage } from '@/hooks/queries/usePinnedMessages'
@@ -39,6 +40,8 @@ const MessageItem = ({
   onEditContentChange,
   onSaveEdit,
   onCancelEdit,
+  onReply,
+  onReplyClick,
   isServerOwner
 }: {
   message: Message
@@ -50,6 +53,8 @@ const MessageItem = ({
   onEditContentChange?: (content: string) => void
   onSaveEdit?: () => void
   onCancelEdit?: () => void
+  onReply?: (message: Message) => void
+  onReplyClick?: (id: string) => void
   isServerOwner?: boolean
 }) => {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -95,6 +100,7 @@ const MessageItem = ({
   const canAct = !message._id.startsWith('optimistic-') && isSenderMe
   const canPin = !message._id.startsWith('optimistic-') && isServerOwner && message.channelId
   const canModerate = !message._id.startsWith('optimistic-') && isServerOwner && !isSenderMe && message.channelId
+  const canReply = !message._id.startsWith('optimistic-')
   
   // Get sender ID for moderation actions
   const senderId = typeof message.senderId === 'object' ? message.senderId._id : message.senderId
@@ -144,9 +150,79 @@ const MessageItem = ({
     }
   }
 
+  if (message.type === 'SYSTEM') {
+    return (
+      <div 
+        id={`message-${message._id}`}
+        className="flex items-center gap-4 px-4 py-1 hover:bg-[#2e3035] group relative transition-colors"
+      >
+        <div className="w-10 flex justify-center items-start pt-1">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-[#23a559]">
+            <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+        <div className="flex-1 flex flex-col gap-1.5">
+          <div className="text-[#949ba4] text-[15px] leading-[1.375rem]">
+            {message.content.split('**').map((part, i) => 
+              i % 2 === 1 ? <span key={i} className="text-[#f2f3f5] font-semibold">{part}</span> : part
+            )}
+            <span className="text-[0.75rem] ml-2 font-medium">{dateStr}</span>
+          </div>
+          
+          {message.metadata && typeof message.metadata === 'object' && (message.metadata as any).type === 'WELCOME' && (
+            <button 
+              onClick={() => {
+                const input = document.querySelector('textarea[placeholder*="Message"]') as HTMLTextAreaElement;
+                if (input) {
+                  input.value = `👋 Welcome @${(message.metadata as any)?.username || 'User'}!`;
+                  input.focus();
+                  // Trigger change event for React
+                  const event = new Event('input', { bubbles: true });
+                  input.dispatchEvent(event);
+                }
+              }}
+              className="flex items-center gap-2 bg-[#383a40] hover:bg-[#4e5058] transition-colors text-white text-[13px] px-3 py-1.5 rounded w-fit mt-1 group/wave"
+            >
+              <span className="text-lg group-hover/wave:animate-bounce">👋</span>
+              <span className="font-medium">Wave to say hi!</span>
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`group flex gap-4 px-4 py-0.5 hover:bg-[#2e3035] relative mt-[1.0625rem] first:mt-2 ${menuOpen ? 'bg-[#2e3035]' : ''} ${message.isPinned ? 'bg-[#2e3035]/50' : ''}`}>
-      <div className="w-10 h-10 rounded-full bg-[#5865f2] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 cursor-pointer hover:drop-shadow-md transition-all active:translate-y-px">
+    <div 
+      id={`message-${message._id}`}
+      className={`group flex flex-col px-4 py-0.5 hover:bg-[#2e3035] relative mt-[1.0625rem] first:mt-2 ${menuOpen ? 'bg-[#2e3035]' : ''} ${message.isPinned ? 'bg-[#2e3035]/50' : ''} transition-colors duration-500`}
+    >
+      {message.parent && (
+        <div 
+          className="flex items-center gap-1 mb-1 ml-9 overflow-hidden group/reply"
+          onClick={() => onReplyClick?.(message.parentId!)}
+        >
+          <div className="w-8 h-4 border-l-2 border-t-2 border-[#4e5058] rounded-tl-md ml-[-20px] mr-1 mb-[-8px]"></div>
+          <div className="flex items-center gap-2 opacity-60 hover:opacity-100 cursor-pointer overflow-hidden min-w-0 bg-transparent hover:bg-white/5 px-2 py-0.5 rounded transition-colors">
+            {message.parent.senderId?.avatar ? (
+              <img src={message.parent.senderId.avatar} alt="" className="w-4 h-4 rounded-full" />
+            ) : (
+              <div className="w-3.5 h-3.5 rounded-full bg-[#5865f2] flex items-center justify-center text-[8px] text-white">
+                {message.parent.senderId?.username?.slice(0, 1).toUpperCase() || 'U'}
+              </div>
+            )}
+            <span className="font-bold text-[13px] whitespace-nowrap text-[#f2f3f5] hover:underline">
+              @{message.parent.senderId?.username || 'User'}
+            </span>
+            <span className="text-[13px] truncate text-[#dbdee1] italic">
+              {message.parent.content}
+            </span>
+            <span className="text-[10px] text-[#949ba4] font-bold opacity-0 group-hover/reply:opacity-100 transition-opacity ml-1 bg-[#1a1a1a] px-1 rounded">JUMP</span>
+          </div>
+        </div>
+      )}
+      <div className="flex gap-4">
+        <div className="w-10 h-10 rounded-full bg-[#5865f2] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 cursor-pointer hover:drop-shadow-md transition-all active:translate-y-px">
         {avatar ? (
           <img
             src={avatar}
@@ -255,10 +331,34 @@ const MessageItem = ({
           </>
         )}
       </div>
+      </div>
 
-      {(canAct || canModerate || canPin) && !isEditing && (
+      {(canAct || canModerate || canPin || canReply) && !isEditing && (
         <div className={`absolute -top-4 right-4 ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity z-10`}>
           <div className="bg-[#1a1a1a] rounded shadow-sm border border-[#2a2a2a] flex items-center p-0.5 transition-transform hover:scale-[1.02]">
+            <button
+              onClick={() => onReply?.(message)}
+              className="p-1.5 hover:bg-[#2a2a2a] text-[#b4b4b4] hover:text-white rounded transition-colors relative group/tooltip"
+            >
+              <CornerUpLeft className="w-5 h-5" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap font-semibold">
+                Reply
+              </div>
+            </button>
+
+            {canPin && (
+              <button
+                onClick={handlePinToggle}
+                disabled={pinMessageMutation.isPending || unpinMessageMutation.isPending}
+                className={`p-1.5 hover:bg-[#2a2a2a] rounded transition-colors relative group/tooltip ${message.isPinned ? 'text-[#f5c358]' : 'text-[#b4b4b4] hover:text-white'}`}
+              >
+                <Pin className="w-5 h-5" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap font-semibold">
+                  {message.isPinned ? 'Unpin' : 'Pin'}
+                </div>
+              </button>
+            )}
+
             {canAct && (
               <button
                 onClick={() => onEdit(message._id, message.content)}
@@ -291,16 +391,8 @@ const MessageItem = ({
               ref={menuRef}
               className="absolute top-full right-0 mt-1 w-[188px] bg-[#202020] rounded shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1.5 z-50"
             >
-              {canPin && (
-                <button
-                  onClick={handlePinToggle}
-                  disabled={pinMessageMutation.isPending || unpinMessageMutation.isPending}
-                  className="w-full text-left px-2 py-1.5 text-sm text-[#b5bac1] hover:bg-[#5865f2] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group/item disabled:opacity-50"
-                >
-                  {message.isPinned ? 'Unpin Message' : 'Pin Message'}
-                  <Pin className="w-4 h-4 hidden group-hover/item:block" />
-                </button>
-              )}
+              {/* Pin/Unpin moved to action bar */}
+
               
               {canModerate && (
                 <>
@@ -383,7 +475,11 @@ const MessageInput = ({
   isMe,
   isReadOnly,
   timeoutUntil,
-  timeoutReason
+  timeoutReason,
+  replyingToMessage,
+  onCancelReply,
+  members = [],
+  currentUserId
 }: {
   channelName: string
   value: string
@@ -394,9 +490,15 @@ const MessageInput = ({
   isReadOnly?: boolean
   timeoutUntil?: string | null
   timeoutReason?: string | null
+  replyingToMessage?: Message | null
+  onCancelReply?: () => void
+  members?: any[]
+  currentUserId?: string
 }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showGifPicker, setShowGifPicker] = useState(false)
+  const [mentionSearch, setMentionSearch] = useState<string | null>(null)
+  const [mentionIndex, setMentionIndex] = useState(0)
   const emojiPickerRef = useRef<HTMLDivElement>(null)
   const gifPickerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -419,11 +521,74 @@ const MessageInput = ({
     onSend('FILE', [{ url, type: url.includes('/v/') ? 'video' : 'image' }])
   }
 
+  const filteredMembers = useMemo(() => {
+    if (mentionSearch === null) return []
+    const searchLower = mentionSearch.toLowerCase()
+    return members
+      .filter(m => {
+        const userId = m.userId?._id || m.userId?.id || m.userId
+        if (currentUserId && userId === currentUserId) return false
+        
+        const username = m.userId?.username?.toLowerCase() || ''
+        return username.includes(searchLower)
+      })
+      .slice(0, 8)
+  }, [members, mentionSearch, currentUserId])
+
+  const insertMention = (member: any) => {
+    if (mentionSearch === null) return
+    const username = member.userId?.username || 'User'
+    const beforeMention = value.slice(0, value.lastIndexOf('@', textareaRef.current?.selectionStart || value.length))
+    const afterMention = value.slice(textareaRef.current?.selectionStart || value.length)
+    onChange(beforeMention + '@' + username + ' ' + afterMention)
+    setMentionSearch(null)
+    setMentionIndex(0)
+    // Focus back to textarea
+    setTimeout(() => textareaRef.current?.focus(), 0)
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (mentionSearch !== null && filteredMembers.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setMentionIndex(prev => (prev + 1) % filteredMembers.length)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setMentionIndex(prev => (prev - 1 + filteredMembers.length) % filteredMembers.length)
+      } else if (e.key === 'Enter' || e.key === 'Tab') {
+        e.preventDefault()
+        insertMention(filteredMembers[mentionIndex])
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        setMentionSearch(null)
+      }
+      return
+    }
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       onSend('TEXT')
     }
+  }
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value
+    const cursorPosition = e.target.selectionStart
+    onChange(newValue)
+
+    // Mention detection
+    const textBeforeCursor = newValue.slice(0, cursorPosition)
+    const lastAtIdx = textBeforeCursor.lastIndexOf('@')
+    
+    if (lastAtIdx !== -1 && (lastAtIdx === 0 || /\s/.test(textBeforeCursor[lastAtIdx - 1]))) {
+      const search = textBeforeCursor.slice(lastAtIdx + 1)
+      if (!/\s/.test(search)) {
+        setMentionSearch(search)
+        setMentionIndex(0)
+        return
+      }
+    }
+    setMentionSearch(null)
   }
 
   const onEmojiClick = (emojiData: any) => {
@@ -471,7 +636,23 @@ const MessageInput = ({
 
   return (
     <div className="px-4 pb-6 bg-[#313338] flex-shrink-0 z-10">
-      <div className="bg-[#383a40] rounded-lg focus-within:ring-1 focus-within:ring-[#00a8fc] transition-all relative">
+      {replyingToMessage && (
+        <div className="bg-[#2b2d31] rounded-t-lg px-4 py-2 flex items-center justify-between border-b border-[#3f4147]">
+          <div className="text-sm text-[#dbdee1] flex items-center gap-1 overflow-hidden">
+            <span>Replying to</span>
+            <span className="font-semibold">
+              {typeof replyingToMessage.senderId === 'object' ? replyingToMessage.senderId.username : 'User'}
+            </span>
+          </div>
+          <button 
+            onClick={onCancelReply}
+            className="w-4 h-4 rounded-full bg-[#b5bac1] hover:bg-white text-[#313338] flex items-center justify-center transition-colors"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+      <div className={`${replyingToMessage ? 'rounded-b-lg' : 'rounded-lg'} bg-[#383a40] focus-within:ring-1 focus-within:ring-[#00a8fc] transition-all relative`}>
         <div className="absolute left-4 top-[10px] flex items-center">
           <input 
             type="file" 
@@ -504,11 +685,12 @@ const MessageInput = ({
                 : isMe ? `Message @${channelName}` : `Message #${channelName}`
           }
           value={value}
-          onChange={(e) => {
-            console.log('⌨️ MessageInput onChange called', e.target.value)
-            onChange(e.target.value)
-          }}
+          onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
+          onBlur={() => {
+            // Delay closing so clicks on members work
+            setTimeout(() => setMentionSearch(null), 200)
+          }}
           disabled={disabled || (!!timeoutUntil && new Date(timeoutUntil) > new Date())}
           rows={1}
         />
@@ -526,6 +708,38 @@ const MessageInput = ({
             </svg>
           </button>
         </div>
+
+        {mentionSearch !== null && filteredMembers.length > 0 && (
+          <div className="absolute bottom-full left-0 mb-2 w-72 bg-[#1e1f22] rounded-md shadow-[0_8px_16px_rgba(0,0,0,0.24)] overflow-hidden border border-[#2a2a2a] z-50">
+            <div className="px-3 py-2 text-[11px] font-bold text-[#b5bac1] uppercase tracking-wider border-b border-[#2a2a2a]">
+              Members matching "{mentionSearch}"
+            </div>
+            <div className="max-h-80 overflow-y-auto py-1">
+              {filteredMembers.map((member, idx) => (
+                <button
+                  key={member.id}
+                  className={`w-full flex items-center gap-2 px-2 py-1.5 transition-colors ${idx === mentionIndex ? 'bg-[#35373c] text-white' : 'text-[#dbdee1] hover:bg-[#2b2d31]'}`}
+                  onClick={() => insertMention(member)}
+                  onMouseEnter={() => setMentionIndex(idx)}
+                >
+                  {member.userId?.avatar ? (
+                    <img src={member.userId.avatar} alt="" className="w-6 h-6 rounded-full" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-[#5865f2] flex items-center justify-center text-[10px] text-white font-bold">
+                      {member.userId?.username?.slice(0, 1).toUpperCase() || 'U'}
+                    </div>
+                  )}
+                  <span className="font-medium truncate flex-1 text-left">
+                    {member.userId?.username || 'User'}
+                  </span>
+                  <span className="text-[#949ba4] text-xs">
+                    #{member.userId?.discriminator || '0000'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {showGifPicker && (
           <div 
@@ -561,7 +775,7 @@ const MessageInput = ({
 }
 
 export default function ChannelsPage() {
-  const { route, members, membersLoading, selectedChannel, selectedServer } = useChannelsData()
+  const { route, members, membersLoading, selectedChannel, selectedServer, ownerId } = useChannelsData()
   const { data: currentUser } = useProfile()
   
   const currentMember = useMemo(() => {
@@ -570,9 +784,14 @@ export default function ChannelsPage() {
   }, [currentUser, members])
   
   const isServerOwner = useMemo(() => {
-    if (!currentUser || !selectedServer) return false
-    return selectedServer.ownerId === currentUser._id
-  }, [currentUser, selectedServer])
+    if (!currentUser) return false
+    const currentId = currentUser._id || currentUser.id
+    const actualOwnerId = ownerId || selectedServer?.ownerId
+    if (!actualOwnerId || !currentId) return false
+    
+    // Convert both to strings and compare
+    return String(actualOwnerId) === String(currentId)
+  }, [currentUser, selectedServer, ownerId])
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   // Listen for member updates (e.g., timeout changes) via socket
@@ -613,6 +832,8 @@ export default function ChannelsPage() {
     saveEdit,
     editing,
     deleteMessage,
+    replyingToMessage,
+    setReplyingToMessage,
   } = useMessagesData(
     route.isMe ? (route.channelId || null) : (selectedChannel?._id || null),
     route.isMe ? 'dm' : 'channel'
@@ -622,7 +843,7 @@ export default function ChannelsPage() {
     const contentToSend = typeMod === 'FILE' ? (attachments[0]?.url || '') : draft
     if (!contentToSend.trim() && attachments.length === 0) return
     try {
-      await sendMessage(contentToSend, typeMod, attachments)
+      await sendMessage(contentToSend, typeMod, attachments, replyingToMessage?._id)
       if (typeMod === 'TEXT') updateDraft('')
     } catch (error) {
       console.error('Failed to send message:', error)
@@ -669,8 +890,27 @@ export default function ChannelsPage() {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [sortedMessages.length, selectedChannel?._id])
+    if (!editingMessageId) {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [sortedMessages.length, selectedChannel?._id, editingMessageId])
+
+  const scrollToMessage = (messageId: string) => {
+    const element = document.getElementById(`message-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Add a double-flash effect
+      element.classList.add('bg-[#5865f2]/30', 'scale-[1.01]', 'z-20');
+      setTimeout(() => {
+        element.classList.remove('scale-[1.01]');
+        setTimeout(() => {
+          element.classList.remove('bg-[#5865f2]/30', 'z-20');
+        }, 1500);
+      }, 300);
+    } else {
+      toast.info("Message is too far up or hasn't loaded yet.");
+    }
+  };
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null)
@@ -876,21 +1116,41 @@ export default function ChannelsPage() {
                   <MessageListSkeleton />
                 ) : sortedMessages.length === 0 ? null : (
                   <div className="flex flex-col pb-4">
-                    {sortedMessages.map((message) => (
-                      <MessageItem
-                        key={message._id}
-                        message={message}
-                        onEdit={startEditing}
-                        onDelete={handleDelete}
-                        currentUser={currentUser}
-                        isEditing={editingMessageId === message._id}
-                        editContent={editingMessageContent}
-                        onEditContentChange={handleEditContentChange}
-                        onSaveEdit={saveEdit}
-                        onCancelEdit={cancelEditing}
-                        isServerOwner={isServerOwner}
-                      />
-                    ))}
+                    {sortedMessages.map((msg) => {
+                      // Resolve parent locally if not provided by backend (e.g. optimistic or fallback)
+                      const message = { ...msg };
+                      if (message.parentId && !message.parent) {
+                        const localParent = sortedMessages.find(m => m._id === message.parentId);
+                        if (localParent) {
+                          message.parent = {
+                            _id: localParent._id,
+                            content: localParent.content,
+                            senderId: typeof localParent.senderId === 'object' ? localParent.senderId : {
+                              _id: localParent.senderId,
+                              username: 'Loading...',
+                            }
+                          };
+                        }
+                      }
+
+                      return (
+                        <MessageItem
+                          key={message._id}
+                          message={message}
+                          onEdit={startEditing}
+                          onDelete={handleDelete}
+                          currentUser={currentUser}
+                          isEditing={editingMessageId === message._id}
+                          editContent={editingMessageContent}
+                          onEditContentChange={handleEditContentChange}
+                          onSaveEdit={saveEdit}
+                          onCancelEdit={cancelEditing}
+                          onReply={(msg) => setReplyingToMessage(msg)}
+                          onReplyClick={scrollToMessage}
+                          isServerOwner={isServerOwner}
+                        />
+                      );
+                    })}
                   </div>
                 )}
 
@@ -914,6 +1174,10 @@ export default function ChannelsPage() {
               isReadOnly={!!selectedChannel?.isReadOnly && !isServerOwner}
               timeoutUntil={currentMember?.timeoutUntil}
               timeoutReason={currentMember?.timeoutReason}
+              replyingToMessage={replyingToMessage}
+              onCancelReply={() => setReplyingToMessage(null)}
+              members={members}
+              currentUserId={currentUser?._id}
             />
           </>
         )}

@@ -18,11 +18,23 @@ export type Message = {
   content: string
   type?: 'TEXT' | 'FILE' | 'SYSTEM'
   attachments?: any[]
+  metadata?: any
+  mentions?: string[]
   createdAt: string
   editedAt?: string | null
   isPinned?: boolean
   pinnedAt?: string | null
   pinnedBy?: string | null
+  parentId?: string | null
+  parent?: {
+    _id: string
+    content: string
+    senderId: {
+      _id: string
+      username: string
+      avatar?: string | null
+    }
+  } | null
 }
 
 

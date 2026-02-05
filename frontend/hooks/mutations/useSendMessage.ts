@@ -10,6 +10,7 @@ type SendMessageData = {
   content: string
   type?: 'TEXT' | 'FILE' | 'SYSTEM'
   attachments?: any[]
+  parentId?: string | null
 }
 
 export function useSendMessage() {

@@ -36,6 +36,21 @@ export default function LinkifiedText({
           )
         }
         
+        if (part.type === 'mention') {
+          return (
+            <span
+              key={index}
+              className="px-[2px] rounded-[3px] bg-[#5865F2]/30 text-[#dee0fc] font-medium cursor-pointer hover:bg-[#5865F2] hover:text-white transition-colors"
+              onClick={(e) => {
+                e.stopPropagation()
+                // Future: open user profile profile
+              }}
+            >
+              {part.content}
+            </span>
+          )
+        }
+        
         return <span key={index}>{part.content}</span>
       })}
     </span>

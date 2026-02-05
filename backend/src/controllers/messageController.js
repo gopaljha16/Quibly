@@ -7,7 +7,7 @@ const { canAccessChannel } = require('../utils/channelPermissions');
 // Send new message
 exports.createMessage = async (req, res) => {
     try {
-        const { channelId, dmRoomId, content, type, attachments, mentions } = req.body;
+        const { channelId, dmRoomId, content, type, attachments, mentions, parentId } = req.body;
 
         if (!channelId && !dmRoomId) {
             return res.status(400).json({
@@ -160,6 +160,39 @@ exports.createMessage = async (req, res) => {
         // Generate message ID
         const messageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
+        // Fetch parent message if it's a reply
+        let parentData = null;
+        if (parentId) {
+            try {
+                const parentMsg = await db.message.findUnique({
+                    where: { id: parentId },
+                    include: {
+                        sender: {
+                            select: {
+                                id: true,
+                                username: true,
+                                avatar: true
+                            }
+                        }
+                    }
+                });
+                if (parentMsg && parentMsg.sender) {
+                    parentData = {
+                        _id: parentMsg.id,
+                        content: parentMsg.content,
+                        senderId: {
+                            _id: parentMsg.sender.id,
+                            username: parentMsg.sender.username,
+                            avatar: parentMsg.sender.avatar
+                        }
+                    };
+                }
+            } catch (err) {
+                console.error("Error fetching parent message:", err);
+                // Fallback: just send parentId, context will be resolved by sender if possible
+            }
+        }
+
         // Create message object
         const messageData = {
             id: messageId,
@@ -172,7 +205,9 @@ exports.createMessage = async (req, res) => {
             sender: sender,
             createdAt: new Date().toISOString(),
             attachments: attachments || [],
-            mentions: mentions || []
+            mentions: mentions || [],
+            parentId: parentId || null,
+            parent: parentData
         };
 
         // Use Kafka for scalable message processing
@@ -201,7 +236,8 @@ exports.createMessage = async (req, res) => {
                     attachments: attachments || [],
                     mentions: mentions || [],
                     createdAt: messageData.createdAt,
-                    isDeleted: false
+                    isDeleted: false,
+                    parentId: parentId || null
                 };
 
                 // Broadcast immediately for instant delivery
@@ -262,7 +298,8 @@ exports.createMessage = async (req, res) => {
                 content: content || '',
                 type: type || 'TEXT',
                 attachments: attachments || [],
-                mentions: mentions || []
+                mentions: mentions || [],
+                parentId: parentId || null
             }
         });
 
@@ -315,7 +352,8 @@ exports.createMessage = async (req, res) => {
             type: message.type,
             attachments: message.attachments,
             mentions: message.mentions,
-            createdAt: message.createdAt
+            createdAt: message.createdAt,
+            parentId: message.parentId
         };
 
         // Emit socket event (fallback mode)
@@ -429,7 +467,20 @@ exports.getMessages = async (req, res) => {
             messages = await db.message.findMany({
                 where,
                 take: parseInt(limit),
-                orderBy: { createdAt: 'desc' }
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    parent: {
+                        include: {
+                            sender: {
+                                select: {
+                                    id: true,
+                                    username: true,
+                                    avatar: true
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
 
@@ -466,10 +517,21 @@ exports.getMessages = async (req, res) => {
                 return msg;
             } else {
                 // DB messages need sender info added
-                const { id, ...rest } = msg;
+                const { id, parent, ...rest } = msg;
+                const formattedParent = parent ? {
+                    _id: parent.id,
+                    content: parent.content,
+                    senderId: parent.sender ? {
+                        _id: parent.sender.id,
+                        username: parent.sender.username,
+                        avatar: parent.sender.avatar
+                    } : parent.senderId
+                } : null;
+
                 return {
                     _id: id,
                     ...rest,
+                    parent: formattedParent,
                     senderId: sendersMap[msg.senderId] || msg.senderId
                 };
             }

@@ -39,6 +39,10 @@ interface UIState {
   setEditingMessageContent: (content: string) => void
   stopEditingMessage: () => void
 
+  // Reply state
+  replyingToMessage: any | null
+  setReplyingToMessage: (message: any | null) => void
+
   // UI preferences
   sidebarCollapsed: boolean
   toggleSidebar: () => void
@@ -87,6 +91,10 @@ export const useUIStore = create<UIState>()(
           set({ editingMessageContent: content }),
         stopEditingMessage: () =>
           set({ editingMessageId: null, editingMessageContent: '' }),
+
+        // Reply state
+        replyingToMessage: null,
+        setReplyingToMessage: (message: any | null) => set({ replyingToMessage: message }),
 
         // UI preferences
         sidebarCollapsed: false,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useServers, useChannels, useMembers, useRoles } from './queries'
 import {
@@ -79,57 +79,57 @@ export function useChannelsData() {
     router.push('/channels/@me')
   }
 
-  const selectServer = async (serverId: string) => {
+  const selectServer = useCallback(async (serverId: string) => {
     const firstChannel = channels[0]
     if (firstChannel) {
       router.push(`/channels/${serverId}/${firstChannel._id}`)
     } else {
       router.push(`/channels/${serverId}`)
     }
-  }
+  }, [channels, router])
 
-  const selectChannel = (serverId: string, channelId: string) => {
+  const selectChannel = useCallback((serverId: string, channelId: string) => {
     router.push(`/channels/${serverId}/${channelId}`)
-  }
+  }, [router])
 
   // Server operations
-  const createServer = async (name: string) => {
+  const createServer = useCallback(async (name: string) => {
     const server = await createServerMutation.mutateAsync(name)
     router.push(`/channels/${server._id}`)
     return server
-  }
+  }, [createServerMutation, router])
 
-  const joinServer = async (inviteCode: string) => {
+  const joinServer = useCallback(async (inviteCode: string) => {
     const response = await joinServerMutation.mutateAsync(inviteCode)
     if (response && response.serverId) {
       await selectServer(response.serverId)
     }
-  }
+  }, [joinServerMutation, selectServer])
 
-  const createInvite = async (serverId: string, data: { maxUses?: number; expiresInDays?: number } = {}) => {
+  const createInvite = useCallback(async (serverId: string, data: { maxUses?: number; expiresInDays?: number } = {}) => {
     return await createInviteMutation.mutateAsync({ serverId, data })
-  }
+  }, [createInviteMutation])
 
-  const leaveServer = async (serverId: string) => {
+  const leaveServer = useCallback(async (serverId: string) => {
     await leaveServerMutation.mutateAsync(serverId)
     if (route.serverId === serverId) {
       router.push('/channels/@me')
     }
-  }
+  }, [leaveServerMutation, route.serverId, router])
 
-  const deleteServer = async (serverId: string) => {
+  const deleteServer = useCallback(async (serverId: string) => {
     await deleteServerMutation.mutateAsync(serverId)
     if (route.serverId === serverId) {
       router.push('/channels/@me')
     }
-  }
+  }, [deleteServerMutation, route.serverId, router])
 
-  const updateServer = async (serverId: string, updates: any) => {
+  const updateServer = useCallback(async (serverId: string, updates: any) => {
     await updateServerMutation.mutateAsync({ serverId, updates })
-  }
+  }, [updateServerMutation])
 
   // Channel operations
-  const createChannel = async (
+  const createChannel = useCallback(async (
     name: string,
     type: 'TEXT' | 'VOICE' = 'TEXT',
     isPrivate: boolean = false,
@@ -146,18 +146,18 @@ export function useChannelsData() {
       allowedRoleIds,
     })
     router.push(`/channels/${route.serverId}/${result.channel._id}`)
-  }
+  }, [createChannelMutation, route.serverId, router])
 
-  const updateChannel = async (channelId: string, updates: any) => {
+  const updateChannel = useCallback(async (channelId: string, updates: any) => {
     if (!route.serverId) return
     await updateChannelMutation.mutateAsync({
       serverId: route.serverId,
       channelId,
       updates,
     })
-  }
+  }, [updateChannelMutation, route.serverId])
 
-  const deleteChannel = async (channelId: string) => {
+  const deleteChannel = useCallback(async (channelId: string) => {
     if (!route.serverId) return
     await deleteChannelMutation.mutateAsync({
       serverId: route.serverId,
@@ -174,15 +174,15 @@ export function useChannelsData() {
         router.push(`/channels/${route.serverId}`)
       }
     }
-  }
+  }, [deleteChannelMutation, route.serverId, channels, route.channelId, router])
 
-  const reorderChannels = async (channelIds: string[]) => {
+  const reorderChannels = useCallback(async (channelIds: string[]) => {
     if (!route.serverId) return
     await reorderChannelsMutation.mutateAsync({
       serverId: route.serverId,
       channelIds,
     })
-  }
+  }, [reorderChannelsMutation, route.serverId])
 
   return {
     // Route info
