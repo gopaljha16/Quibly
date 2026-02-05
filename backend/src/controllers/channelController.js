@@ -1,10 +1,11 @@
 const db = require('../config/db');
+const { canAccessChannel, filterAccessibleChannels } = require('../utils/channelPermissions');
 
 // Create channel
 exports.createChannel = async (req, res) => {
     try {
         const { serverId } = req.params;
-        const { name, type, topic, position } = req.body;
+        const { name, type, topic, position, isPrivate, isReadOnly, allowedRoleIds } = req.body;
 
         if (!name || name.length > 100) {
             return res.status(400).json({
@@ -44,13 +45,33 @@ exports.createChannel = async (req, res) => {
             });
         }
 
+        // Validate allowedRoleIds if channel is private
+        if (isPrivate && allowedRoleIds && allowedRoleIds.length > 0) {
+            const roles = await db.role.findMany({
+                where: {
+                    serverId: serverId,
+                    id: { in: allowedRoleIds }
+                }
+            });
+
+            if (roles.length !== allowedRoleIds.length) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'One or more role IDs are invalid'
+                });
+            }
+        }
+
         const channel = await db.channel.create({
             data: {
                 serverId,
                 name,
                 type: type || 'TEXT',
                 topic: topic || null,
-                position: position || 0
+                position: position || 0,
+                isPrivate: isPrivate || false,
+                isReadOnly: isReadOnly || false,
+                allowedRoleIds: allowedRoleIds || []
             }
         });
 
@@ -91,8 +112,15 @@ exports.getChannels = async (req, res) => {
             orderBy: { position: 'asc' }
         });
 
+        // Filter channels based on user permissions
+        const accessibleChannels = await filterAccessibleChannels(
+            req.user.id,
+            channels,
+            serverId
+        );
+
         // Transform id to _id for frontend compatibility
-        const transformedChannels = channels.map(ch => {
+        const transformedChannels = accessibleChannels.map(ch => {
             const { id, ...rest } = ch;
             return { _id: id, ...rest };
         });
@@ -126,18 +154,13 @@ exports.getChannelById = async (req, res) => {
             });
         }
 
-        // Check if user is a member of the server
-        const member = await db.serverMember.findFirst({
-            where: {
-                serverId: channel.serverId,
-                userId: req.user.id
-            }
-        });
+        // Check if user has permission to access this channel
+        const hasAccess = await canAccessChannel(req.user.id, channelId);
 
-        if (!member) {
+        if (!hasAccess) {
             return res.status(403).json({
                 success: false,
-                message: 'You do not have access to this channel'
+                message: 'You do not have permission to access this channel'
             });
         }
 
@@ -158,7 +181,7 @@ exports.getChannelById = async (req, res) => {
 exports.updateChannel = async (req, res) => {
     try {
         const { channelId } = req.params;
-        const { name, topic, position, type } = req.body;
+        const { name, topic, position, type, isPrivate, isReadOnly, allowedRoleIds } = req.body;
 
         const channel = await db.channel.findUnique({
             where: { id: channelId }
@@ -197,6 +220,23 @@ exports.updateChannel = async (req, res) => {
             });
         }
 
+        // Validate allowedRoleIds if provided
+        if (allowedRoleIds !== undefined && allowedRoleIds.length > 0) {
+            const roles = await db.role.findMany({
+                where: {
+                    serverId: channel.serverId,
+                    id: { in: allowedRoleIds }
+                }
+            });
+
+            if (roles.length !== allowedRoleIds.length) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'One or more role IDs are invalid'
+                });
+            }
+        }
+
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (topic !== undefined) updateData.topic = topic;
@@ -210,6 +250,9 @@ exports.updateChannel = async (req, res) => {
             }
             updateData.type = type;
         }
+        if (isPrivate !== undefined) updateData.isPrivate = isPrivate;
+        if (isReadOnly !== undefined) updateData.isReadOnly = isReadOnly;
+        if (allowedRoleIds !== undefined) updateData.allowedRoleIds = allowedRoleIds;
 
         const updatedChannel = await db.channel.update({
             where: { id: channelId },

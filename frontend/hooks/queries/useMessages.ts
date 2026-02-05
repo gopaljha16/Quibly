@@ -20,7 +20,11 @@ export type Message = {
   attachments?: any[]
   createdAt: string
   editedAt?: string | null
+  isPinned?: boolean
+  pinnedAt?: string | null
+  pinnedBy?: string | null
 }
+
 
 export function useMessages(id: string | null, type: 'channel' | 'dm' = 'channel') {
   return useQuery({

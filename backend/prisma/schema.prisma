@@ -98,10 +98,10 @@ model Server {
   verificationLevel VerificationLevel @default(none)
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+  bannedWords       String[]          @default([])
   channels          Channel[]
   invites           Invite[]
   roles             Role[]
-  bannedWords       String[]          @default([])
   owner             User              @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members           ServerMember[]
 
@@ -116,9 +116,9 @@ model ServerMember {
   joinedAt      DateTime  @default(now())
   isMuted       Boolean   @default(false)
   isBanned      Boolean   @default(false)
-  banReason     String?
-  timeoutUntil  DateTime?
   timeoutReason String?
+  timeoutUntil  DateTime?
+  banReason     String?
   server        Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -152,6 +152,9 @@ model Channel {
   topic                String?
   position             Int              @default(0)
   permissionOverwrites Json             @default("[]")
+  isPrivate            Boolean          @default(false)
+  isReadOnly           Boolean          @default(false)
+  allowedRoleIds       String[]         @default([])
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
   server               Server           @relation(fields: [serverId], references: [id], onDelete: Cascade)
@@ -175,6 +178,9 @@ model Message {
   updatedAt   DateTime    @updatedAt
   dmRoomId    String?
   editedAt    DateTime?
+  isPinned    Boolean     @default(false)
+  pinnedAt    DateTime?
+  pinnedBy    String?
   channel     Channel?    @relation(fields: [channelId], references: [id], onDelete: Cascade)
   dmRoom      DMRoom?     @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
 
@@ -182,6 +188,7 @@ model Message {
   @@index([dmRoomId, createdAt(sort: Desc)])
   @@index([senderId])
   @@index([serverId])
+  @@index([channelId, isPinned])
 }
 
 model Friendship {
@@ -227,10 +234,10 @@ model Role {
   color       String?
   permissions Int      @default(0)
   position    Int      @default(0)
-  hoist       Boolean  @default(false)
   isDefault   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  hoist       Boolean  @default(false)
   server      Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
 
   @@index([serverId])
