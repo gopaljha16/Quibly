@@ -36,7 +36,8 @@ async function processBatch() {
             type: msg.type || 'TEXT',
             attachments: msg.attachments || [],
             mentions: msg.mentions || [],
-            createdAt: new Date(msg.createdAt)
+            createdAt: new Date(msg.createdAt),
+            parentId: msg.parentId || null
         }));
 
         // Batch insert to database

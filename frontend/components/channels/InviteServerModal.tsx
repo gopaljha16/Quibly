@@ -17,8 +17,14 @@ export default function InviteServerModal({
   const [inviteCode, setInviteCode] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // Reset invite code when server changes or modal closes
   useEffect(() => {
-    if (server && open && !inviteCode) {
+    setInviteCode('')
+    setCopied(false)
+  }, [server?._id, open])
+
+  useEffect(() => {
+    if (server && open && !inviteCode && !loading) {
       const getInvite = async () => {
         setLoading(true)
         try {
@@ -32,7 +38,7 @@ export default function InviteServerModal({
       }
       getInvite()
     }
-  }, [server, open, inviteCode, createInvite])
+  }, [server, open, inviteCode, createInvite, loading])
 
   const inviteLink = inviteCode ? `${window.location.origin}/invite/${inviteCode}` : 'Generating...'
 

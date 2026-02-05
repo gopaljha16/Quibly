@@ -85,7 +85,8 @@ async function processMessage(messageData) {
                 attachments: messageData.attachments || [],
                 mentions: messageData.mentions || [],
                 createdAt: messageData.createdAt,
-                isDeleted: false
+                isDeleted: false,
+                parentId: messageData.parentId || null
             });
 
             // STEP 2: Add to batch queue for DB write
@@ -109,6 +110,7 @@ async function processMessage(messageData) {
                         attachments: messageData.attachments || [],
                         mentions: messageData.mentions || [],
                         createdAt: new Date(messageData.createdAt),
+                        parentId: messageData.parentId || null
                     }
                 });
             }

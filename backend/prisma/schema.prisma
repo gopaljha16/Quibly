@@ -56,6 +56,7 @@ model User {
   activitySessions             UserActivitySession[]
   dailyActivities              UserDailyActivity[]
   userInterests                UserInterest[]
+  messages                     Message[]             @relation("MessageSender")
 
   @@index([email])
   @@index([username])
@@ -168,10 +169,12 @@ model Message {
   id          String      @id @default(cuid())
   channelId   String?
   serverId    String?
-  senderId    String
+  senderId    String?
+  sender      User?       @relation("MessageSender", fields: [senderId], references: [id])
   content     String
   type        MessageType @default(TEXT)
   attachments Json        @default("[]")
+  metadata    Json?       @default("{}")
   mentions    String[]
   isDeleted   Boolean     @default(false)
   createdAt   DateTime    @default(now())
@@ -181,6 +184,9 @@ model Message {
   isPinned    Boolean     @default(false)
   pinnedAt    DateTime?
   pinnedBy    String?
+  parentId    String?
+  parent      Message?    @relation("MessageReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies     Message[]   @relation("MessageReplies")
   channel     Channel?    @relation(fields: [channelId], references: [id], onDelete: Cascade)
   dmRoom      DMRoom?     @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
 
@@ -189,6 +195,7 @@ model Message {
   @@index([senderId])
   @@index([serverId])
   @@index([channelId, isPinned])
+  @@index([parentId])
 }
 
 model Friendship {

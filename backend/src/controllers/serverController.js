@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { createSystemMessage } = require('../utils/systemMessage');
 
 // Create new server
 exports.createServer = async (req, res) => {
@@ -63,6 +64,24 @@ exports.createServer = async (req, res) => {
                 userId: req.user.id,
                 roleIds: [defaultRole.id, ownerRole.id]
             }
+        });
+
+        // Create default 'general' channel
+        const generalChannel = await db.channel.create({
+            data: {
+                name: 'general',
+                serverId: server.id,
+                type: 'TEXT',
+                isPrivate: false,
+                position: 0
+            }
+        });
+
+        // Send a system message about the server being created (optional but good)
+        await createSystemMessage({
+            channelId: generalChannel.id,
+            serverId: server.id,
+            content: `Welcome to ${name}! This is the start of your server.`
         });
 
         const { id, ...rest } = server;
@@ -353,6 +372,24 @@ exports.joinServer = async (req, res) => {
             where: { id: serverId },
             data: { membersCount: { increment: 1 } }
         });
+
+        // Send welcome message to the 'general' channel
+        const general = await db.channel.findFirst({
+            where: { serverId, name: 'general' }
+        });
+
+        if (general) {
+            await createSystemMessage({
+                channelId: general.id,
+                serverId: serverId,
+                content: `Welcome **${req.user.username}**. Say hi!`,
+                metadata: {
+                    type: 'WELCOME',
+                    userId: req.user.id,
+                    username: req.user.username
+                }
+            });
+        }
 
         res.status(200).json({
             success: true,
