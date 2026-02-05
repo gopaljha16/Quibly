@@ -62,6 +62,14 @@ exports.createMessage = async (req, res) => {
                 });
             }
 
+            // Check if user is banned
+            if (member.isBanned) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You are banned from this server'
+                });
+            }
+
             if (member.isMuted) {
                 return res.status(403).json({
                     success: false,
@@ -69,7 +77,37 @@ exports.createMessage = async (req, res) => {
                 });
             }
 
+            // Check for timeout
+            if (member.timeoutUntil && new Date(member.timeoutUntil) > new Date()) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You are timed out from this server',
+                    timeoutUntil: member.timeoutUntil,
+                    timeoutReason: member.timeoutReason
+                });
+            }
+
             serverId = channel.serverId;
+
+            // Check for banned words
+            const server = await db.server.findUnique({
+                where: { id: serverId },
+                select: { bannedWords: true }
+            });
+
+            if (server && server.bannedWords && server.bannedWords.length > 0 && content) {
+                const lowerContent = content.toLowerCase();
+                for (const word of server.bannedWords) {
+                    if (lowerContent.includes(word.toLowerCase())) {
+                        return res.status(400).json({
+                            success: false,
+                            message: `Message contains a banned word: ${word}`,
+                            bannedWord: word
+                        });
+                    }
+                }
+            }
+
             targetId = channelId;
         } else if (dmRoomId) {
             // Check if user is a participant of the DM room
@@ -479,6 +517,27 @@ exports.editMessage = async (req, res) => {
                 success: false,
                 message: 'You can only edit your own messages'
             });
+        }
+
+        // Check for banned words if it's a server message
+        if (message.serverId) {
+            const server = await db.server.findUnique({
+                where: { id: message.serverId },
+                select: { bannedWords: true }
+            });
+
+            if (server && server.bannedWords && server.bannedWords.length > 0) {
+                const lowerContent = content.toLowerCase();
+                for (const word of server.bannedWords) {
+                    if (lowerContent.includes(word.toLowerCase())) {
+                        return res.status(400).json({
+                            success: false,
+                            message: `Message contains a banned word: ${word}`,
+                            bannedWord: word
+                        });
+                    }
+                }
+            }
         }
 
         if (message.isDeleted) {

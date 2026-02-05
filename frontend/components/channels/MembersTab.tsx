@@ -5,12 +5,19 @@ import { useMembers, useRoles } from '@/hooks/queries'
 import { useRoleMutations } from '@/hooks/mutations/useServerMutations'
 import { Role } from '@/hooks/queries/useRoles'
 import { Member } from '@/hooks/queries/useMembers'
+import TimeoutModal from './TimeoutModal'
+import BanModal from './BanModal'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function MembersTab({ serverId }: { serverId: string }) {
+    const queryClient = useQueryClient()
     const { data: membersData, isLoading: membersLoading } = useMembers(serverId)
     const { data: roles = [], isLoading: rolesLoading } = useRoles(serverId)
     const { updateMemberRoles } = useRoleMutations(serverId)
     const [search, setSearch] = useState('')
+    const [timeoutModalOpen, setTimeoutModalOpen] = useState(false)
+    const [banModalOpen, setBanModalOpen] = useState(false)
+    const [selectedMember, setSelectedMember] = useState<any>(null)
 
     const members = membersData?.members || []
     const filteredMembers = members.filter((m: any) => 
@@ -68,8 +75,25 @@ export default function MembersTab({ serverId }: { serverId: string }) {
                                 <span className="text-sm font-medium text-white flex items-center gap-1">
                                     {member.user.username}
                                     {member.isOwner && <span className="text-[10px] text-yellow-500">👑</span>}
+                                    {member.isBanned && (
+                                        <span 
+                                            className="text-[10px] bg-red-600/20 text-red-400 px-1.5 py-0.5 rounded border border-red-600/30 font-semibold"
+                                            title={member.banReason ? `Banned: ${member.banReason}` : 'This member is banned'}
+                                        >
+                                            BANNED
+                                        </span>
+                                    )}
+                                    {member.timeoutUntil && new Date(member.timeoutUntil) > new Date() && (
+                                        <span 
+                                            className="text-[10px] bg-red-500/20 text-red-500 px-1.5 py-0.5 rounded border border-red-500/30 font-semibold"
+                                            title={`Timed out until ${new Date(member.timeoutUntil).toLocaleString()}`}
+                                        >
+                                            Timed out until {new Date(member.timeoutUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </span>
+                                    )}
                                 </span>
                                 <div className="flex flex-wrap gap-1 mt-1">
+                                    {/* ... existing roles mapping ... */}
                                     {member.roleIds.map((roleId: string) => {
                                         const role = roles.find(r => r.id === roleId)
                                         if (!role) return null
@@ -96,12 +120,90 @@ export default function MembersTab({ serverId }: { serverId: string }) {
                                         memberRoles={member.roleIds} 
                                         onSelect={(roleId) => handleAddRole(member, roleId)} 
                                     />
+                                    {membersData?.ownerId === member.userId ? null : (
+                                        <>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedMember(member)
+                                                    setTimeoutModalOpen(true)
+                                                }}
+                                                className="w-5 h-5 flex items-center justify-center rounded-full bg-[#3F4147] text-slate-300 hover:bg-orange-500/20 hover:text-orange-500 transition-colors ml-1"
+                                                title="Timeout Member"
+                                            >
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedMember(member)
+                                                    setBanModalOpen(true)
+                                                }}
+                                                className={`w-5 h-5 flex items-center justify-center rounded-full text-slate-300 transition-colors ml-1 ${
+                                                    member.isBanned 
+                                                        ? 'bg-green-600/20 hover:bg-green-600/30 hover:text-green-400' 
+                                                        : 'bg-[#3F4147] hover:bg-red-600/20 hover:text-red-400'
+                                                }`}
+                                                title={member.isBanned ? 'Unban Member' : 'Ban Member'}
+                                            >
+                                                {member.isBanned ? (
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <path d="M20 6L9 17l-5-5" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <circle cx="12" cy="12" r="10" />
+                                                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
+
+            {selectedMember && (
+                <>
+                    <TimeoutModal
+                        open={timeoutModalOpen}
+                        onClose={() => {
+                            setTimeoutModalOpen(false)
+                            setSelectedMember(null)
+                        }}
+                        serverId={serverId}
+                        userId={selectedMember.userId?._id || selectedMember.userId}
+                        username={selectedMember.user.username}
+                        timeoutUntil={selectedMember.timeoutUntil}
+                        timeoutReason={selectedMember.timeoutReason}
+                        onSuccess={() => {
+                            // Refresh members data
+                            queryClient.invalidateQueries({ queryKey: ['members', serverId] })
+                        }}
+                    />
+                    <BanModal
+                        open={banModalOpen}
+                        onClose={() => {
+                            setBanModalOpen(false)
+                            setSelectedMember(null)
+                        }}
+                        serverId={serverId}
+                        userId={selectedMember.userId?._id || selectedMember.userId}
+                        username={selectedMember.user.username}
+                        isBanned={selectedMember.isBanned || false}
+                        banReason={selectedMember.banReason}
+                        onSuccess={() => {
+                            // Refresh members data
+                            queryClient.invalidateQueries({ queryKey: ['members', serverId] })
+                        }}
+                    />
+                </>
+            )}
         </div>
     )
 }

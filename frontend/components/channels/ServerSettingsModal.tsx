@@ -41,6 +41,8 @@ export default function ServerSettingsModal({
    })
    const [saving, setSaving] = useState(false)
    const [error, setError] = useState<string | null>(null)
+   const [bannedWords, setBannedWords] = useState<string[]>([])
+   const [newWord, setNewWord] = useState('')
 
    useEffect(() => {
       if (server) {
@@ -52,6 +54,7 @@ export default function ServerSettingsModal({
             isPublic: server.isPublic || false,
             verificationLevel: server.verificationLevel || 'none'
          })
+         setBannedWords((server as any).bannedWords || [])
       }
    }, [server])
 
@@ -73,7 +76,7 @@ export default function ServerSettingsModal({
       try {
          const response = await apiRequest<{ success: boolean; server: Server }>(`/server/${server._id}`, {
             method: 'PUT',
-            body: JSON.stringify(formData)
+            body: JSON.stringify({ ...formData, bannedWords })
          })
 
          onUpdate(response.server)
@@ -87,6 +90,17 @@ export default function ServerSettingsModal({
       } finally {
          setSaving(false)
       }
+   }
+
+   const handleAddWord = () => {
+       if (!newWord.trim()) return
+       if (bannedWords.includes(newWord.trim())) return
+       setBannedWords([...bannedWords, newWord.trim()])
+       setNewWord('')
+   }
+
+   const handleRemoveWord = (word: string) => {
+       setBannedWords(bannedWords.filter(w => w !== word))
    }
 
    const handleDeleteServer = async () => {
@@ -241,6 +255,55 @@ export default function ServerSettingsModal({
                         </div>
                      )}
 
+                     {activeTab === 'moderation' && (
+                        <div className="max-w-[460px]">
+                            <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Moderation Settings</h2>
+                            
+                            <div className="mb-8">
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                                    Banned Words
+                                </label>
+                                <p className="text-xs text-slate-400 mb-4">Messages containing these words will be blocked across the entire server.</p>
+                                
+                                <div className="flex gap-2 mb-4">
+                                    <input
+                                        value={newWord}
+                                        onChange={(e) => setNewWord(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAddWord()}
+                                        placeholder="Add a word to ban..."
+                                        className="flex-1 bg-[#1E1F22] text-slate-50 p-2.5 rounded-[3px] border-none outline-none font-medium h-10"
+                                    />
+                                    <button 
+                                        onClick={handleAddWord}
+                                        className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-4 rounded-[3px] text-sm font-medium transition-colors h-10"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+
+                                <div className="space-y-1 max-h-[200px] overflow-y-auto custom-scrollbar pr-2">
+                                    {bannedWords.length > 0 ? (
+                                        bannedWords.map((word, i) => (
+                                            <div key={i} className="flex items-center justify-between bg-[#2B2D31] px-3 py-2 rounded-[3px] group">
+                                                <span className="text-sm text-[#DBDEE1]">{word}</span>
+                                                <button 
+                                                    onClick={() => handleRemoveWord(word)}
+                                                    className="text-[#B5BAC1] hover:text-[#F23F43] transition-colors"
+                                                >
+                                                    <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M18.4 4L12 10.4L5.6 4L4 5.6L10.4 12L4 18.4L5.6 20L12 13.6L18.4 20L20 18.4L13.6 12L20 5.6L18.4 4Z" /></svg>
+                                                </button>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-4 bg-[#1E1F22] rounded-[3px] border border-dashed border-[#4E5058]">
+                                            <p className="text-xs text-slate-500">No banned words yet.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                     )}
+
                      {activeTab === 'roles' && (
                         <div className="h-full">
                            <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Roles</h2>
@@ -255,7 +318,7 @@ export default function ServerSettingsModal({
                         </div>
                      )}
 
-                     {(activeTab === 'moderation' || activeTab === 'channels' || activeTab === 'integrations') && (
+                     {(activeTab === 'channels' || activeTab === 'integrations') && (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-4">
                            <div className="text-4xl">🚧</div>
                            <p>The {tabs.find(t => t.id === activeTab)?.name} tab is coming soon!</p>
@@ -277,17 +340,20 @@ export default function ServerSettingsModal({
                   </div>
 
                   {/* Save Changes Bar */}
-                  {activeTab === 'overview' && (
+                  {(activeTab === 'overview' || activeTab === 'moderation') && (
                      <div className="bg-[#0a0b0f] p-4 flex justify-end gap-3 shadow-lg">
                         <button
-                           onClick={() => setFormData({
-                              name: server.name || '',
-                              description: server.description || '',
-                              icon: server.icon || '',
-                              banner: server.banner || '',
-                              isPublic: server.isPublic || false,
-                              verificationLevel: server.verificationLevel || 'none'
-                           })}
+                           onClick={() => {
+                               setFormData({
+                                  name: server.name || '',
+                                  description: server.description || '',
+                                  icon: server.icon || '',
+                                  banner: server.banner || '',
+                                  isPublic: server.isPublic || false,
+                                  verificationLevel: server.verificationLevel || 'none'
+                               });
+                               setBannedWords((server as any).bannedWords || []);
+                           }}
                            className="px-4 py-2 text-sm font-medium text-white hover:underline transition-colors"
                            disabled={saving}
                         >

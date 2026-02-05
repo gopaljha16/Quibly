@@ -20,6 +20,8 @@ import { TypingIndicator } from '@/components/TypingIndicator'
 import GifPicker from '@/components/GifPicker'
 import { useUploadThing } from '@/lib/uploadthing'
 import { Loader2, Plus } from 'lucide-react'
+import { connectSocket } from '@/lib/socket'
+import { useQueryClient } from '@tanstack/react-query'
 
 // Message Item Component
 const MessageItem = ({
@@ -282,7 +284,9 @@ const MessageInput = ({
   onChange,
   onSend,
   disabled,
-  isMe
+  isMe,
+  timeoutUntil,
+  timeoutReason
 }: {
   channelName: string
   value: string
@@ -290,6 +294,8 @@ const MessageInput = ({
   onSend: (type?: 'TEXT' | 'FILE', attachments?: any[]) => void
   disabled: boolean
   isMe?: boolean
+  timeoutUntil?: string | null
+  timeoutReason?: string | null
 }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showGifPicker, setShowGifPicker] = useState(false)
@@ -391,15 +397,19 @@ const MessageInput = ({
 
         <textarea
           ref={textareaRef}
-          className="w-full bg-transparent pl-[52px] pr-12 py-[11px] text-[#dbdee1] placeholder-[#87898c] resize-none outline-none min-h-[44px] max-h-[200px] leading-[1.375rem] font-normal"
-          placeholder={isMe ? `Message @${channelName}` : `Message #${channelName}`}
+          className="w-full bg-transparent pl-[52px] pr-12 py-[11px] text-[#dbdee1] placeholder-[#87898c] resize-none outline-none min-h-[44px] max-h-[200px] leading-[1.375rem] font-normal disabled:cursor-not-allowed"
+          placeholder={
+            timeoutUntil && new Date(timeoutUntil) > new Date()
+              ? `You are timed out until ${new Date(timeoutUntil).toLocaleString()}. Reason: ${timeoutReason || 'No reason provided'}`
+              : isMe ? `Message @${channelName}` : `Message #${channelName}`
+          }
           value={value}
           onChange={(e) => {
             console.log('⌨️ MessageInput onChange called', e.target.value)
             onChange(e.target.value)
           }}
           onKeyDown={handleKeyDown}
-          disabled={disabled}
+          disabled={disabled || (!!timeoutUntil && new Date(timeoutUntil) > new Date())}
           rows={1}
         />
 
@@ -451,10 +461,33 @@ const MessageInput = ({
 }
 
 export default function ChannelsPage() {
-  const { route, channels, channelsLoading, selectedChannel } = useChannelsData()
+  const { route, members, membersLoading, selectedChannel } = useChannelsData()
   const { data: currentUser } = useProfile()
-  console.log(currentUser);
+  
+  const currentMember = useMemo(() => {
+    if (!currentUser || !members) return null
+    return members.find((m: any) => (m.userId?._id || m.userId) === currentUser._id)
+  }, [currentUser, members])
   const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  // Listen for member updates (e.g., timeout changes) via socket
+  const queryClient = useQueryClient()
+  useEffect(() => {
+    if (!route.serverId) return
+    
+    const socket = connectSocket()
+    
+    const handleMemberUpdated = (data: any) => {
+      // Invalidate members query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['members', route.serverId] })
+    }
+    
+    socket.on('member_updated', handleMemberUpdated)
+    
+    return () => {
+      socket.off('member_updated', handleMemberUpdated)
+    }
+  }, [route.serverId, queryClient])
 
   // Fetch DM room data if applicable
   const { data: dmRoom, isLoading: dmLoading } = useDMRoom(route.isMe ? route.channelId : null)
@@ -758,6 +791,8 @@ export default function ChannelsPage() {
               onSend={handleSendAction}
               disabled={sending}
               isMe={route.isMe}
+              timeoutUntil={currentMember?.timeoutUntil}
+              timeoutReason={currentMember?.timeoutReason}
             />
           </>
         )}
