@@ -35,6 +35,13 @@ export type Message = {
       avatar?: string | null
     }
   } | null
+  reactions?: {
+    id: string
+    emoji: string
+    userId: string | { _id: string, username: string, avatar?: string | null }
+    messageId: string
+    createdAt: string
+  }[]
 }
 
 

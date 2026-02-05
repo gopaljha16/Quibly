@@ -1412,6 +1412,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
           isOwner={!!selectedMember?.isOwner}
           roleIds={selectedMember?.roleIds}
           roles={roles}
+          currentUserId={currentUser?._id}
         />
 
         <UserProfileViewModal

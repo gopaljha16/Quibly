@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const messageController = require('../controllers/messageController');
+const reactionController = require('../controllers/reactionController');
 const { authenticate } = require('../middleware/auth');
 
 // All routes require authentication
@@ -17,7 +18,11 @@ router.delete('/:id/pin', messageController.unpinMessage);
 
 // Generic message routes
 router.put('/:id', messageController.editMessage);
+router.put('/:id', messageController.editMessage);
 router.delete('/:id', messageController.deleteMessage);
+
+// Reaction routes
+router.post('/:messageId/reactions', reactionController.toggleReaction);
 
 module.exports = router;
 

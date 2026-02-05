@@ -119,6 +119,80 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
       queryClient.invalidateQueries({ queryKey: ['pinnedMessages', msgTargetId] })
     }
 
+    // Handle reaction added
+    const handleReactionAdded = (incoming: any) => {
+      console.log('Socket: reaction added', incoming)
+      const { messageId, reaction } = incoming
+
+      const cache = queryClient.getQueryCache()
+      const messageQueries = cache.findAll({ queryKey: ['messages'] })
+
+      console.log('Socket log: Searching for message in', messageQueries.length, 'queries')
+      messageQueries.forEach((query) => {
+        const messages = query.state.data as Message[] | undefined
+        if (!messages) return
+
+        const messageExists = messages.some(m => m._id === messageId)
+        console.log('Socket log: Query', query.queryKey, 'has message?', messageExists)
+
+        if (messageExists) {
+          queryClient.setQueryData(query.queryKey, (old: Message[] | undefined) => {
+            if (!old) return []
+            return old.map(m => {
+              if (m._id === messageId) {
+                const currentReactions = m.reactions || []
+                // Check deduplication
+                if (currentReactions.some(r => r.id === reaction.id)) {
+                  console.log('Socket log: Duplicate reaction, skipping')
+                  return m
+                }
+                console.log('Socket log: Updating message', m._id, 'adding reaction', reaction)
+                return {
+                  ...m,
+                  reactions: [...currentReactions, reaction]
+                }
+              }
+              return m
+            })
+          })
+        }
+      })
+    }
+
+    // Handle reaction removed
+    const handleReactionRemoved = (incoming: any) => {
+      const { messageId, userId, emoji } = incoming
+
+      const cache = queryClient.getQueryCache()
+      const messageQueries = cache.findAll({ queryKey: ['messages'] })
+
+      messageQueries.forEach((query) => {
+        const messages = query.state.data as Message[] | undefined
+        if (!messages) return
+
+        const messageExists = messages.some(m => m._id === messageId)
+        if (messageExists) {
+          queryClient.setQueryData(query.queryKey, (old: Message[] | undefined) => {
+            if (!old) return []
+            return old.map(m => {
+              if (m._id === messageId) {
+                const currentReactions = m.reactions || []
+                return {
+                  ...m,
+                  reactions: currentReactions.filter(r =>
+                    !(r.messageId === messageId &&
+                      (typeof r.userId === 'object' ? r.userId._id === userId : r.userId === userId) &&
+                      r.emoji === emoji)
+                  )
+                }
+              }
+              return m
+            })
+          })
+        }
+      })
+    }
+
     // Handle message unpinned
     const handleMessageUnpinned = (incoming: any) => {
       const msg = incoming as Message
@@ -141,6 +215,8 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
     socketInstance.on('message_updated', handleMessageUpdated)
     socketInstance.on('message_pinned', handleMessagePinned)
     socketInstance.on('message_unpinned', handleMessageUnpinned)
+    socketInstance.on('message:reaction:add', handleReactionAdded)
+    socketInstance.on('message:reaction:remove', handleReactionRemoved)
 
     // Check if already connected
     if (socketInstance.connected) {
@@ -154,6 +230,8 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
       socketInstance.off('message_updated', handleMessageUpdated)
       socketInstance.off('message_pinned', handleMessagePinned)
       socketInstance.off('message_unpinned', handleMessageUnpinned)
+      socketInstance.off('message:reaction:add', handleReactionAdded)
+      socketInstance.off('message:reaction:remove', handleReactionRemoved)
     }
   }, [queryClient]) // This listener is global and persistent
 

@@ -499,6 +499,17 @@ exports.getMessages = async (req, res) => {
                 take: parseInt(limit),
                 orderBy: { createdAt: 'desc' },
                 include: {
+                    reactions: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    username: true,
+                                    avatar: true
+                                }
+                            }
+                        }
+                    },
                     parent: {
                         include: {
                             sender: {

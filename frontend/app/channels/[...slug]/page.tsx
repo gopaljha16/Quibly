@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { toast } from 'sonner'
+import axios from 'axios'
 import EmojiPicker, { Theme, EmojiStyle } from 'emoji-picker-react'
 import { useChannelsData } from '@/hooks/useChannelsData'
 import { useMessagesData } from '@/hooks/useMessagesData'
@@ -20,14 +21,17 @@ import { useTypingIndicator } from '@/hooks/useTypingIndicator'
 import { TypingIndicator } from '@/components/TypingIndicator'
 import GifPicker from '@/components/GifPicker'
 import { useUploadThing } from '@/lib/uploadthing'
-import { Loader2, Plus, Pin, Ban, Clock, CornerUpLeft, X } from 'lucide-react'
+import { Loader2, Plus, Pin, Ban, Clock, CornerUpLeft, X, SmilePlus } from 'lucide-react'
 import { connectSocket } from '@/lib/socket'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { usePinMessage, useUnpinMessage } from '@/hooks/queries/usePinnedMessages'
 import { PinnedMessagesBanner } from '@/components/channels/PinnedMessagesBanner'
 import BanModal from '@/components/channels/BanModal'
 import TimeoutModal from '@/components/channels/TimeoutModal'
 import DeleteMessageModal from '@/components/channels/DeleteMessageModal'
+import UserClickModal from '@/components/profile/UserClickModal'
+
+
 
 // Message Item Component
 const MessageItem = ({
@@ -42,7 +46,8 @@ const MessageItem = ({
   onCancelEdit,
   onReply,
   onReplyClick,
-  isServerOwner
+  isServerOwner,
+  onAvatarClick
 }: {
   message: Message
   onEdit: (id: string, content: string) => void
@@ -56,6 +61,7 @@ const MessageItem = ({
   onReply?: (message: Message) => void
   onReplyClick?: (id: string) => void
   isServerOwner?: boolean
+  onAvatarClick?: (user: any) => void
 }) => {
   const [menuOpen, setMenuOpen] = useState(false)
   const [showBanModal, setShowBanModal] = useState(false)
@@ -65,6 +71,35 @@ const MessageItem = ({
   const { firstUrl } = useLinkPreviews(message.content)
   const pinMessageMutation = usePinMessage()
   const unpinMessageMutation = useUnpinMessage()
+  const [showReactionPicker, setShowReactionPicker] = useState(false)
+  const reactionPickerRef = useRef<HTMLDivElement>(null)
+  
+  const queryClient = useQueryClient()
+  
+  const toggleReactionMutation = useMutation({
+    mutationFn: async ({ messageId, emoji }: { messageId: string, emoji: string }) => {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/message/${messageId}/reactions`, { emoji }, { withCredentials: true })
+      return response.data
+    },
+    onSuccess: () => {
+        // No action needed, updated via socket
+    }
+  })
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (reactionPickerRef.current && !reactionPickerRef.current.contains(event.target as Node)) {
+        setShowReactionPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+  
+  const handleReactionClick = (emoji: string) => {
+    toggleReactionMutation.mutate({ messageId: message._id, emoji })
+    setShowReactionPicker(false)
+  }
 
   const isSenderMe = typeof message.senderId === 'object' && message.senderId._id === currentUser?._id
   
@@ -222,7 +257,10 @@ const MessageItem = ({
         </div>
       )}
       <div className="flex gap-4">
-        <div className="w-10 h-10 rounded-full bg-[#5865f2] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 cursor-pointer hover:drop-shadow-md transition-all active:translate-y-px">
+        <div 
+          onClick={() => onAvatarClick?.(senderInfo)}
+          className="w-10 h-10 rounded-full bg-[#5865f2] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 cursor-pointer hover:drop-shadow-md transition-all active:translate-y-px"
+        >
         {avatar ? (
           <img
             src={avatar}
@@ -331,6 +369,41 @@ const MessageItem = ({
           </>
         )}
       </div>
+      
+        {/* Reactions Display */}
+        {message.reactions && message.reactions.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1 ml-10">
+            {(() => {
+                // Group reactions by emoji
+                const reactionGroups: { [emoji: string]: { count: number, hasReacted: boolean } } = {};
+                message.reactions.forEach((r: any) => {
+                    if (!reactionGroups[r.emoji]) {
+                        reactionGroups[r.emoji] = { count: 0, hasReacted: false };
+                    }
+                    reactionGroups[r.emoji].count++;
+                    const reactionUserId = typeof r.userId === 'object' ? r.userId._id : r.userId; // Handle populated or raw ID
+                    if (currentUser && (reactionUserId === currentUser._id)) {
+                        reactionGroups[r.emoji].hasReacted = true;
+                    }
+                });
+
+                return Object.entries(reactionGroups).map(([emoji, { count, hasReacted }]) => (
+                    <button
+                        key={emoji}
+                        onClick={() => toggleReactionMutation.mutate({ messageId: message._id, emoji })}
+                        className={`flex items-center gap-1.5 px-1.5 py-0.5 rounded-[4px] border text-xs font-semibold min-w-[2rem] transition-colors
+                            ${hasReacted 
+                                ? 'bg-[#3b405a] border-[#5865f2] text-white hover:bg-[#454960]' 
+                                : 'bg-[#2b2d31] border-transparent text-[#949ba4] hover:bg-[#313338] hover:border-[#383a40]'
+                            }`}
+                    >
+                        <span>{emoji}</span>
+                        <span className={hasReacted ? 'text-[#dee0fc]' : ''}>{count}</span>
+                    </button>
+                ));
+            })()}
+          </div>
+        )}
       </div>
 
       {(canAct || canModerate || canPin || canReply) && !isEditing && (
@@ -373,6 +446,28 @@ const MessageItem = ({
               </button>
             )}
 
+            <button
+              onClick={() => setShowReactionPicker(!showReactionPicker)}
+              className="p-1.5 hover:bg-[#2a2a2a] text-[#b4b4b4] hover:text-white rounded transition-colors relative group/tooltip"
+            >
+              <SmilePlus className="w-5 h-5" />
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap font-semibold">
+                Add Reaction
+              </div>
+            </button>
+            {showReactionPicker && (
+                <div ref={reactionPickerRef} className="absolute right-0 top-8 z-50">
+                    <EmojiPicker 
+                        onEmojiClick={(emojiData) => handleReactionClick(emojiData.emoji)}
+                        theme={Theme.DARK}
+                        emojiStyle={EmojiStyle.TWITTER}
+                        lazyLoadEmojis={true}
+                        width={300}
+                        height={400}
+                    />
+                </div>
+            )}
+            
             <button
               onClick={() => setMenuOpen(!menuOpen)}
               className={`p-1.5 hover:bg-[#2a2a2a] text-[#b4b4b4] hover:text-white rounded transition-colors relative group/tooltip ${menuOpen ? 'bg-[#2a2a2a] text-white' : ''}`}
@@ -820,7 +915,7 @@ export default function ChannelsPage() {
   
   const isServerOwner = useMemo(() => {
     if (!currentUser) return false
-    const currentId = currentUser._id || currentUser.id
+    const currentId = currentUser._id || currentUser._id
     const actualOwnerId = ownerId || selectedServer?.ownerId
     if (!actualOwnerId || !currentId) return false
     
@@ -949,6 +1044,17 @@ export default function ChannelsPage() {
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null)
+
+  // User profile modal state
+  const [userModalOpen, setUserModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+
+  const handleAvatarClick = (user: any) => {
+    if (user && user._id !== currentUser?._id) {
+      setSelectedUser(user)
+      setUserModalOpen(true)
+    }
+  }
 
   const handleSendAction = (typeMod: 'TEXT' | 'FILE' = 'TEXT', attachments: any[] = []) => {
     handleSend(typeMod, attachments)
@@ -1183,6 +1289,7 @@ export default function ChannelsPage() {
                           onReply={(msg) => setReplyingToMessage(msg)}
                           onReplyClick={scrollToMessage}
                           isServerOwner={isServerOwner}
+                          onAvatarClick={handleAvatarClick}
                         />
                       );
                     })}
@@ -1271,6 +1378,19 @@ export default function ChannelsPage() {
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDelete}
       />
+
+      {/* User Profile Modal */}
+      {selectedUser && (
+        <UserClickModal
+          isOpen={userModalOpen}
+          onClose={() => {
+            setUserModalOpen(false)
+            setSelectedUser(null)
+          }}
+          user={selectedUser}
+          currentUserId={currentUser?._id}
+        />
+      )}
     </>
   )
 }
