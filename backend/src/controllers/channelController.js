@@ -5,7 +5,7 @@ const { canAccessChannel, filterAccessibleChannels } = require('../utils/channel
 exports.createChannel = async (req, res) => {
     try {
         const { serverId } = req.params;
-        const { name, type, topic, position, isPrivate, isReadOnly, allowedRoleIds } = req.body;
+        const { name, type, topic, position, isPrivate, isReadOnly, slowMode, allowedRoleIds } = req.body;
 
         if (!name || name.length > 100) {
             return res.status(400).json({
@@ -71,6 +71,7 @@ exports.createChannel = async (req, res) => {
                 position: position || 0,
                 isPrivate: isPrivate || false,
                 isReadOnly: isReadOnly || false,
+                slowMode: slowMode || 0,
                 allowedRoleIds: allowedRoleIds || []
             }
         });
@@ -181,7 +182,7 @@ exports.getChannelById = async (req, res) => {
 exports.updateChannel = async (req, res) => {
     try {
         const { channelId } = req.params;
-        const { name, topic, position, type, isPrivate, isReadOnly, allowedRoleIds } = req.body;
+        const { name, topic, position, type, isPrivate, isReadOnly, slowMode, allowedRoleIds } = req.body;
 
         const channel = await db.channel.findUnique({
             where: { id: channelId }
@@ -252,6 +253,7 @@ exports.updateChannel = async (req, res) => {
         }
         if (isPrivate !== undefined) updateData.isPrivate = isPrivate;
         if (isReadOnly !== undefined) updateData.isReadOnly = isReadOnly;
+        if (slowMode !== undefined) updateData.slowMode = slowMode;
         if (allowedRoleIds !== undefined) updateData.allowedRoleIds = allowedRoleIds;
 
         const updatedChannel = await db.channel.update({

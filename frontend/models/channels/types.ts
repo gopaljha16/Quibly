@@ -12,8 +12,13 @@ export interface Channel {
     _id: string
     serverId: string
     name: string
-    type: 'text' | 'voice'
+    type: 'TEXT' | 'VOICE'
+    topic?: string
     position: number
+    isPrivate?: boolean
+    isReadOnly?: boolean
+    slowMode?: number
+    allowedRoleIds?: string[]
     createdAt: string
     updatedAt: string
 }

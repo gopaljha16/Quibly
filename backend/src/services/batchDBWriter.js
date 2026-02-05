@@ -27,18 +27,26 @@ async function processBatch() {
         }
 
         // Prepare data for batch insert
-        const messagesToInsert = messages.map(msg => ({
-            id: msg.id,
-            channelId: msg.channelId,
-            serverId: msg.serverId,
-            senderId: msg.senderId,
-            content: msg.content,
-            type: msg.type || 'TEXT',
-            attachments: msg.attachments || [],
-            mentions: msg.mentions || [],
-            createdAt: new Date(msg.createdAt),
-            parentId: msg.parentId || null
-        }));
+        const messagesToInsert = messages.map(msg => {
+            // Ensure senderId is a string
+            let senderId = msg.senderId;
+            if (typeof senderId === 'object' && senderId !== null) {
+                senderId = senderId._id || senderId.id;
+            }
+
+            return {
+                id: msg.id,
+                channelId: msg.channelId,
+                serverId: msg.serverId,
+                senderId: senderId, // Use extracted string ID
+                content: msg.content,
+                type: msg.type || 'TEXT',
+                attachments: msg.attachments || [],
+                mentions: msg.mentions || [],
+                createdAt: new Date(msg.createdAt),
+                parentId: msg.parentId || null
+            };
+        });
 
         // Batch insert to database
         const result = await db.message.createMany({
