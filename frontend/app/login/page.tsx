@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { 
   Mail, Lock, Eye, EyeOff, LogIn, ArrowLeft, Sparkles, 
   MessageSquare, Users, Hash, Zap, Terminal, Code, 
-  Activity, Radio, Layers
+  Activity, Radio, Layers, Check
 } from 'lucide-react'
 import { apiPost, apiGet, ApiError } from '@/lib/api'
 import { GoogleLogin } from '@react-oauth/google'
@@ -24,7 +24,10 @@ function LoginContent() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSuccess, setForgotSuccess] = useState(false)
+  const [errors, setErrors] = useState<{ email?: string; password?: string; forgot?: string }>({})
 
   // Check if user is already logged in
   useEffect(() => {
@@ -83,6 +86,30 @@ function LoginContent() {
     }
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!forgotEmail) {
+      setErrors({ forgot: 'Email is required' })
+      return
+    }
+    
+    setIsLoading(true)
+    setErrors({})
+    
+    try {
+      await apiPost('/auth/forgot-password', { email: forgotEmail })
+      setForgotSuccess(true)
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setErrors({ forgot: error.message })
+      } else {
+        setErrors({ forgot: 'Failed to send reset link. Please try again.' })
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#020204] text-[#ececed] font-sans selection:bg-cyan-500/40 overflow-hidden">
       
@@ -135,7 +162,8 @@ function LoginContent() {
               
               {/* Form Container */}
               <div className="relative bg-[#08080a] border border-white/10 rounded-[30px] p-8 backdrop-blur-xl">
-                <form onSubmit={handleSubmit} className="space-y-6">
+                {!showForgotPassword ? (
+                  <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Email */}
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
@@ -208,9 +236,13 @@ function LoginContent() {
                         Remember me
                       </label>
                     </div>
-                    <a href="#" className="text-xs text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider hover:underline transition-colors">
+                    <button 
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-xs text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider hover:underline transition-colors"
+                    >
                       Forgot?
-                    </a>
+                    </button>
                   </div>
 
                   {/* Submit Button */}
@@ -260,7 +292,85 @@ function LoginContent() {
                       shape="pill"
                     />
                   </div>
-                </form>
+                  </form>
+                ) : (
+                  <div className="space-y-6">
+                    {forgotSuccess ? (
+                      <div className="text-center py-6">
+                        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                          <Check className="w-8 h-8 text-emerald-400" />
+                        </div>
+                        <h2 className="text-2xl font-black mb-4 uppercase italic">Link Sent!</h2>
+                        <p className="text-gray-400 text-sm mb-8 leading-relaxed">
+                          If an account exists for {forgotEmail}, we've sent a password reset link to your inbox.
+                        </p>
+                        <Button
+                          onClick={() => {
+                            setShowForgotPassword(false)
+                            setForgotSuccess(false)
+                            setForgotEmail('')
+                          }}
+                          className="w-full h-12 bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl"
+                        >
+                          Back to Login
+                        </Button>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleForgotPassword} className="space-y-6">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between mb-4">
+                            <button
+                              type="button"
+                              onClick={() => setShowForgotPassword(false)}
+                              className="text-gray-500 hover:text-cyan-400 flex items-center gap-2 transition-all group"
+                            >
+                              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                              <span className="text-[10px] font-black uppercase tracking-widest">Return</span>
+                            </button>
+                          </div>
+                          <h2 className="text-2xl font-black mb-2 uppercase italic tracking-tight">Recover Account</h2>
+                          <p className="text-gray-500 text-xs font-medium mb-6">
+                            Enter your email to receive a secure recovery link.
+                          </p>
+                          
+                          <Label htmlFor="forgotEmail" className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                            <Mail className="w-3 h-3" />
+                            Email Address
+                          </Label>
+                          <Input
+                            id="forgotEmail"
+                            type="email"
+                            value={forgotEmail}
+                            onChange={(e) => setForgotEmail(e.target.value)}
+                            className={`bg-white/5 border-white/10 text-white h-12 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
+                              errors.forgot ? 'border-red-500 ring-2 ring-red-500/20' : ''
+                            }`}
+                            placeholder="your.email@quibly.com"
+                            autoFocus
+                          />
+                          {errors.forgot && (
+                            <p className="text-xs text-red-400 flex items-center gap-1.5">
+                              <span className="w-1 h-1 rounded-full bg-red-400"></span>
+                              {errors.forgot}
+                            </p>
+                          )}
+                        </div>
+
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl shadow-white/10 mt-4 relative overflow-hidden group"
+                        >
+                          {isLoading ? (
+                            <div className="h-5 w-5 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto"></div>
+                          ) : (
+                            "Send Recovery Link"
+                          )}
+                        </Button>
+                      </form>
+                    )}
+                  </div>
+                )}
 
                 {/* Divider */}
                 <div className="relative my-8">

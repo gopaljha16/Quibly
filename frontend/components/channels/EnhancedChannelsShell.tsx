@@ -109,6 +109,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       customStatus?: string
     }
     isOwner: boolean
+    roleIds: string[]
   } | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [serverSettingsOpen, setServerSettingsOpen] = useState(false)
@@ -179,6 +180,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     membersLoading,
     membersError,
     members,
+    roles,
     ownerId,
     updateServer,
   } = useChannelsData()
@@ -1034,59 +1036,143 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 </div>
               )}
 
-              {/* Group Members by Status (Simplified for now) */}
-              <div className="px-3 pt-3 pb-1 text-xs text-[#949ba4] font-bold uppercase tracking-wide">
-                Online — {members.length}
-              </div>
+              {/* Group Members by Roles */}
+              {(() => {
+                // 1. Sort roles by position (highest first)
+                const sortedRoles = [...roles].sort((a, b) => b.position - a.position)
+                
+                // 2. Identify hoisted roles
+                const hoistedRoles = sortedRoles.filter(r => r.hoist)
+                
+                // 3. Helper to get member's highest role color for their name
+                const getMemberNameColor = (member: typeof members[0], isOwner: boolean) => {
+                  const memberRoles = sortedRoles.filter(r => member.roleIds.includes(r.id))
+                  const topRoleColor = memberRoles[0]?.color
+                  if (topRoleColor && topRoleColor !== '#ffffff') return topRoleColor
+                  return isOwner ? '#F0B232' : null // Default gold for owner if no role color
+                }
 
-              {members.map((m) => {
-                const user = m.user
-                const isOwner = ownerId ? ownerId === user._id : false
-                const userStatus = getUserStatus(user._id)
-                const isOnline = isUserOnline(user._id)
+                // 4. Group members
+                const groups: { [key: string]: { name: string, members: typeof members } } = {}
+                const placedMemberIds = new Set<string>()
 
-                return (
-                  <button
-                    key={m._id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedMember({ 
-                        user: { 
-                          ...user, 
-                          status: userStatus,
-                          banner: user.banner,
-                          bio: user.bio
-                        }, 
-                        isOwner 
-                      })
-                    }}
-                    className="w-full px-2 py-1.5 rounded hover:bg-[#35373c] transition-colors flex items-center gap-3 group"
-                  >
-                    <UserAvatar
-                      username={user.username}
-                      avatar={user.avatar}
-                      size="md"
-                      status={userStatus}
-                      showStatus
-                    />
-                    <div className="min-w-0 flex-1 text-left">
-                      <div className="flex items-center gap-1.5">
-                        <div className={`text-[15px] font-medium truncate ${isOnline ? 'text-white' : 'text-[#808080] group-hover:text-white'}`}>
-                          {user.username}
-                        </div>
-                        {isOwner && (
-                          <svg className="w-3.5 h-3.5 text-[#f0b232]" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M13.6572 5.42868C13.8879 5.29002 14.1806 5.30402 14.3973 5.46468C14.6133 5.62602 14.7119 5.90068 14.6473 6.16202L13.3139 11.4954C13.2393 11.7927 12.9726 12.0007 12.6666 12.0007H3.33325C3.02725 12.0007 2.76058 11.7927 2.68592 11.4954L1.35258 6.16202C1.28792 5.90068 1.38658 5.62602 1.60258 5.46468C1.81992 5.30468 2.11192 5.29068 2.34325 5.42868L5.13192 7.10202L7.44592 3.63068C7.46173 3.60697 7.48026 3.5853 7.50125 3.56602C7.62192 3.45535 7.78058 3.39002 7.94525 3.38202H8.05458C8.21925 3.39002 8.37792 3.45535 8.49925 3.56602C8.52024 3.5853 8.53877 3.60697 8.55458 3.63068L10.8686 7.10202L13.6572 5.42868ZM2.66667 13.334H13.3333V14.6673H2.66667V13.334Z" />
-                          </svg>
-                        )}
-                      </div>
-                      {user.customStatus && (
-                        <div className="text-xs text-[#808080] truncate group-hover:text-white">{user.customStatus}</div>
-                      )}
-                    </div>
-                  </button>
+                // Special handling for Owner group if no hoisted "Owner" role exists
+                const OWNER_GOLD = '#F0B232'
+                const ownerRoleExists = roles.some(r => r.name === 'Owner' && r.hoist)
+                
+                if (!ownerRoleExists) {
+                  const ownerMembers = members.filter(m => {
+                    const isOwner = ownerId ? ownerId === m.user._id : false
+                    return isOwner && isUserOnline(m.user._id)
+                  })
+                  if (ownerMembers.length > 0) {
+                    groups['virtual-owner'] = {
+                      name: 'Owner',
+                      members: ownerMembers
+                    }
+                    ownerMembers.forEach(m => placedMemberIds.add(m._id))
+                  }
+                }
+
+                // Group by hoisted roles (Online only)
+                hoistedRoles.forEach(role => {
+                  const roleMembers = members.filter(m => 
+                    m.roleIds.includes(role.id) && 
+                    !placedMemberIds.has(m._id) && 
+                    isUserOnline(m.user._id)
+                  )
+                  if (roleMembers.length > 0) {
+                    groups[role.id] = {
+                      name: role.name,
+                      members: roleMembers
+                    }
+                    roleMembers.forEach(m => placedMemberIds.add(m._id))
+                  }
+                })
+
+                // Remaining ONLINE members go to "Online" group
+                const onlineMembers = members.filter(m => 
+                  !placedMemberIds.has(m._id) && 
+                  isUserOnline(m.user._id)
                 )
-              })}
+                if (onlineMembers.length > 0) {
+                  groups['online'] = {
+                    name: 'Online',
+                    members: onlineMembers
+                  }
+                  onlineMembers.forEach(m => placedMemberIds.add(m._id))
+                }
+
+                // All OFFLINE members go to "Offline" group
+                const offlineMembers = members.filter(m => !placedMemberIds.has(m._id))
+                if (offlineMembers.length > 0) {
+                  groups['offline'] = {
+                    name: 'Offline',
+                    members: offlineMembers
+                  }
+                }
+
+                return Object.entries(groups).map(([id, group]) => (
+                  <div key={id} className="mb-6">
+                    <div className="px-3 pt-3 pb-1 text-xs text-[#949ba4] font-bold uppercase tracking-wide">
+                      {group.name} — {group.members.length}
+                    </div>
+                    {group.members.map((m) => {
+                      const user = m.user
+                      const isOwner = ownerId ? ownerId === user._id : false
+                      const userStatus = getUserStatus(user._id)
+                      const isOnline = isUserOnline(user._id)
+                      const nameColor = getMemberNameColor(m, isOwner)
+
+                      return (
+                        <button
+                          key={m._id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedMember({ 
+                              user: { 
+                                ...user, 
+                                status: userStatus,
+                                banner: user.banner,
+                                bio: user.bio
+                              }, 
+                              isOwner,
+                              roleIds: m.roleIds
+                            })
+                          }}
+                          className="w-full px-2 py-1.5 rounded hover:bg-[#35373c] transition-colors flex items-center gap-3 group"
+                        >
+                          <UserAvatar
+                            username={user.username}
+                            avatar={user.avatar}
+                            size="md"
+                            status={userStatus}
+                            showStatus
+                          />
+                          <div className="min-w-0 flex-1 text-left">
+                            <div className="flex items-center gap-1.5">
+                              <div 
+                                className={`text-[15px] font-medium truncate group-hover:text-white`}
+                                style={{ color: nameColor ? nameColor : (isOnline ? '#ffffff' : '#808080') }}
+                              >
+                                {user.username}
+                              </div>
+                              {isOwner && (
+                                <svg className="w-3.5 h-3.5 text-[#f0b232]" viewBox="0 0 16 16" fill="currentColor">
+                                  <path d="M13.6572 5.42868C13.8879 5.29002 14.1806 5.30402 14.3973 5.46468C14.6133 5.62602 14.7119 5.90068 14.6473 6.16202L13.3139 11.4954C13.2393 11.7927 12.9726 12.0007 12.6666 12.0007H3.33325C3.02725 12.0007 2.76058 11.7927 2.68592 11.4954L1.35258 6.16202C1.28792 5.90068 1.38658 5.62602 1.60258 5.46468C1.81992 5.30468 2.11192 5.29068 2.34325 5.42868L5.13192 7.10202L7.44592 3.63068C7.46173 3.60697 7.48026 3.5853 7.50125 3.56602C7.62192 3.45535 7.78058 3.39002 7.94525 3.38202H8.05458C8.21925 3.39002 8.37792 3.45535 8.49925 3.56602C8.52024 3.5853 8.53877 3.60697 8.55458 3.63068L10.8686 7.10202L13.6572 5.42868ZM2.66667 13.334H13.3333V14.6673H2.66667V13.334Z" />
+                                </svg>
+                              )}
+                            </div>
+                            {user.customStatus && (
+                              <div className="text-xs text-[#808080] truncate group-hover:text-white">{user.customStatus}</div>
+                            )}
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ))
+              })()}
             </div>
           </div>
         )}
@@ -1210,6 +1296,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             ? { ...currentUser, status: selectedMember.user.status || currentUser.status }
             : (selectedMember?.user || null)}
           isOwner={!!selectedMember?.isOwner}
+          roleIds={selectedMember?.roleIds}
+          roles={roles}
         />
 
         <UserProfileViewModal

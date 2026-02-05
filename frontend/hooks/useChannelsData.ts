@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { useServers, useChannels, useMembers } from './queries'
+import { useServers, useChannels, useMembers, useRoles } from './queries'
 import {
   useCreateServer,
   useJoinServer,
@@ -49,6 +49,7 @@ export function useChannelsData() {
   const { data: servers = [], isLoading: serversLoading, error: serversError } = useServers()
   const { data: channels = [], isLoading: channelsLoading, error: channelsError } = useChannels(route.serverId)
   const { data: membersData, isLoading: membersLoading, error: membersError } = useMembers(route.serverId)
+  const { data: roles = [], isLoading: rolesLoading } = useRoles(route.serverId)
 
   // Mutations
   const createServerMutation = useCreateServer()
@@ -182,6 +183,7 @@ export function useChannelsData() {
     servers,
     channels,
     members: membersData?.members || [],
+    roles,
     ownerId: membersData?.ownerId || null,
     selectedServer,
     selectedChannel,
@@ -190,6 +192,7 @@ export function useChannelsData() {
     serversLoading,
     channelsLoading,
     membersLoading,
+    rolesLoading,
 
     // Errors
     serversError,

@@ -11,9 +11,9 @@ router.post('/verify-email', authController.verifyEmail);
 router.post('/resend-verification', authController.resendVerificationEmail);
 router.post('/test-email', authController.testEmailVerification);
 router.post('/forgot-password', authController.forgotPassword);
+router.post('/unlock-reset', authController.resetPassword);
 
 // Protected routes (require authentication - user must be logged in)
-router.post('/reset-password', authenticate, authController.resetPassword);
 router.post('/logout', authenticate, authController.logout);
 router.get('/profile', authenticate, authController.getProfile);
 router.put('/profile', authenticate, authController.updateProfile);

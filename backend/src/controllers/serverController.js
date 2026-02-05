@@ -31,12 +31,37 @@ exports.createServer = async (req, res) => {
             }
         });
 
+        // Create default @everyone role
+        const defaultRole = await db.role.create({
+            data: {
+                name: '@everyone',
+                serverId: server.id,
+                isDefault: true,
+                permissions: 0,
+                position: 0,
+                hoist: false
+            }
+        });
+
+        // Create 'Owner' role (hoisted)
+        const ownerRole = await db.role.create({
+            data: {
+                name: 'Owner',
+                serverId: server.id,
+                isDefault: false,
+                permissions: 1073741823, // Full permissions
+                position: 1,
+                hoist: true,
+                color: '#F0B232' // Gold color
+            }
+        });
+
         // Add creator as server member
         await db.serverMember.create({
             data: {
                 serverId: server.id,
                 userId: req.user.id,
-                roleIds: [] // Will be set when roles are created
+                roleIds: [defaultRole.id, ownerRole.id]
             }
         });
 

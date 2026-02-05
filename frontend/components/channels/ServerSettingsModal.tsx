@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { apiRequest, ApiError } from '@/lib/api'
+import RolesTab from './RolesTab'
+import MembersTab from './MembersTab'
+import { useChannelsData } from '@/hooks/useChannelsData'
 
 type Server = {
    _id: string
@@ -27,6 +30,7 @@ export default function ServerSettingsModal({
    onUpdate: (updatedServer: Server) => void
 }) {
    const [activeTab, setActiveTab] = useState('overview')
+   const { deleteServer } = useChannelsData()
    const [formData, setFormData] = useState({
       name: '',
       description: '',
@@ -85,6 +89,18 @@ export default function ServerSettingsModal({
       }
    }
 
+   const handleDeleteServer = async () => {
+      if (!server) return
+      if (!confirm(`Are you sure you want to delete ${server.name}? This action cannot be undone.`)) return
+      
+      try {
+         await deleteServer(server._id)
+         onClose()
+      } catch (e) {
+         setError('Failed to delete server')
+      }
+   }
+
    if (!open || !server) return null
 
    const tabs = [
@@ -126,6 +142,7 @@ export default function ServerSettingsModal({
                      <div className="h-[1px] bg-[#3F4147] my-2 mx-2" />
 
                      <button
+                        onClick={handleDeleteServer}
                         className="w-full text-left px-2.5 py-1.5 rounded-[4px] mb-[2px] text-sm font-medium flex items-center justify-between text-[#DA373C] hover:bg-[#DA373C]/10 transition-colors"
                      >
                         Delete Server
@@ -136,91 +153,114 @@ export default function ServerSettingsModal({
                {/* Main Content */}
                <div className="flex-1 bg-[#12131a] flex flex-col relative">
                   <div className="flex-1 overflow-y-auto p-[40px] custom-scrollbar">
-                     <div className="max-w-[460px]">
-                        <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Overview</h2>
+                     {activeTab === 'overview' && (
+                        <div className="max-w-[460px]">
+                           <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Overview</h2>
+                           
+                           <div className="flex gap-8 mb-8">
+                              <div className="flex-1">
+                                 {/* Server Name */}
+                                 <div className="mb-6">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                                       Server Name
+                                    </label>
+                                    <input
+                                       value={formData.name}
+                                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                       className="w-full bg-[#1E1F22] text-slate-50 p-2.5 rounded-[3px] border-none outline-none font-medium"
+                                    />
+                                 </div>
 
-                        <div className="flex gap-8 mb-8">
-                           <div className="flex-1">
-                              {/* Server Name */}
-                              <div className="mb-6">
-                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                                    Server Name
-                                 </label>
-                                 <input
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full bg-[#12131a] text-slate-50 p-2.5 rounded-[3px] border-none outline-none font-medium"
-                                 />
+                                 {/* Description */}
+                                 <div className="mb-6">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                                       Description
+                                    </label>
+                                    <textarea
+                                       value={formData.description}
+                                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                       className="w-full bg-[#1E1F22] text-slate-50 p-2.5 rounded-[3px] border-none outline-none font-medium h-[100px] resize-none"
+                                       placeholder="Tell us about your server!"
+                                    />
+                                 </div>
                               </div>
 
-                              {/* Description */}
-                              <div className="mb-6">
-                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                                    Description
-                                 </label>
-                                 <textarea
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full bg-[#1E1F22] text-slate-50 p-2.5 rounded-[3px] border-none outline-none font-medium h-[100px] resize-none"
-                                    placeholder="Tell us about your server!"
-                                 />
+                              {/* Icon Upload Placeholder */}
+                              <div className="flex flex-col items-center gap-2">
+                                 <div className="w-[100px] h-[100px] rounded-full bg-[#1E1F22] border-2 border-dashed border-[#4E5058] flex items-center justify-center text-slate-400 text-xs text-center p-2 cursor-pointer hover:border-[#F2F3F5] transition-colors">
+                                    {formData.icon ? (
+                                       <img src={formData.icon} alt="Server Icon" className="w-full h-full rounded-full object-cover" />
+                                    ) : (
+                                       <span>Upload Icon</span>
+                                    )}
+                                 </div>
+                                 <div className="text-[10px] text-slate-500">Minimum Size: 128x128</div>
                               </div>
                            </div>
 
-                           {/* Icon Upload Placeholder */}
-                           <div className="flex flex-col items-center gap-2">
-                              <div className="w-[100px] h-[100px] rounded-full bg-[#1E1F22] border-2 border-dashed border-[#4E5058] flex items-center justify-center text-slate-400 text-xs text-center p-2 cursor-pointer hover:border-[#F2F3F5] transition-colors">
-                                 {formData.icon ? (
-                                    <img src={formData.icon} alt="Server Icon" className="w-full h-full rounded-full object-cover" />
-                                 ) : (
-                                    <span>Upload Icon</span>
-                                 )}
+                           {/* Verification Level */}
+                           <div className="mb-8">
+                              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                                 Verification Level
+                              </label>
+                              <div className="bg-[#1E1F22] rounded-[3px] p-2">
+                                 <select
+                                    value={formData.verificationLevel}
+                                    onChange={(e) => setFormData({ ...formData, verificationLevel: e.target.value as any })}
+                                    className="w-full bg-transparent text-slate-50 outline-none text-sm"
+                                 >
+                                    <option value="none">None - Unrestricted</option>
+                                    <option value="low">Low - Must have verified email</option>
+                                    <option value="medium">Medium - Must be registered for 5 mins</option>
+                                    <option value="high">High - Must be member for 10 mins</option>
+                                 </select>
                               </div>
-                              <div className="text-[10px] text-slate-500">Minimum Size: 128x128</div>
                            </div>
-                        </div>
 
-                        {/* Verification Level */}
-                        <div className="mb-8">
-                           <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                              Verification Level
-                           </label>
-                           <div className="bg-[#12131a] rounded-[3px] p-2">
-                              <select
-                                 value={formData.verificationLevel}
-                                 onChange={(e) => setFormData({ ...formData, verificationLevel: e.target.value as any })}
-                                 className="w-full bg-transparent text-slate-50 outline-none text-sm"
+                           {/* Public Toggle */}
+                           <div className="flex items-center justify-between mb-8">
+                              <div>
+                                 <div className="text-sm font-medium text-[#F2F3F5]">Public Server</div>
+                                 <div className="text-xs text-slate-400">Allow anyone to discover and join your server</div>
+                              </div>
+                              <button
+                                 onClick={() => setFormData({ ...formData, isPublic: !formData.isPublic })}
+                                 className={`w-10 h-6 rounded-full p-1 transition-colors ${formData.isPublic ? 'bg-[#23A559]' : 'bg-[#80848E]'
+                                    }`}
                               >
-                                 <option value="none">None - Unrestricted</option>
-                                 <option value="low">Low - Must have verified email</option>
-                                 <option value="medium">Medium - Must be registered for 5 mins</option>
-                                 <option value="high">High - Must be member for 10 mins</option>
-                              </select>
+                                 <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${formData.isPublic ? 'translate-x-4' : 'translate-x-0'
+                                    }`} />
+                              </button>
                            </div>
-                        </div>
 
-                        {/* Public Toggle */}
-                        <div className="flex items-center justify-between mb-8">
-                           <div>
-                              <div className="text-sm font-medium text-[#F2F3F5]">Public Server</div>
-                              <div className="text-xs text-slate-400">Allow anyone to discover and join your server</div>
-                           </div>
-                           <button
-                              onClick={() => setFormData({ ...formData, isPublic: !formData.isPublic })}
-                              className={`w-10 h-6 rounded-full p-1 transition-colors ${formData.isPublic ? 'bg-[#23A559]' : 'bg-[#80848E]'
-                                 }`}
-                           >
-                              <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${formData.isPublic ? 'translate-x-4' : 'translate-x-0'
-                                 }`} />
-                           </button>
+                           {error && (
+                              <div className="mb-4 text-xs font-medium text-[#F23F43]">
+                                 {error}
+                              </div>
+                           )}
                         </div>
+                     )}
 
-                        {error && (
-                           <div className="mb-4 text-xs font-medium text-[#F23F43]">
-                              {error}
-                           </div>
-                        )}
-                     </div>
+                     {activeTab === 'roles' && (
+                        <div className="h-full">
+                           <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Roles</h2>
+                           <RolesTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'members' && (
+                        <div className="h-full">
+                           <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Members</h2>
+                           <MembersTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {(activeTab === 'moderation' || activeTab === 'channels' || activeTab === 'integrations') && (
+                        <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-4">
+                           <div className="text-4xl">🚧</div>
+                           <p>The {tabs.find(t => t.id === activeTab)?.name} tab is coming soon!</p>
+                        </div>
+                     )}
                   </div>
 
                   {/* Close Button */}
@@ -237,29 +277,31 @@ export default function ServerSettingsModal({
                   </div>
 
                   {/* Save Changes Bar */}
-                  <div className="bg-[#0a0b0f] p-4 flex justify-end gap-3 shadow-lg">
-                     <button
-                        onClick={() => setFormData({
-                           name: server.name || '',
-                           description: server.description || '',
-                           icon: server.icon || '',
-                           banner: server.banner || '',
-                           isPublic: server.isPublic || false,
-                           verificationLevel: server.verificationLevel || 'none'
-                        })}
-                        className="px-4 py-2 text-sm font-medium text-white hover:underline transition-colors"
-                        disabled={saving}
-                     >
-                        Reset
-                     </button>
-                     <button
-                        onClick={handleSave}
-                        className="px-6 py-2 rounded-[3px] text-sm font-medium bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-[#0b0500] font-bold transition-colors disabled:opacity-50"
-                        disabled={saving}
-                     >
-                        {saving ? 'Saving Changes...' : 'Save Changes'}
-                     </button>
-                  </div>
+                  {activeTab === 'overview' && (
+                     <div className="bg-[#0a0b0f] p-4 flex justify-end gap-3 shadow-lg">
+                        <button
+                           onClick={() => setFormData({
+                              name: server.name || '',
+                              description: server.description || '',
+                              icon: server.icon || '',
+                              banner: server.banner || '',
+                              isPublic: server.isPublic || false,
+                              verificationLevel: server.verificationLevel || 'none'
+                           })}
+                           className="px-4 py-2 text-sm font-medium text-white hover:underline transition-colors"
+                           disabled={saving}
+                        >
+                           Reset
+                        </button>
+                        <button
+                           onClick={handleSave}
+                           className="px-6 py-2 rounded-[3px] text-sm font-medium bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-[#0b0500] font-bold transition-colors disabled:opacity-50"
+                           disabled={saving}
+                        >
+                           {saving ? 'Saving Changes...' : 'Save Changes'}
+                        </button>
+                     </div>
+                  )}
                </div>
             </div>
          </div>

@@ -32,11 +32,15 @@ export default function MemberProfileModal({
   onClose,
   user,
   isOwner,
+  roleIds,
+  roles,
 }: {
   open: boolean
   onClose: () => void
   user: MemberUser | null
   isOwner: boolean
+  roleIds?: string[]
+  roles?: Array<{ id: string, name: string, color: string | null }>
 }) {
   useEffect(() => {
     if (!open) return
@@ -102,10 +106,15 @@ export default function MemberProfileModal({
             {/* User Info */}
             <div className="mb-4 bg-[#0a0b0f] rounded-[8px] p-3 border border-cyan-500/10">
               <div className="flex items-center gap-2 mb-1">
-                <div className="text-lg font-bold text-[#F2F3F5]">{user.username}</div>
+                <div 
+                  className="text-lg font-bold"
+                  style={{ color: isOwner ? '#F0B232' : '#F2F3F5' }}
+                >
+                  {user.username}
+                </div>
                 {isOwner && (
-                  <svg className="w-4 h-4 text-[#F0B232]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2L1 21H23L12 2ZM12 6L19.53 19H4.47L12 6Z" />
+                  <svg className="w-3.5 h-3.5 text-[#f0b232]" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M13.6572 5.42868C13.8879 5.29002 14.1806 5.30402 14.3973 5.46468C14.6133 5.62602 14.7119 5.90068 14.6473 6.16202L13.3139 11.4954C13.2393 11.7927 12.9726 12.0007 12.6666 12.0007H3.33325C3.02725 12.0007 2.76058 11.7927 2.68592 11.4954L1.35258 6.16202C1.28792 5.90068 1.38658 5.62602 1.60258 5.46468C1.81992 5.30468 2.11192 5.29068 2.34325 5.42868L5.13192 7.10202L7.44592 3.63068C7.46173 3.60697 7.48026 3.5853 7.50125 3.56602C7.62192 3.45535 7.78058 3.39002 7.94525 3.38202H8.05458C8.21925 3.39002 8.37792 3.45535 8.49925 3.56602C8.52024 3.5853 8.53877 3.60697 8.55458 3.63068L10.8686 7.10202L13.6572 5.42868ZM2.66667 13.334H13.3333V14.6673H2.66667V13.334Z" />
                   </svg>
                 )}
               </div>
@@ -128,19 +137,27 @@ export default function MemberProfileModal({
               </div>
             </div>
 
-            {/* Roles Section - Placeholder */}
+            {/* Roles Section */}
             <div className="mb-4">
               <div className="text-xs font-bold text-slate-400 uppercase mb-2">Roles</div>
               <div className="flex flex-wrap gap-1">
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]">
-                  <div className="w-3 h-3 rounded-full bg-[#99AAB5]" />
-                  <span className="text-xs font-medium text-slate-50">Member</span>
-                </div>
-                {isOwner && (
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-[#12131a] rounded-[4px] border border-[#0d0805]">
+                {(roles || []).filter(r => roleIds?.includes(r.id)).map(role => (
+                  <div 
+                    key={role.id}
+                    className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]"
+                  >
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color || '#99AAB5' }} />
+                    <span className="text-xs font-medium text-slate-50">{role.name}</span>
+                  </div>
+                ))}
+                {isOwner && !(roles || []).some(r => r.name === 'Owner' && roleIds?.includes(r.id)) && (
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]">
                     <div className="w-3 h-3 rounded-full bg-[#F0B232]" />
                     <span className="text-xs font-medium text-slate-50">Owner</span>
                   </div>
+                )}
+                {(roles || []).filter(r => roleIds?.includes(r.id)).length === 0 && !isOwner && (
+                  <span className="text-xs text-slate-500 italic">No roles assigned</span>
                 )}
               </div>
             </div>

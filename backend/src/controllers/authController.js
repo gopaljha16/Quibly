@@ -485,12 +485,12 @@ exports.forgotPassword = async (req, res) => {
 // Reset password
 exports.resetPassword = async (req, res) => {
     try {
-        const { token, newPassword } = req.body;
+        const { token, userId, newPassword } = req.body;
 
-        if (!token || !newPassword) {
+        if (!token || !userId || !newPassword) {
             return res.status(400).json({
                 success: false,
-                message: 'Token and newPassword are required'
+                message: 'Token, userId, and newPassword are required'
             });
         }
 
@@ -500,9 +500,6 @@ exports.resetPassword = async (req, res) => {
                 message: 'Password must be at least 6 characters'
             });
         }
-
-        // Get userId from authenticated user
-        const userId = req.user.id;
 
         // Verify token from Redis
         const storedUserId = await redis.get(`reset:${token}`);
