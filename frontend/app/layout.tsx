@@ -8,6 +8,7 @@ import { SocketProvider } from "@/providers/SocketProvider";
 import { GoogleAuthProvider } from "@/providers/GoogleAuthProvider";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Toaster } from "sonner";
+import { NotificationManager } from "@/components/NotificationManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,6 +64,7 @@ export default function RootLayout({
           <SocketProvider>
             <GoogleAuthProvider>
               <AuthGuard>
+                <NotificationManager />
                 {children}
               </AuthGuard>
             </GoogleAuthProvider>

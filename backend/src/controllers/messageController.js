@@ -107,6 +107,36 @@ exports.createMessage = async (req, res) => {
                 });
             }
 
+            // --- SLOW MODE CHECK ---
+            if (channel.slowMode > 0 && server.ownerId !== req.user.id) {
+                // Find the user's last message in this channel
+                const lastMessage = await db.message.findFirst({
+                    where: {
+                        channelId: channelId,
+                        senderId: req.user.id,
+                        isDeleted: false
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    }
+                });
+
+                if (lastMessage) {
+                    const lastMsgTime = new Date(lastMessage.createdAt).getTime();
+                    const now = Date.now();
+                    const diffSeconds = Math.floor((now - lastMsgTime) / 1000);
+
+                    if (diffSeconds < channel.slowMode) {
+                        return res.status(429).json({
+                            success: false,
+                            message: `Slow mode is enabled. Please wait ${channel.slowMode - diffSeconds} more seconds.`,
+                            cooldown: channel.slowMode - diffSeconds
+                        });
+                    }
+                }
+            }
+            // -----------------------
+
             if (server && server.bannedWords && server.bannedWords.length > 0 && content) {
                 const lowerContent = content.toLowerCase();
                 for (const word of server.bannedWords) {

@@ -155,6 +155,7 @@ model Channel {
   permissionOverwrites Json             @default("[]")
   isPrivate            Boolean          @default(false)
   isReadOnly           Boolean          @default(false)
+  slowMode             Int              @default(0)
   allowedRoleIds       String[]         @default([])
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt

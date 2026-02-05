@@ -479,7 +479,9 @@ const MessageInput = ({
   replyingToMessage,
   onCancelReply,
   members = [],
-  currentUserId
+  currentUserId,
+  slowMode = 0,
+  isExempt = false
 }: {
   channelName: string
   value: string
@@ -494,10 +496,27 @@ const MessageInput = ({
   onCancelReply?: () => void
   members?: any[]
   currentUserId?: string
+  slowMode?: number
+  isExempt?: boolean
 }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showGifPicker, setShowGifPicker] = useState(false)
   const [mentionSearch, setMentionSearch] = useState<string | null>(null)
+  const [localCooldown, setLocalCooldown] = useState(0)
+  
+  // Handle local cooldown countdown
+  useEffect(() => {
+    if (localCooldown <= 0) return
+    const timer = setInterval(() => {
+      setLocalCooldown(prev => Math.max(0, prev - 1))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [localCooldown])
+
+  // Reset local cooldown when switching channels
+  useEffect(() => {
+    setLocalCooldown(0)
+  }, [channelName])
   const [mentionIndex, setMentionIndex] = useState(0)
   const emojiPickerRef = useRef<HTMLDivElement>(null)
   const gifPickerRef = useRef<HTMLDivElement>(null)
@@ -567,7 +586,11 @@ const MessageInput = ({
 
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
+      if (slowMode > 0 && localCooldown > 0 && !isExempt) return
       onSend('TEXT')
+      if (slowMode > 0 && !isExempt) {
+        setLocalCooldown(slowMode)
+      }
     }
   }
 
@@ -653,6 +676,16 @@ const MessageInput = ({
         </div>
       )}
       <div className={`${replyingToMessage ? 'rounded-b-lg' : 'rounded-lg'} bg-[#383a40] focus-within:ring-1 focus-within:ring-[#00a8fc] transition-all relative`}>
+        {slowMode > 0 && (
+           <div className="absolute top-[-24px] right-0 text-xs text-[#949ba4] font-bold flex items-center gap-1">
+             <Clock className="w-3 h-3" />
+             {isExempt ? (
+               <span>Slow Mode Active (Immune)</span>
+             ) : (
+               <span>Slow Mode Active ({slowMode < 60 ? `${slowMode}s` : slowMode < 3600 ? `${Math.floor(slowMode / 60)}m` : `${Math.floor(slowMode / 3600)}h`})</span>
+             )}
+           </div>
+        )}
         <div className="absolute left-4 top-[10px] flex items-center">
           <input 
             type="file" 
@@ -682,6 +715,8 @@ const MessageInput = ({
               ? `You are timed out until ${new Date(timeoutUntil).toLocaleString()}. Reason: ${timeoutReason || 'No reason provided'}`
               : isReadOnly
                 ? 'Only the server owner can message in this channel'
+                : localCooldown > 0 && !isExempt
+                ? `Slow mode is enabled. Wait ${localCooldown}s to send another message.`
                 : isMe ? `Message @${channelName}` : `Message #${channelName}`
           }
           value={value}
@@ -691,7 +726,7 @@ const MessageInput = ({
             // Delay closing so clicks on members work
             setTimeout(() => setMentionSearch(null), 200)
           }}
-          disabled={disabled || (!!timeoutUntil && new Date(timeoutUntil) > new Date())}
+          disabled={disabled || (!!timeoutUntil && new Date(timeoutUntil) > new Date()) || (localCooldown > 0 && !isExempt)}
           rows={1}
         />
 
@@ -1178,6 +1213,8 @@ export default function ChannelsPage() {
               onCancelReply={() => setReplyingToMessage(null)}
               members={members}
               currentUserId={currentUser?._id}
+              slowMode={(selectedChannel as any)?.slowMode || 0}
+              isExempt={isServerOwner}
             />
           </>
         )}

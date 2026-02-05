@@ -21,6 +21,7 @@ import { useCallStore } from '@/lib/store'
 import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/components/LoadingSkeletons'
 import { useUserProfileController } from '@/controllers/profile/useUserProfileController'
 import { connectSocket } from '@/lib/socket'
+import { useNotificationStore } from '@/lib/store/notificationStore'
 
 
 
@@ -96,6 +97,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   const [channelMenuOpenId, setChannelMenuOpenId] = useState<string | null>(null)
   const [renameChannelId, setRenameChannelId] = useState<string | null>(null)
   const [renameChannelValue, setRenameChannelValue] = useState('')
+  const [renameSlowModeValue, setRenameSlowModeValue] = useState(0)
   const [renamingChannel, setRenamingChannel] = useState(false)
   const [selectedMember, setSelectedMember] = useState<{
     user: {
@@ -184,6 +186,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     ownerId,
     updateServer,
   } = useChannelsData()
+
+  const { unreads, mentions, serverUnreads, serverMentions, clearNotifications } = useNotificationStore()
   
   // If profile fails to load, redirect to login ONCE
   useEffect(() => {
@@ -357,6 +361,17 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   (s.name || 'S').slice(0, 1).toUpperCase()
                 )}
               </button>
+              
+              {/* Server Unread Dot */}
+              {serverUnreads[s._id] > 0 && s._id !== route.serverId && (
+                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" />
+              )}
+              {/* Server Mention Badge */}
+              {serverMentions[s._id] > 0 && (
+                <div className="absolute -right-1 -bottom-1 bg-[#ed4245] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-4 border-[#1e1f22] min-w-[20px] flex items-center justify-center">
+                  {serverMentions[s._id]}
+                </div>
+              )}
             </div>
           ))
         )}
@@ -504,8 +519,11 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 {conversations.map((conv) => (
                   <button
                     key={conv.id}
-                    onClick={() => router.push(`/channels/@me/${conv.id}`)}
-                    className={`group w-full px-2 py-2 rounded-[4px] hover:bg-[#35373c] text-[15px] ${route.channelId === conv.id ? 'bg-[#3f4147] text-white' : 'text-[#949ba4] hover:text-[#dbdee1]'} text-left flex items-center gap-3 transition-colors`}
+                    onClick={() => {
+                      clearNotifications(conv.id)
+                      router.push(`/channels/@me/${conv.id}`)
+                    }}
+                    className={`group w-full px-2 py-2 rounded-[4px] hover:bg-[#35373c] text-[15px] ${route.channelId === conv.id ? 'bg-[#3f4147] text-white' : (unreads[conv.id] ? 'text-white font-semibold' : 'text-[#949ba4] hover:text-[#dbdee1]')} text-left flex items-center gap-3 transition-colors relative`}
                   >
                     <div className="relative">
                       <div className="w-8 h-8 rounded-full bg-[#5865f2] flex items-center justify-center text-white font-bold overflow-hidden">
@@ -524,11 +542,16 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     <div className="flex-1 min-w-0">
                       <div className="font-medium truncate">{conv.otherUser?.username}</div>
                       {conv.lastMessage && (
-                        <div className="text-[12px] text-[#b5bac1] truncate group-hover:text-[#dbdee1]">
+                        <div className={`text-[12px] truncate group-hover:text-[#dbdee1] ${unreads[conv.id] ? 'text-white' : 'text-[#b5bac1]'}`}>
                           {conv.lastMessage?.senderId === currentUser?._id ? 'You: ' : ''}{conv.lastMessage?.content}
                         </div>
                       )}
                     </div>
+                    {unreads[conv.id] > 0 && (
+                      <div className="ml-auto bg-[#ed4245] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                        {unreads[conv.id]}
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>
@@ -557,13 +580,23 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               {channels.filter(c => c.type === 'TEXT').map((c, idx) => (
                 <div
                   key={c._id}
-                  className={`group relative w-full text-left px-2 py-[6px] rounded-[4px] text-[15px] flex items-center gap-1.5 cursor-pointer ${c._id === route.channelId ? 'bg-[#2a2a2a] text-white font-medium' : 'hover:bg-[#202020] text-[#b4b4b4] hover:text-white'
+                  className={`group relative w-full text-left px-2 py-[6px] rounded-[4px] text-[15px] flex items-center gap-1.5 cursor-pointer ${
+                    c._id === route.channelId 
+                      ? 'bg-[#2a2a2a] text-white font-medium' 
+                      : (unreads[c._id] 
+                        ? 'text-white font-bold' 
+                        : 'hover:bg-[#202020] text-[#b4b4b4] hover:text-white')
                     }`}
                   onClick={() => {
                     if (!route.serverId) return
+                    clearNotifications(c._id, route.serverId)
                     selectChannel(route.serverId, c._id)
                   }}
                 >
+                  {/* Channel Unread Dot */}
+                  {unreads[c._id] > 0 && c._id !== route.channelId && (
+                    <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-2 bg-white rounded-r-full" />
+                  )}
                   <div className="relative flex-shrink-0">
                     {c.isReadOnly ? (
                       <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current opacity-60">
@@ -582,7 +615,14 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                       </div>
                     )}
                   </div>
-                  <span className="truncate font-medium flex-1">{c.name}</span>
+                  <span className={`truncate font-medium flex-1 ${unreads[c._id] ? 'text-white' : ''}`}>{c.name}</span>
+
+                  {/* Mention Badge */}
+                  {mentions[c._id] > 0 && (
+                    <div className="bg-[#ed4245] text-white text-[11px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] flex items-center justify-center mr-1">
+                      {mentions[c._id]}
+                    </div>
+                  )}
 
                   {/* Channel Settings Icon - Only visible on hover */}
                   <div
@@ -605,6 +645,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                             setChannelMenuOpenId(null)
                             setRenameChannelId(c._id)
                             setRenameChannelValue(c.name)
+                            setRenameSlowModeValue((c as any).slowMode || 0)
                           }}
                           className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#f3c178] text-slate-400 hover:text-white rounded-[2px]"
                         >
@@ -700,6 +741,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                             setChannelMenuOpenId(null)
                             setRenameChannelId(c._id)
                             setRenameChannelValue(c.name)
+                            setRenameSlowModeValue((c as any).slowMode || 0)
                           }}
                           className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#f3c178] text-slate-400 hover:text-white rounded-[2px]"
                         >
@@ -1210,7 +1252,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             }}
           >
             <div className="w-[420px] max-w-[92vw] rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-6">
-              <div className="text-lg font-semibold text-white mb-4">Edit Channel</div>
+              <div className="text-lg font-semibold text-white mb-4">Channel Settings</div>
               <div className="mb-4">
                 <label className="block text-xs font-semibold text-[#b4b4b4] mb-2 uppercase">Channel Name</label>
                 <input
@@ -1219,6 +1261,51 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   onChange={(e) => setRenameChannelValue(e.target.value)}
                   autoFocus
                 />
+              </div>
+
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-xs font-semibold text-[#b4b4b4] uppercase">Slow Mode</label>
+                  <span className="text-xs font-bold text-[#5865f2]">
+                    {renameSlowModeValue === 0 ? 'Off' : 
+                     renameSlowModeValue < 60 ? `${renameSlowModeValue}s` : 
+                     renameSlowModeValue < 3600 ? `${Math.floor(renameSlowModeValue / 60)}m` : 
+                     `${Math.floor(renameSlowModeValue / 3600)}h`}
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="21600"
+                  step="1"
+                  className="w-full accent-[#5865f2] cursor-pointer"
+                  value={renameSlowModeValue}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value);
+                    // Standard Discord-like steps
+                    if (val === 0) setRenameSlowModeValue(0);
+                    else if (val <= 5) setRenameSlowModeValue(5);
+                    else if (val <= 10) setRenameSlowModeValue(10);
+                    else if (val <= 15) setRenameSlowModeValue(15);
+                    else if (val <= 30) setRenameSlowModeValue(30);
+                    else if (val <= 60) setRenameSlowModeValue(60);
+                    else if (val <= 120) setRenameSlowModeValue(120);
+                    else if (val <= 300) setRenameSlowModeValue(300);
+                    else if (val <= 600) setRenameSlowModeValue(600);
+                    else if (val <= 900) setRenameSlowModeValue(900);
+                    else if (val <= 1800) setRenameSlowModeValue(1800);
+                    else if (val <= 3600) setRenameSlowModeValue(3600);
+                    else if (val <= 7200) setRenameSlowModeValue(7200);
+                    else setRenameSlowModeValue(21600);
+                  }}
+                />
+                <div className="flex justify-between text-[10px] text-[#808080] mt-1 px-0.5">
+                  <span>Off</span>
+                  <span>6h</span>
+                </div>
+                <p className="text-[11px] text-[#949ba4] mt-2 block">
+                  Members will be restricted to sending one message per interval. Server owner and roles with permissions are exempt.
+                </p>
               </div>
               <div className="flex justify-end gap-3">
                 <button
@@ -1239,7 +1326,10 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     if (!cid || !next) return
                     setRenamingChannel(true)
                     try {
-                      await updateChannel(cid, { name: next })
+                      await updateChannel(cid, { 
+                        name: next,
+                        slowMode: renameSlowModeValue 
+                      })
                       setRenameChannelId(null)
                     } finally {
                       setRenamingChannel(false)
