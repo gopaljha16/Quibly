@@ -9,6 +9,7 @@ import {
   Activity, Radio, Layers
 } from 'lucide-react'
 import { apiPost, apiGet, ApiError } from '@/lib/api'
+import { GoogleLogin } from '@react-oauth/google'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -231,6 +232,34 @@ function LoginContent() {
                       </span>
                     )}
                   </Button>
+
+                  <div className="pt-2">
+                    <GoogleLogin
+                      onSuccess={async (credentialResponse) => {
+                        if (credentialResponse.credential) {
+                          setIsLoading(true)
+                          try {
+                            await apiPost('/auth/google-login', { 
+                              googleToken: credentialResponse.credential 
+                            })
+                            router.push(redirect)
+                            router.refresh()
+                          } catch (err) {
+                            setErrors({ email: 'Google login failed. Please try again.' })
+                          } finally {
+                            setIsLoading(false)
+                          }
+                        }
+                      }}
+                      onError={() => {
+                        setErrors({ email: 'Google login failed' })
+                      }}
+                      theme="filled_black"
+                      size="large"
+                      text="continue_with"
+                      shape="pill"
+                    />
+                  </div>
                 </form>
 
                 {/* Divider */}

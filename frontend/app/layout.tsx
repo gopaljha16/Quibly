@@ -5,6 +5,7 @@ import "./globals.css";
 import "@livekit/components-styles";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { SocketProvider } from "@/providers/SocketProvider";
+import { GoogleAuthProvider } from "@/providers/GoogleAuthProvider";
 import { AuthGuard } from "@/components/AuthGuard";
 import { Toaster } from "sonner";
 
@@ -60,9 +61,11 @@ export default function RootLayout({
       >
         <QueryProvider>
           <SocketProvider>
-            <AuthGuard>
-              {children}
-            </AuthGuard>
+            <GoogleAuthProvider>
+              <AuthGuard>
+                {children}
+              </AuthGuard>
+            </GoogleAuthProvider>
           </SocketProvider>
         </QueryProvider>
         <Toaster position="bottom-right" theme="dark" />

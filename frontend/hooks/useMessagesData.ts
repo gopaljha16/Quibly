@@ -168,8 +168,8 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
   } = useUIStore()
 
   // Send message
-  const sendMessage = async (content: string) => {
-    if (!id || !content.trim()) return
+  const sendMessage = async (content: string, typeMod: 'TEXT' | 'FILE' = 'TEXT', attachments: any[] = []) => {
+    if (!id || (!content.trim() && attachments.length === 0)) return
 
     // Clear draft IMMEDIATELY for instant feedback
     const trimmedContent = content.trim()
@@ -190,6 +190,8 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
         avatar: currentUser.avatar
       } : '',
       content: trimmedContent,
+      type: typeMod,
+      attachments,
       createdAt: new Date().toISOString(),
     }
 
@@ -204,6 +206,8 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
         channelId: type === 'channel' ? id : undefined,
         dmRoomId: type === 'dm' ? id : undefined,
         content: trimmedContent,
+        type: typeMod,
+        attachments,
       })
 
       // REPLACE optimistic message with real one IMMEDIATELY
