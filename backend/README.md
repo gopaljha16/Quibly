@@ -1,6 +1,6 @@
 # migration
 
-npx prisma migrate dev (run )
+npx prisma migrate dev (run ) ---> (prisma code raw sql code)
 
 /// name your migration here!
 
@@ -10,7 +10,7 @@ npx prisma migrate dev --name "$name_you_migration" (migrate + name)
 
 # generate
 
-npx prisma generate  
+npx prisma generate   (-->db present)
 
 # studio ( to view database )
 

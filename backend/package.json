@@ -20,7 +20,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.3.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
     "cheerio": "^1.1.2",
@@ -37,7 +37,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^6.9.8",
     "pg": "^8.17.1",
-    "prisma": "^5.22.0",
+    "prisma": "^7.3.0",
     "redis": "^5.10.0",
     "socket.io": "^4.8.3",
     "tsx": "^4.21.0"
