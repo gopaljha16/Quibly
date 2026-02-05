@@ -171,3 +171,67 @@ export function useRoleMutations(serverId: string | null) {
     updateMemberRoles,
   }
 }
+
+export function useBannedWordsMutations(serverId: string | null) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (bannedWords: string[]) => {
+      if (!serverId) throw new Error('No server ID')
+      const response = await apiRequest<{ success: boolean; bannedWords: string[] }>(
+        `/server/${serverId}/banned-words`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({ bannedWords }),
+        }
+      )
+      return response.bannedWords
+    },
+    onSuccess: (updatedBannedWords) => {
+      queryClient.invalidateQueries({ queryKey: ['servers'] })
+      queryClient.invalidateQueries({ queryKey: ['server', serverId] })
+    },
+  })
+}
+
+export function useBanMember(serverId: string | null) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ userId, reason }: { userId: string; reason?: string }) => {
+      if (!serverId) throw new Error('No server ID')
+      const response = await apiRequest<{ success: boolean; message: string; data: any }>(
+        `/server/${serverId}/members/${userId}/ban`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ reason }),
+        }
+      )
+      return response
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members', serverId] })
+    },
+  })
+}
+
+export function useUnbanMember(serverId: string | null) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      if (!serverId) throw new Error('No server ID')
+      const response = await apiRequest<{ success: boolean; message: string; data: any }>(
+        `/server/${serverId}/members/${userId}/unban`,
+        {
+          method: 'PATCH',
+        }
+      )
+      return response
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members', serverId] })
+    },
+  })
+}
+

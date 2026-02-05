@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { ChannelsModel } from '@/models/channels/channelsModel'
 import { useChannelsData } from '@/hooks/useChannelsData'
+import { useBannedWordsMutations } from '@/hooks/mutations/useServerMutations'
+import { toast } from 'sonner'
 
-type ActiveTab = 'overview' | 'members'
+type ActiveTab = 'overview' | 'members' | 'banned-words'
 
 /**
  * Server Settings Modal Controller
@@ -12,9 +14,13 @@ export function useServerSettingsController(serverId: string, onClose: () => voi
     const { selectedServer, updateServer, deleteServer, leaveServer, ownerId, members, currentUser } = useChannelsData() as any
     const [activeTab, setActiveTab] = useState<ActiveTab>('overview')
     const [serverName, setServerName] = useState('')
+    const [bannedWords, setBannedWords] = useState<string[]>([])
+    const [newBannedWord, setNewBannedWord] = useState('')
     const [error, setError] = useState<string>()
     const [isSaving, setIsSaving] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+
+    const updateBannedWordsMutation = useBannedWordsMutations(serverId)
 
     const isOwner = ChannelsModel.isOwner(currentUser?._id, ownerId)
 
@@ -22,6 +28,7 @@ export function useServerSettingsController(serverId: string, onClose: () => voi
     useEffect(() => {
         if (selectedServer) {
             setServerName(selectedServer.name)
+            setBannedWords(selectedServer.bannedWords || [])
         }
     }, [selectedServer])
 
@@ -46,6 +53,32 @@ export function useServerSettingsController(serverId: string, onClose: () => voi
             onClose()
         } catch (err: any) {
             setError(err.message || 'Failed to update server')
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    const handleAddBannedWord = () => {
+        if (!newBannedWord.trim()) return
+        if (bannedWords.includes(newBannedWord.trim())) {
+            toast.error('Word is already in the list')
+            return
+        }
+        setBannedWords([...bannedWords, newBannedWord.trim()])
+        setNewBannedWord('')
+    }
+
+    const handleRemoveBannedWord = (word: string) => {
+        setBannedWords(bannedWords.filter(w => w !== word))
+    }
+
+    const handleSaveBannedWords = async () => {
+        setIsSaving(true)
+        try {
+            await updateBannedWordsMutation.mutateAsync(bannedWords)
+            toast.success('Banned words updated successfully')
+        } catch (err: any) {
+            toast.error(err.message || 'Failed to update banned words')
         } finally {
             setIsSaving(false)
         }
@@ -82,6 +115,7 @@ export function useServerSettingsController(serverId: string, onClose: () => voi
     const handleReset = () => {
         if (selectedServer) {
             setServerName(selectedServer.name)
+            setBannedWords(selectedServer.bannedWords || [])
             setError(undefined)
         }
     }
@@ -90,6 +124,8 @@ export function useServerSettingsController(serverId: string, onClose: () => voi
         // State
         activeTab,
         serverName,
+        bannedWords,
+        newBannedWord,
         error,
         isSaving,
         isDeleting,
@@ -100,6 +136,10 @@ export function useServerSettingsController(serverId: string, onClose: () => voi
         // Actions
         setActiveTab,
         handleNameChange,
+        setNewBannedWord,
+        handleAddBannedWord,
+        handleRemoveBannedWord,
+        handleSaveBannedWords,
         handleSave,
         handleDelete,
         handleLeave,

@@ -32,5 +32,12 @@ router.post('/:serverId/roles', roleController.createRole);
 router.patch('/:serverId/roles/:roleId', roleController.updateRole);
 router.delete('/:serverId/roles/:roleId', roleController.deleteRole);
 router.patch('/:serverId/members/:userId/roles', roleController.updateMemberRoles);
+router.patch('/:serverId/members/:userId/timeout', serverController.timeoutMember);
+router.patch('/:serverId/members/:userId/ban', serverController.banMember);
+router.patch('/:serverId/members/:userId/unban', serverController.unbanMember);
+
+// Banned words routes
+router.get('/:serverId/banned-words', serverController.getBannedWords);
+router.put('/:serverId/banned-words', serverController.updateBannedWords);
 
 module.exports = router;

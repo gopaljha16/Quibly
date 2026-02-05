@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useMessages, useProfile } from './queries'
+import { Message, useProfile, useMessages } from './queries'
 import { useSendMessage, useEditMessage, useDeleteMessage } from './mutations'
 import { connectSocket } from '@/lib/socket'
 import { useUIStore } from '@/lib/store'
 import { useQueryClient } from '@tanstack/react-query'
-import { Message } from './queries'
+import { toast } from 'sonner'
+import { ApiError } from '@/lib/api'
 
 /**
  * Unified hook for message operations
@@ -216,8 +217,32 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
         const withReal = old.map(m => m._id === optimisticId ? newMessage : m)
         return deduplicate(withReal)
       })
-    } catch (error) {
-      console.error('Failed to send message:', error)
+    } catch (error: any) {
+      let isHandledUserError = false
+
+      // Show toast if it's a banned word error
+      if (error instanceof ApiError && error.payload?.bannedWord) {
+        toast.error(`Word banned: "${error.payload.bannedWord}" cannot be used here.`)
+        isHandledUserError = true
+      } else if (error instanceof ApiError && error.message === 'You are banned from this server') {
+        // Show banned user message
+        toast.error('You are banned from this server and cannot send messages.', { duration: 5000 })
+        isHandledUserError = true
+        // Don't log ban errors to console - they're expected user errors
+      } else if (error instanceof ApiError && error.payload?.timeoutUntil) {
+        // Show detailed timeout message
+        const timeoutDate = new Date(error.payload.timeoutUntil)
+        const reason = error.payload.timeoutReason || 'No reason provided'
+        toast.error(
+          `You are timed out until ${timeoutDate.toLocaleString()}. Reason: ${reason}`,
+          { duration: 5000 }
+        )
+        isHandledUserError = true
+        // Don't log timeout errors to console - they're expected user errors
+      } else if (error instanceof ApiError || error instanceof Error) {
+        console.error('Failed to send message:', error)
+        toast.error(error.message)
+      }
 
       // On error, remove optimistic message
       queryClient.setQueryData<Message[]>(['messages', id], (old = []) => {
@@ -229,7 +254,10 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
         setDraft(id, trimmedContent)
       }
 
-      throw error
+      // Only re-throw if it's not a handled user error
+      if (!isHandledUserError) {
+        throw error
+      }
     }
   }
 
@@ -243,8 +271,13 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
         content: content.trim(),
       })
       stopEditingMessage()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to edit message:', error)
+      if (error instanceof ApiError && error.payload?.bannedWord) {
+        toast.error(`Word banned: "${error.payload.bannedWord}" cannot be used here.`)
+      } else if (error instanceof ApiError || error instanceof Error) {
+        toast.error(error.message)
+      }
       throw error
     }
   }

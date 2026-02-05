@@ -101,6 +101,7 @@ model Server {
   channels          Channel[]
   invites           Invite[]
   roles             Role[]
+  bannedWords       String[]          @default([])
   owner             User              @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members           ServerMember[]
 
@@ -108,15 +109,18 @@ model Server {
 }
 
 model ServerMember {
-  id       String   @id @default(cuid())
-  serverId String
-  userId   String
-  roleIds  String[]
-  joinedAt DateTime @default(now())
-  isMuted  Boolean  @default(false)
-  isBanned Boolean  @default(false)
-  server   Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String    @id @default(cuid())
+  serverId      String
+  userId        String
+  roleIds       String[]
+  joinedAt      DateTime  @default(now())
+  isMuted       Boolean   @default(false)
+  isBanned      Boolean   @default(false)
+  banReason     String?
+  timeoutUntil  DateTime?
+  timeoutReason String?
+  server        Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([serverId, userId])
   @@index([serverId])

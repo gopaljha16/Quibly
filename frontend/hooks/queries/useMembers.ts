@@ -29,8 +29,11 @@ export type Member = {
   roleIds: string[]
   isMuted?: boolean
   isBanned?: boolean
+  banReason?: string | null
   joinedAt: string
   isOwner: boolean
+  timeoutUntil?: string | null
+  timeoutReason?: string | null
 }
 
 type MembersResponse = {
@@ -54,6 +57,9 @@ type MembersResponse = {
     isOwner?: boolean
     isMuted?: boolean
     isBanned?: boolean
+    banReason?: string | null
+    timeoutUntil?: string | null
+    timeoutReason?: string | null
   }>
 }
 
@@ -75,8 +81,11 @@ export function useMembers(serverId: string | null) {
           roleIds: m.roleIds || [],
           isMuted: m.isMuted,
           isBanned: m.isBanned,
+          banReason: m.banReason,
           joinedAt: m.joinedAt || '',
-          isOwner: !!m.isOwner
+          isOwner: !!m.isOwner,
+          timeoutUntil: m.timeoutUntil,
+          timeoutReason: m.timeoutReason
         })) as Member[],
       }
     },

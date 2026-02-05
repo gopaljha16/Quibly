@@ -3,6 +3,9 @@ type ApiErrorPayload = {
   error?: string
   success?: boolean
   needsVerification?: boolean
+  bannedWord?: string
+  timeoutUntil?: string
+  timeoutReason?: string
 }
 
 export class ApiError extends Error {
