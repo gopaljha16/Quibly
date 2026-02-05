@@ -19,9 +19,14 @@ import { useTypingIndicator } from '@/hooks/useTypingIndicator'
 import { TypingIndicator } from '@/components/TypingIndicator'
 import GifPicker from '@/components/GifPicker'
 import { useUploadThing } from '@/lib/uploadthing'
-import { Loader2, Plus } from 'lucide-react'
+import { Loader2, Plus, Pin, Ban, Clock } from 'lucide-react'
 import { connectSocket } from '@/lib/socket'
 import { useQueryClient } from '@tanstack/react-query'
+import { usePinMessage, useUnpinMessage } from '@/hooks/queries/usePinnedMessages'
+import { PinnedMessagesBanner } from '@/components/channels/PinnedMessagesBanner'
+import BanModal from '@/components/channels/BanModal'
+import TimeoutModal from '@/components/channels/TimeoutModal'
+import DeleteMessageModal from '@/components/channels/DeleteMessageModal'
 
 // Message Item Component
 const MessageItem = ({
@@ -33,7 +38,8 @@ const MessageItem = ({
   editContent,
   onEditContentChange,
   onSaveEdit,
-  onCancelEdit
+  onCancelEdit,
+  isServerOwner
 }: {
   message: Message
   onEdit: (id: string, content: string) => void
@@ -44,11 +50,16 @@ const MessageItem = ({
   onEditContentChange?: (content: string) => void
   onSaveEdit?: () => void
   onCancelEdit?: () => void
+  isServerOwner?: boolean
 }) => {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showBanModal, setShowBanModal] = useState(false)
+  const [showTimeoutModal, setShowTimeoutModal] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const editTextareaRef = useRef<HTMLTextAreaElement>(null)
   const { firstUrl } = useLinkPreviews(message.content)
+  const pinMessageMutation = usePinMessage()
+  const unpinMessageMutation = useUnpinMessage()
 
   const isSenderMe = typeof message.senderId === 'object' && message.senderId._id === currentUser?._id
   
@@ -82,6 +93,11 @@ const MessageItem = ({
 
   const initials = sender?.slice(0, 1).toUpperCase() || 'U'
   const canAct = !message._id.startsWith('optimistic-') && isSenderMe
+  const canPin = !message._id.startsWith('optimistic-') && isServerOwner && message.channelId
+  const canModerate = !message._id.startsWith('optimistic-') && isServerOwner && !isSenderMe && message.channelId
+  
+  // Get sender ID for moderation actions
+  const senderId = typeof message.senderId === 'object' ? message.senderId._id : message.senderId
 
   useEffect(() => {
     if (!menuOpen) return
@@ -115,8 +131,21 @@ const MessageItem = ({
     }
   }
 
+  const handlePinToggle = async () => {
+    try {
+      if (message.isPinned) {
+        await unpinMessageMutation.mutateAsync(message._id)
+      } else {
+        await pinMessageMutation.mutateAsync(message._id)
+      }
+      setMenuOpen(false)
+    } catch (error) {
+      console.error('Failed to toggle pin:', error)
+    }
+  }
+
   return (
-    <div className={`group flex gap-4 px-4 py-0.5 hover:bg-[#2e3035] relative mt-[1.0625rem] first:mt-2 ${menuOpen ? 'bg-[#2e3035]' : ''}`}>
+    <div className={`group flex gap-4 px-4 py-0.5 hover:bg-[#2e3035] relative mt-[1.0625rem] first:mt-2 ${menuOpen ? 'bg-[#2e3035]' : ''} ${message.isPinned ? 'bg-[#2e3035]/50' : ''}`}>
       <div className="w-10 h-10 rounded-full bg-[#5865f2] flex items-center justify-center text-sm font-bold text-white flex-shrink-0 mt-0.5 cursor-pointer hover:drop-shadow-md transition-all active:translate-y-px">
         {avatar ? (
           <img
@@ -131,6 +160,9 @@ const MessageItem = ({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
+          {message.isPinned && (
+            <Pin className="w-3 h-3 text-[#949ba4]" />
+          )}
           <span className="font-medium text-[#f2f3f5] hover:underline cursor-pointer">
             {sender}
           </span>
@@ -224,20 +256,22 @@ const MessageItem = ({
         )}
       </div>
 
-      {canAct && !isEditing && (
+      {(canAct || canModerate || canPin) && !isEditing && (
         <div className={`absolute -top-4 right-4 ${menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity z-10`}>
           <div className="bg-[#1a1a1a] rounded shadow-sm border border-[#2a2a2a] flex items-center p-0.5 transition-transform hover:scale-[1.02]">
-            <button
-              onClick={() => onEdit(message._id, message.content)}
-              className="p-1.5 hover:bg-[#2a2a2a] text-[#b4b4b4] hover:text-white rounded transition-colors relative group/tooltip"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
-                <path fillRule="evenodd" clipRule="evenodd" d="M19.2929 9.8299L19.9409 9.18278C21.353 7.77064 21.353 5.47197 19.9409 4.05892C18.5287 2.64678 16.2292 2.64678 14.817 4.05892L14.1699 4.70694L19.2929 9.8299ZM12.8962 5.97688L5.18469 13.6906L10.3085 18.8129L18.0192 11.1001L12.8962 5.97688ZM4.11851 20.9704L8.75906 19.8112L4.18692 15.239L3.02678 19.8796C2.95028 20.1856 3.04028 20.5105 3.26349 20.7337C3.48669 20.9569 3.8116 21.046 4.11851 20.9704Z" />
-              </svg>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap font-semibold">
-                Edit
-              </div>
-            </button>
+            {canAct && (
+              <button
+                onClick={() => onEdit(message._id, message.content)}
+                className="p-1.5 hover:bg-[#2a2a2a] text-[#b4b4b4] hover:text-white rounded transition-colors relative group/tooltip"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M19.2929 9.8299L19.9409 9.18278C21.353 7.77064 21.353 5.47197 19.9409 4.05892C18.5287 2.64678 16.2292 2.64678 14.817 4.05892L14.1699 4.70694L19.2929 9.8299ZM12.8962 5.97688L5.18469 13.6906L10.3085 18.8129L18.0192 11.1001L12.8962 5.97688ZM4.11851 20.9704L8.75906 19.8112L4.18692 15.239L3.02678 19.8796C2.95028 20.1856 3.04028 20.5105 3.26349 20.7337C3.48669 20.9569 3.8116 21.046 4.11851 20.9704Z" />
+                </svg>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap font-semibold">
+                  Edit
+                </div>
+              </button>
+            )}
 
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -257,19 +291,81 @@ const MessageItem = ({
               ref={menuRef}
               className="absolute top-full right-0 mt-1 w-[188px] bg-[#202020] rounded shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 p-1.5 z-50"
             >
-              <button
-                onClick={() => {
-                  onDelete(message._id)
-                  setMenuOpen(false)
-                }}
-                className="w-full text-left px-2 py-1.5 text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group/item"
-              >
-                Delete Message
-                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current hidden group-hover/item:block">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M15 3.999V2H9V3.999H3V5.999H21V3.999H15Z M5 6.999V22H19V6.999H5ZM8.61538 17.999H6.46154V9.999H8.61538V17.999ZM13.0769 17.999H10.9231V9.999H13.0769V17.999ZM17.5385 17.999H15.3846V9.999H17.5385V17.999Z" />
-                </svg>
-              </button>
+              {canPin && (
+                <button
+                  onClick={handlePinToggle}
+                  disabled={pinMessageMutation.isPending || unpinMessageMutation.isPending}
+                  className="w-full text-left px-2 py-1.5 text-sm text-[#b5bac1] hover:bg-[#5865f2] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group/item disabled:opacity-50"
+                >
+                  {message.isPinned ? 'Unpin Message' : 'Pin Message'}
+                  <Pin className="w-4 h-4 hidden group-hover/item:block" />
+                </button>
+              )}
+              
+              {canModerate && (
+                <>
+                  <button
+                    onClick={() => {
+                      setShowTimeoutModal(true)
+                      setMenuOpen(false)
+                    }}
+                    className="w-full text-left px-2 py-1.5 text-sm text-[#b5bac1] hover:bg-[#5865f2] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group/item"
+                  >
+                    Timeout User
+                    <Clock className="w-4 h-4 hidden group-hover/item:block" />
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setShowBanModal(true)
+                      setMenuOpen(false)
+                    }}
+                    className="w-full text-left px-2 py-1.5 text-sm text-[#b5bac1] hover:bg-[#5865f2] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group/item"
+                  >
+                    Ban User
+                    <Ban className="w-4 h-4 hidden group-hover/item:block" />
+                  </button>
+                </>
+              )}
+              
+              {(canAct || isServerOwner) && (
+                <button
+                  onClick={() => {
+                    onDelete(message._id)
+                    setMenuOpen(false)
+                  }}
+                  className="w-full text-left px-2 py-1.5 text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white rounded-[2px] transition-colors flex items-center justify-between group/item"
+                >
+                  Delete Message
+                  <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current hidden group-hover/item:block">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M15 3.999V2H9V3.999H3V5.999H21V3.999H15Z M5 6.999V22H19V6.999H5ZM8.61538 17.999H6.46154V9.999H8.61538V17.999ZM13.0769 17.999H10.9231V9.999H13.0769V17.999ZM17.5385 17.999H15.3846V9.999H17.5385V17.999Z" />
+                  </svg>
+                </button>
+              )}
             </div>
+          )}
+          
+          {/* Ban Modal */}
+          {showBanModal && message.channelId && (
+            <BanModal
+              open={showBanModal}
+              onClose={() => setShowBanModal(false)}
+              serverId={message.serverId || ''}
+              userId={senderId}
+              username={sender}
+              isBanned={false}
+            />
+          )}
+          
+          {/* Timeout Modal */}
+          {showTimeoutModal && message.channelId && (
+            <TimeoutModal
+              open={showTimeoutModal}
+              onClose={() => setShowTimeoutModal(false)}
+              serverId={message.serverId || ''}
+              userId={senderId}
+              username={sender}
+            />
           )}
         </div>
       )}
@@ -285,6 +381,7 @@ const MessageInput = ({
   onSend,
   disabled,
   isMe,
+  isReadOnly,
   timeoutUntil,
   timeoutReason
 }: {
@@ -294,6 +391,7 @@ const MessageInput = ({
   onSend: (type?: 'TEXT' | 'FILE', attachments?: any[]) => void
   disabled: boolean
   isMe?: boolean
+  isReadOnly?: boolean
   timeoutUntil?: string | null
   timeoutReason?: string | null
 }) => {
@@ -401,7 +499,9 @@ const MessageInput = ({
           placeholder={
             timeoutUntil && new Date(timeoutUntil) > new Date()
               ? `You are timed out until ${new Date(timeoutUntil).toLocaleString()}. Reason: ${timeoutReason || 'No reason provided'}`
-              : isMe ? `Message @${channelName}` : `Message #${channelName}`
+              : isReadOnly
+                ? 'Only the server owner can message in this channel'
+                : isMe ? `Message @${channelName}` : `Message #${channelName}`
           }
           value={value}
           onChange={(e) => {
@@ -461,13 +561,18 @@ const MessageInput = ({
 }
 
 export default function ChannelsPage() {
-  const { route, members, membersLoading, selectedChannel } = useChannelsData()
+  const { route, members, membersLoading, selectedChannel, selectedServer } = useChannelsData()
   const { data: currentUser } = useProfile()
   
   const currentMember = useMemo(() => {
     if (!currentUser || !members) return null
     return members.find((m: any) => (m.userId?._id || m.userId) === currentUser._id)
   }, [currentUser, members])
+  
+  const isServerOwner = useMemo(() => {
+    if (!currentUser || !selectedServer) return false
+    return selectedServer.ownerId === currentUser._id
+  }, [currentUser, selectedServer])
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   // Listen for member updates (e.g., timeout changes) via socket
@@ -567,15 +672,24 @@ export default function ChannelsPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [sortedMessages.length, selectedChannel?._id])
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null)
+
   const handleSendAction = (typeMod: 'TEXT' | 'FILE' = 'TEXT', attachments: any[] = []) => {
     handleSend(typeMod, attachments)
     handleStopTyping()
   }
 
   const handleDelete = async (messageId: string) => {
-    if (!confirm('Delete this message permanently? This action cannot be undone.')) return
+    setMessageToDelete(messageId)
+    setDeleteModalOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!messageToDelete) return
     try {
-      await deleteMessage(messageId)
+      await deleteMessage(messageToDelete)
+      setMessageToDelete(null)
     } catch (error) {
       console.error('Failed to delete message:', error)
     }
@@ -632,6 +746,11 @@ export default function ChannelsPage() {
           </div>
         ) : (
           <>
+            {/* Pinned Messages Banner */}
+            {!route.isMe && selectedChannel && (
+              <PinnedMessagesBanner channelId={selectedChannel._id} />
+            )}
+            
             <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[#1e1f22] scrollbar-track-transparent">
               <div className="flex flex-col justify-end min-h-full">
                 {!messagesLoading && sortedMessages.length < 50 && (
@@ -769,6 +888,7 @@ export default function ChannelsPage() {
                         onEditContentChange={handleEditContentChange}
                         onSaveEdit={saveEdit}
                         onCancelEdit={cancelEditing}
+                        isServerOwner={isServerOwner}
                       />
                     ))}
                   </div>
@@ -789,8 +909,9 @@ export default function ChannelsPage() {
                 handleTyping()
               }}
               onSend={handleSendAction}
-              disabled={sending}
+              disabled={sending || (!!selectedChannel?.isReadOnly && !isServerOwner)}
               isMe={route.isMe}
+              isReadOnly={!!selectedChannel?.isReadOnly && !isServerOwner}
               timeoutUntil={currentMember?.timeoutUntil}
               timeoutReason={currentMember?.timeoutReason}
             />
@@ -842,6 +963,13 @@ export default function ChannelsPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Message Modal */}
+      <DeleteMessageModal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+      />
     </>
   )
 }

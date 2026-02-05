@@ -9,6 +9,9 @@ export type Channel = {
   type?: 'TEXT' | 'VOICE'
   topic?: string
   description?: string
+  isPrivate?: boolean
+  isReadOnly?: boolean
+  allowedRoleIds?: string[]
 }
 
 type ChannelsResponse = {

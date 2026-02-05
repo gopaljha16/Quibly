@@ -2,6 +2,7 @@ const db = require('../config/db');
 const redis = require('../config/redis');
 const { publishMessage } = require('../services/messageProducer');
 const { isKafkaConnected } = require('../config/kafka');
+const { canAccessChannel } = require('../utils/channelPermissions');
 
 // Send new message
 exports.createMessage = async (req, res) => {
@@ -47,20 +48,23 @@ exports.createMessage = async (req, res) => {
                 });
             }
 
-            // Check if user is a member of the server
+            // Check if user has permission to access this channel
+            const hasAccess = await canAccessChannel(req.user.id, channelId);
+
+            if (!hasAccess) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'You do not have permission to access this channel'
+                });
+            }
+
+            // Get member info for additional checks
             const member = await db.serverMember.findFirst({
                 where: {
                     serverId: channel.serverId,
                     userId: req.user.id
                 }
             });
-
-            if (!member) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'You do not have access to this channel'
-                });
-            }
 
             // Check if user is banned
             if (member.isBanned) {
@@ -92,8 +96,16 @@ exports.createMessage = async (req, res) => {
             // Check for banned words
             const server = await db.server.findUnique({
                 where: { id: serverId },
-                select: { bannedWords: true }
+                select: { ownerId: true, bannedWords: true }
             });
+
+            // Check if channel is read-only and user is not owner
+            if (channel.isReadOnly && server.ownerId !== req.user.id) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Only the server owner can message in this channel'
+                });
+            }
 
             if (server && server.bannedWords && server.bannedWords.length > 0 && content) {
                 const lowerContent = content.toLowerCase();
@@ -346,18 +358,13 @@ exports.getMessages = async (req, res) => {
                 });
             }
 
-            // Check if user is a member of the server
-            const member = await db.serverMember.findFirst({
-                where: {
-                    serverId: channel.serverId,
-                    userId: req.user.id
-                }
-            });
+            // Check if user has permission to access this channel
+            const hasAccess = await canAccessChannel(req.user.id, channelId);
 
-            if (!member) {
+            if (!hasAccess) {
                 return res.status(403).json({
                     success: false,
-                    message: 'You do not have access to this channel'
+                    message: 'You do not have permission to access this channel'
                 });
             }
         } else if (dmRoomId) {
@@ -667,3 +674,310 @@ exports.deleteMessage = async (req, res) => {
         });
     }
 };
+
+// Pin message
+exports.pinMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const message = await db.message.findUnique({
+            where: { id },
+            include: {
+                channel: {
+                    include: {
+                        server: true
+                    }
+                }
+            }
+        });
+
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message not found'
+            });
+        }
+
+        if (!message.channelId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot pin messages in DMs'
+            });
+        }
+
+        if (message.isPinned) {
+            return res.status(400).json({
+                success: false,
+                message: 'Message is already pinned'
+            });
+        }
+
+        // Check if user is server owner
+        const isOwner = message.channel.server.ownerId === req.user.id;
+
+        // TODO: Add role-based permission check here when role permissions are implemented
+        // For now, only server owners can pin messages
+
+        if (!isOwner) {
+            return res.status(403).json({
+                success: false,
+                message: 'You do not have permission to pin messages'
+            });
+        }
+
+        // Pin the message
+        const pinnedMessage = await db.message.update({
+            where: { id },
+            data: {
+                isPinned: true,
+                pinnedAt: new Date(),
+                pinnedBy: req.user.id
+            }
+        });
+
+        // Get sender info for response
+        const sender = await db.user.findUnique({
+            where: { id: pinnedMessage.senderId },
+            select: {
+                id: true,
+                username: true,
+                discriminator: true,
+                avatar: true
+            }
+        });
+
+        const responseData = {
+            _id: pinnedMessage.id,
+            channelId: pinnedMessage.channelId,
+            dmRoomId: pinnedMessage.dmRoomId,
+            serverId: pinnedMessage.serverId,
+            senderId: {
+                _id: sender.id,
+                username: sender.username,
+                discriminator: sender.discriminator,
+                avatar: sender.avatar
+            },
+            content: pinnedMessage.content,
+            type: pinnedMessage.type,
+            attachments: pinnedMessage.attachments,
+            mentions: pinnedMessage.mentions,
+            createdAt: pinnedMessage.createdAt,
+            editedAt: pinnedMessage.editedAt,
+            isDeleted: pinnedMessage.isDeleted,
+            isPinned: pinnedMessage.isPinned,
+            pinnedAt: pinnedMessage.pinnedAt,
+            pinnedBy: pinnedMessage.pinnedBy
+        };
+
+        // Emit socket event
+        if (global.io) {
+            global.io.to(message.channelId).emit('message_pinned', responseData);
+        }
+
+        res.status(200).json(responseData);
+    } catch (error) {
+        console.error('Pin message error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while pinning message'
+        });
+    }
+};
+
+// Unpin message
+exports.unpinMessage = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const message = await db.message.findUnique({
+            where: { id },
+            include: {
+                channel: {
+                    include: {
+                        server: true
+                    }
+                }
+            }
+        });
+
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message not found'
+            });
+        }
+
+        if (!message.channelId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot unpin messages in DMs'
+            });
+        }
+
+        if (!message.isPinned) {
+            return res.status(400).json({
+                success: false,
+                message: 'Message is not pinned'
+            });
+        }
+
+        // Check if user is server owner
+        const isOwner = message.channel.server.ownerId === req.user.id;
+
+        // TODO: Add role-based permission check here when role permissions are implemented
+        // For now, only server owners can unpin messages
+
+        if (!isOwner) {
+            return res.status(403).json({
+                success: false,
+                message: 'You do not have permission to unpin messages'
+            });
+        }
+
+        // Unpin the message
+        const unpinnedMessage = await db.message.update({
+            where: { id },
+            data: {
+                isPinned: false,
+                pinnedAt: null,
+                pinnedBy: null
+            }
+        });
+
+        // Get sender info for response
+        const sender = await db.user.findUnique({
+            where: { id: unpinnedMessage.senderId },
+            select: {
+                id: true,
+                username: true,
+                discriminator: true,
+                avatar: true
+            }
+        });
+
+        const responseData = {
+            _id: unpinnedMessage.id,
+            channelId: unpinnedMessage.channelId,
+            dmRoomId: unpinnedMessage.dmRoomId,
+            serverId: unpinnedMessage.serverId,
+            senderId: {
+                _id: sender.id,
+                username: sender.username,
+                discriminator: sender.discriminator,
+                avatar: sender.avatar
+            },
+            content: unpinnedMessage.content,
+            type: unpinnedMessage.type,
+            attachments: unpinnedMessage.attachments,
+            mentions: unpinnedMessage.mentions,
+            createdAt: unpinnedMessage.createdAt,
+            editedAt: unpinnedMessage.editedAt,
+            isDeleted: unpinnedMessage.isDeleted,
+            isPinned: unpinnedMessage.isPinned,
+            pinnedAt: unpinnedMessage.pinnedAt,
+            pinnedBy: unpinnedMessage.pinnedBy
+        };
+
+        // Emit socket event
+        if (global.io) {
+            global.io.to(message.channelId).emit('message_unpinned', responseData);
+        }
+
+        res.status(200).json(responseData);
+    } catch (error) {
+        console.error('Unpin message error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while unpinning message'
+        });
+    }
+};
+
+// Get pinned messages for a channel
+exports.getPinnedMessages = async (req, res) => {
+    try {
+        const { channelId } = req.params;
+
+        if (!channelId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Channel ID is required'
+            });
+        }
+
+        // Check if channel exists
+        const channel = await db.channel.findUnique({
+            where: { id: channelId }
+        });
+
+        if (!channel) {
+            return res.status(404).json({
+                success: false,
+                message: 'Channel not found'
+            });
+        }
+
+        // Check if user is a member of the server
+        const member = await db.serverMember.findFirst({
+            where: {
+                serverId: channel.serverId,
+                userId: req.user.id
+            }
+        });
+
+        if (!member) {
+            return res.status(403).json({
+                success: false,
+                message: 'You do not have access to this channel'
+            });
+        }
+
+        // Fetch pinned messages
+        const pinnedMessages = await db.message.findMany({
+            where: {
+                channelId,
+                isPinned: true,
+                isDeleted: false
+            },
+            orderBy: { pinnedAt: 'desc' }
+        });
+
+        // Get unique sender IDs
+        const senderIds = [...new Set(pinnedMessages.map(m => m.senderId))];
+
+        // Fetch sender info
+        const senders = await db.user.findMany({
+            where: { id: { in: senderIds } },
+            select: {
+                id: true,
+                username: true,
+                discriminator: true,
+                avatar: true
+            }
+        });
+
+        const sendersMap = Object.fromEntries(senders.map(s => {
+            const { id, ...rest } = s;
+            return [s.id, { _id: id, ...rest }];
+        }));
+
+        // Format messages with sender info
+        const messagesWithSenders = pinnedMessages.map(msg => {
+            const { id, ...rest } = msg;
+            return {
+                _id: id,
+                ...rest,
+                senderId: sendersMap[msg.senderId] || msg.senderId
+            };
+        });
+
+        res.status(200).json(messagesWithSenders);
+    } catch (error) {
+        console.error('Get pinned messages error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching pinned messages'
+        });
+    }
+};
+

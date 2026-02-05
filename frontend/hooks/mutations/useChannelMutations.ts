@@ -6,12 +6,26 @@ import { Channel } from '../queries'
 
 export function useCreateChannel() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: async ({ serverId, name, type = 'TEXT' }: { serverId: string; name: string; type?: 'TEXT' | 'VOICE' }) => {
+    mutationFn: async ({
+      serverId,
+      name,
+      type = 'TEXT',
+      isPrivate = false,
+      isReadOnly = false,
+      allowedRoleIds = []
+    }: {
+      serverId: string
+      name: string
+      type?: 'TEXT' | 'VOICE'
+      isPrivate?: boolean
+      isReadOnly?: boolean
+      allowedRoleIds?: string[]
+    }) => {
       const response = await apiPost<{ success: boolean; channel: Channel }>(
         `/server/${serverId}/create-channel`,
-        { name, type }
+        { name, type, isPrivate, isReadOnly, allowedRoleIds }
       )
       return { serverId, channel: response.channel }
     },
@@ -27,7 +41,7 @@ export function useCreateChannel() {
 
 export function useUpdateChannel() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({
       serverId,
@@ -58,7 +72,7 @@ export function useUpdateChannel() {
 
 export function useDeleteChannel() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({ serverId, channelId }: { serverId: string; channelId: string }) => {
       await apiRequest(`/server/channel/${channelId}`, { method: 'DELETE' })
@@ -77,7 +91,7 @@ export function useDeleteChannel() {
 
 export function useReorderChannels() {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async ({
       serverId,

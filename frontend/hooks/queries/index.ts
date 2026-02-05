@@ -7,9 +7,11 @@ export { useInviteInfo } from './useInviteInfo'
 export * from './useFriendQueries'
 export * from './useDMQueries'
 export { useRoles } from './useRoles'
+export * from './usePinnedMessages'
 
 export type { Server } from './useServers'
 export type { Channel } from './useChannels'
 export type { Message } from './useMessages'
 export type { Member } from './useMembers'
 export type { UserProfile } from './useProfile'
+

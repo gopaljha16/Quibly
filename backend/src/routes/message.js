@@ -9,7 +9,15 @@ router.use(authenticate);
 router.post('/', messageController.createMessage);
 router.get('/:channelId', messageController.getMessages);
 router.get('/dm/:dmRoomId', messageController.getMessages);
+
+// Pinning routes - MUST come before generic /:id routes
+router.get('/pinned/:channelId', messageController.getPinnedMessages);
+router.put('/:id/pin', messageController.pinMessage);
+router.delete('/:id/pin', messageController.unpinMessage);
+
+// Generic message routes
 router.put('/:id', messageController.editMessage);
 router.delete('/:id', messageController.deleteMessage);
 
 module.exports = router;
+

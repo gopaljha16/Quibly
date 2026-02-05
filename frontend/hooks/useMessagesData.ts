@@ -103,10 +103,44 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
       })
     }
 
+    // Handle message pinned
+    const handleMessagePinned = (incoming: any) => {
+      const msg = incoming as Message
+      const msgTargetId = msg.channelId || msg.dmRoomId
+
+      if (!msgTargetId) return
+
+      // Update message in cache
+      queryClient.setQueryData<Message[]>(['messages', msgTargetId], (old = []) => {
+        return old.map((m) => (m._id === msg._id ? msg : m))
+      })
+
+      // Invalidate pinned messages query
+      queryClient.invalidateQueries({ queryKey: ['pinnedMessages', msgTargetId] })
+    }
+
+    // Handle message unpinned
+    const handleMessageUnpinned = (incoming: any) => {
+      const msg = incoming as Message
+      const msgTargetId = msg.channelId || msg.dmRoomId
+
+      if (!msgTargetId) return
+
+      // Update message in cache
+      queryClient.setQueryData<Message[]>(['messages', msgTargetId], (old = []) => {
+        return old.map((m) => (m._id === msg._id ? msg : m))
+      })
+
+      // Invalidate pinned messages query
+      queryClient.invalidateQueries({ queryKey: ['pinnedMessages', msgTargetId] })
+    }
+
     socketInstance.on('connect', handleConnect)
     socketInstance.on('disconnect', handleDisconnect)
     socketInstance.on('receive_message', handleReceiveMessage)
     socketInstance.on('message_updated', handleMessageUpdated)
+    socketInstance.on('message_pinned', handleMessagePinned)
+    socketInstance.on('message_unpinned', handleMessageUnpinned)
 
     // Check if already connected
     if (socketInstance.connected) {
@@ -118,6 +152,8 @@ export function useMessagesData(id: string | null, type: 'channel' | 'dm' = 'cha
       socketInstance.off('disconnect', handleDisconnect)
       socketInstance.off('receive_message', handleReceiveMessage)
       socketInstance.off('message_updated', handleMessageUpdated)
+      socketInstance.off('message_pinned', handleMessagePinned)
+      socketInstance.off('message_unpinned', handleMessageUnpinned)
     }
   }, [queryClient]) // This listener is global and persistent
 
