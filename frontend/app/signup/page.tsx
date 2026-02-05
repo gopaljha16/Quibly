@@ -8,6 +8,7 @@ import {
   Shield, Rocket
 } from 'lucide-react'
 import { apiPost, apiGet, ApiError } from '@/lib/api'
+import { GoogleLogin } from '@react-oauth/google'
 import InterestSelector from '@/components/InterestSelector'
 import RecommendedChannelsModal from '@/components/RecommendedChannelsModal'
 import SignupVisualization from '@/components/SignupVisualization'
@@ -326,6 +327,34 @@ function SignupContent() {
                       </span>
                     )}
                   </Button>
+
+                  <div className="pt-2">
+                    <GoogleLogin
+                      onSuccess={async (credentialResponse) => {
+                        if (credentialResponse.credential) {
+                          setIsLoading(true)
+                          try {
+                            await apiPost('/auth/google-login', { 
+                              googleToken: credentialResponse.credential 
+                            })
+                            router.push(redirect)
+                            router.refresh()
+                          } catch (err) {
+                            setErrors({ email: 'Google signup failed. Please try again.' })
+                          } finally {
+                            setIsLoading(false)
+                          }
+                        }
+                      }}
+                      onError={() => {
+                        setErrors({ email: 'Google signup failed' })
+                      }}
+                      theme="filled_black"
+                      size="large"
+                      text="signup_with"
+                      shape="pill"
+                    />
+                  </div>
                 </form>
 
                 {/* Divider */}

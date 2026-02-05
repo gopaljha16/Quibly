@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import EmojiPicker, { Theme, EmojiStyle } from 'emoji-picker-react'
 import { useChannelsData } from '@/hooks/useChannelsData'
 import { useMessagesData } from '@/hooks/useMessagesData'
 import { useLinkPreviews } from '@/lib/useLinkPreviews'
@@ -16,6 +17,9 @@ import { Message } from '@/hooks/queries'
 import { MessageListSkeleton } from '@/components/LoadingSkeletons'
 import { useTypingIndicator } from '@/hooks/useTypingIndicator'
 import { TypingIndicator } from '@/components/TypingIndicator'
+import GifPicker from '@/components/GifPicker'
+import { useUploadThing } from '@/lib/uploadthing'
+import { Loader2, Plus } from 'lucide-react'
 
 // Message Item Component
 const MessageItem = ({
@@ -152,15 +156,64 @@ const MessageItem = ({
           </div>
         ) : (
           <>
-            <div className="text-[#dbdee1] break-words leading-[1.375rem]">
-              <LinkifiedText
-                text={message.content}
-                className="whitespace-pre-wrap"
-                linkClassName="text-[#5865f2] hover:underline cursor-pointer transition-colors"
-              />
-            </div>
+            {(() => {
+              const content = message.content.trim();
+              const isMedia = message.type === 'FILE' || 
+                (content.match(/\.(jpeg|jpg|gif|png|webp|mp4|webm|ogg)$/i) || content.includes('utfs.io/f/') || content.includes('utfs.io/v/')) && !content.includes(' ');
 
-            {firstUrl && (
+              if (isMedia && message.type === 'FILE') return null; // Hide text if it's explicitly a FILE
+              if (isMedia) return null; // Hide text for pure media URLs too
+
+              return (
+                <div className="text-[#dbdee1] break-words leading-[1.375rem]">
+                  <LinkifiedText
+                    text={message.content}
+                    className="whitespace-pre-wrap"
+                    linkClassName="text-[#5865f2] hover:underline cursor-pointer transition-colors"
+                  />
+                </div>
+              );
+            })()}
+
+            {(() => {
+              const content = message.content.trim();
+              const attachments = message.attachments || [];
+              
+              // Priority 1: Render Attachments
+              if (attachments.length > 0) {
+                return attachments.map((att, i) => (
+                  <div key={i} className="mt-2 rounded-md overflow-hidden max-w-[400px] border border-[#2a2a2a]">
+                    {att.type === 'video' || att.url?.includes('utfs.io/v/') ? (
+                      <video src={att.url} controls className="w-full h-auto" />
+                    ) : (
+                      <img src={att.url} alt="Attachment" className="w-full h-auto object-contain cursor-pointer" />
+                    )}
+                  </div>
+                ));
+              }
+
+              // Priority 2: Legacy/Link Detection fallback
+              const isImage = content.match(/\.(jpeg|jpg|gif|png|webp)$/i) || content.includes('utfs.io/f/');
+              const isVideo = content.match(/\.(mp4|webm|ogg)$/i) || content.includes('utfs.io/v/');
+              
+              if (isImage && !content.includes(' ')) {
+                return (
+                  <div className="mt-2 rounded-md overflow-hidden max-w-[400px]">
+                    <img src={content} alt="User upload" className="w-full h-auto object-contain cursor-pointer" />
+                  </div>
+                );
+              }
+              if (isVideo && !content.includes(' ')) {
+                return (
+                  <div className="mt-2 rounded-md overflow-hidden max-w-[400px]">
+                    <video src={content} controls className="w-full h-auto" />
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
+            {firstUrl && message.type !== 'FILE' && !message.content.match(/\.(jpeg|jpg|gif|png|webp|mp4|webm|ogg)$/i) && (
               <div className="mt-2 max-w-[432px]">
                 <LinkPreview url={firstUrl} />
               </div>
@@ -234,17 +287,74 @@ const MessageInput = ({
   channelName: string
   value: string
   onChange: (value: string) => void
-  onSend: () => void
+  onSend: (type?: 'TEXT' | 'FILE', attachments?: any[]) => void
   disabled: boolean
   isMe?: boolean
 }) => {
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showGifPicker, setShowGifPicker] = useState(false)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
+  const gifPickerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const { startUpload, isUploading } = useUploadThing("messageFile", {
+    onClientUploadComplete: (res) => {
+      if (res && res[0]) {
+        // Send as FILE type with attachment
+        onSendFile(res[0].url)
+      }
+    },
+    onUploadError: (error: Error) => {
+      alert(`Upload failed: ${error.message}`)
+    },
+  })
+
+  const onSendFile = (url: string) => {
+    // Send as FILE type
+    onSend('FILE', [{ url, type: url.includes('/v/') ? 'video' : 'image' }])
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      onSend()
+      onSend('TEXT')
     }
+  }
+
+  const onEmojiClick = (emojiData: any) => {
+    onChange(value + emojiData.emoji)
+    // Keep focus on textarea
+    textareaRef.current?.focus()
+  }
+
+  // Close pickers when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false)
+      }
+      if (gifPickerRef.current && !gifPickerRef.current.contains(event.target as Node)) {
+        setShowGifPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleGifSelect = (url: string) => {
+    // For GIFs, we send as FILE type
+    onSend('FILE', [{ url, type: 'image' }])
+    setShowGifPicker(false)
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      await startUpload([file])
+    }
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   useEffect(() => {
@@ -259,10 +369,23 @@ const MessageInput = ({
     <div className="px-4 pb-6 bg-[#313338] flex-shrink-0 z-10">
       <div className="bg-[#383a40] rounded-lg focus-within:ring-1 focus-within:ring-[#00a8fc] transition-all relative">
         <div className="absolute left-4 top-[10px] flex items-center">
-          <button className="w-6 h-6 rounded-full bg-[#b5bac1] hover:bg-[#d1d5da] text-[#313338] flex items-center justify-center transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current font-bold">
-              <path fillRule="evenodd" clipRule="evenodd" d="M13 11V4H11V11H4V13H11V20H13V13H20V11H13Z" />
-            </svg>
+          <input 
+            type="file" 
+            className="hidden" 
+            ref={fileInputRef} 
+            onChange={handleFileChange}
+            accept="image/*,video/*"
+          />
+          <button 
+            className="w-6 h-6 rounded-full bg-[#b5bac1] hover:bg-[#d1d5da] text-[#313338] flex items-center justify-center transition-colors disabled:opacity-50"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4" strokeWidth={3} />
+            )}
           </button>
         </div>
 
@@ -281,22 +404,11 @@ const MessageInput = ({
         />
 
         <div className="absolute right-3 top-[8px] flex items-center gap-2">
-          <button className="text-[#b5bac1] hover:text-[#dbdee1] transition-colors" title="Send a gift">
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-              <path d="M16.886 7.999H20C21.104 7.999 22 8.896 22 9.999V11.999H2V9.999C2 8.896 2.897 7.999 4 7.999H7.114C6.663 7.764 6.236 7.477 5.879 7.121C4.709 5.951 4.709 4.048 5.879 2.879C7.012 1.746 8.986 1.746 10.121 2.877L12 4.757L13.879 2.877C15.014 1.742 16.986 1.746 18.121 2.877C19.29 4.046 19.29 5.949 18.121 7.119C17.764 7.477 17.337 7.764 16.886 7.999ZM7.293 5.707C6.903 5.316 6.903 4.682 7.293 4.292C7.481 4.103 7.732 4 8 4C8.268 4 8.519 4.103 8.707 4.292L12 7.586L15.293 4.292C15.481 4.103 15.732 4 16 4C16.268 4 16.519 4.103 16.707 4.292C17.097 4.682 17.097 5.316 16.707 5.707L13.414 8.999H10.586L7.293 5.707ZM20 13.999V19.999C20 21.102 19.104 21.999 18 21.999H6C4.897 21.999 4 21.102 4 19.999V13.999H11V17.999H13V13.999H20Z" />
-            </svg>
-          </button>
-          <button className="text-[#b5bac1] hover:text-[#dbdee1] transition-colors" title="GIF">
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-              <path d="M2 2C0.895 2 0 2.895 0 4V20C0 21.105 0.895 22 2 22H22C23.105 22 24 21.105 24 20V4C24 2.895 23.105 2 22 2H2ZM11 8H13V16H11V8ZM15 8H17V16H15V8ZM7 8H9V12H7V16H5V8H7Z" />
-            </svg>
-          </button>
-          <button className="text-[#b5bac1] hover:text-[#dbdee1] transition-colors" title="Sticker">
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-              <path d="M12 0C5.373 0 0 5.373 0 12C0 18.627 5.373 24 12 24C12.894 24 13.766 23.902 14.604 23.716L14.154 21.757C13.457 21.916 12.737 22 12 22C6.486 22 2 17.514 2 12C2 6.486 6.486 2 12 2C17.514 2 22 6.486 22 12C22 12.737 21.916 13.457 21.757 14.154L23.716 14.604C23.902 13.766 24 12.894 24 12C24 5.373 18.627 0 12 0ZM12 4C9.794 4 8 5.794 8 8C8 10.206 9.794 12 12 12C14.206 12 16 10.206 16 8C16 5.794 14.206 4 12 4ZM12 6C13.103 6 14 6.897 14 8C14 9.103 13.103 10 12 10C10.897 10 10 9.103 10 8C10 6.897 10.897 6 12 6ZM18.793 13.793L13.5 19.086L11.914 17.5L10.5 18.914L13.5 21.914L20.207 15.207L18.793 13.793Z" />
-            </svg>
-          </button>
-          <button className="text-[#b5bac1] hover:text-[#dbdee1] transition-colors" title="Emoji">
+          <button 
+            className={`text-[#b5bac1] hover:text-[#dbdee1] transition-colors ${showEmojiPicker ? 'text-[#dbdee1]' : ''}`} 
+            title="Emoji"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          >
             <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current transform scale-90">
               <path fillRule="evenodd" clipRule="evenodd" d="M2 12C2 6.477 6.477 2 12 2C17.523 2 22 6.477 22 12C22 17.523 17.523 22 12 22C6.477 22 2 17.523 2 12ZM20 12C20 16.418 16.418 20 12 20C7.582 20 4 16.418 4 12C4 7.582 7.582 4 12 4C16.418 4 20 7.582 20 12Z" />
               <path fillRule="evenodd" clipRule="evenodd" d="M13 9.5C13 10.328 13.672 11 14.5 11C15.328 11 16 10.328 16 9.5C16 8.672 15.328 8 14.5 8C13.672 8 13 8.672 13 9.5ZM9.5 8C8.672 8 8 8.672 8 9.5C8 10.328 8.672 11 9.5 11C10.328 11 11 10.328 11 9.5C11 8.672 10.328 8 9.5 8Z" />
@@ -304,6 +416,35 @@ const MessageInput = ({
             </svg>
           </button>
         </div>
+
+        {showGifPicker && (
+          <div 
+            ref={gifPickerRef}
+            className="absolute bottom-full right-0 mb-4 z-50 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200"
+          >
+            <GifPicker 
+              onGifSelect={handleGifSelect}
+              onClose={() => setShowGifPicker(false)}
+            />
+          </div>
+        )}
+
+        {showEmojiPicker && (
+          <div 
+            ref={emojiPickerRef}
+            className="absolute bottom-full right-0 mb-4 z-50 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200"
+          >
+            <EmojiPicker
+              onEmojiClick={onEmojiClick}
+              theme={Theme.DARK}
+              emojiStyle={EmojiStyle.TWITTER}
+              lazyLoadEmojis={true}
+              searchPlaceholder="Search emojis..."
+              width={350}
+              height={450}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -339,6 +480,16 @@ export default function ChannelsPage() {
     route.isMe ? 'dm' : 'channel'
   )
 
+  const handleSend = async (typeMod: 'TEXT' | 'FILE' = 'TEXT', attachments: any[] = []) => {
+    const contentToSend = typeMod === 'FILE' ? (attachments[0]?.url || '') : draft
+    if (!contentToSend.trim() && attachments.length === 0) return
+    try {
+      await sendMessage(contentToSend, typeMod, attachments)
+      if (typeMod === 'TEXT') updateDraft('')
+    } catch (error) {
+      console.error('Failed to send message:', error)
+    }
+  }
   const { mutate: removeFriend, isPending: removingFriend } = useRemoveFriend()
   const { mutate: blockUser, isPending: blockingUser } = useBlockUser()
   const { mutate: addFriend, isPending: addingFriend } = useAddFriend()
@@ -383,13 +534,9 @@ export default function ChannelsPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [sortedMessages.length, selectedChannel?._id])
 
-  const handleSend = async () => {
-    if (!draft.trim()) return
-    try {
-      await sendMessage(draft)
-    } catch (error) {
-      console.error('Failed to send message:', error)
-    }
+  const handleSendAction = (typeMod: 'TEXT' | 'FILE' = 'TEXT', attachments: any[] = []) => {
+    handleSend(typeMod, attachments)
+    handleStopTyping()
   }
 
   const handleDelete = async (messageId: string) => {
@@ -608,10 +755,7 @@ export default function ChannelsPage() {
                 updateDraft(value)
                 handleTyping()
               }}
-              onSend={() => {
-                handleSend()
-                handleStopTyping()
-              }}
+              onSend={handleSendAction}
               disabled={sending}
               isMe={route.isMe}
             />

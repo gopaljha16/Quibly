@@ -16,6 +16,8 @@ export type Message = {
     avatar?: string | null
   }
   content: string
+  type?: 'TEXT' | 'FILE' | 'SYSTEM'
+  attachments?: any[]
   createdAt: string
   editedAt?: string | null
 }

@@ -8,6 +8,8 @@ type SendMessageData = {
   channelId?: string
   dmRoomId?: string
   content: string
+  type?: 'TEXT' | 'FILE' | 'SYSTEM'
+  attachments?: any[]
 }
 
 export function useSendMessage() {

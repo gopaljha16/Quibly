@@ -4,6 +4,9 @@ const crypto = require('crypto');
 const db = require('../config/db');
 const redis = require('../config/redis');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/emailService');
+const { OAuth2Client } = require('google-auth-library');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT Token
 const generateToken = (userId) => {
@@ -220,19 +223,64 @@ exports.googleLogin = async (req, res) => {
             });
         }
 
-        // TODO: Verify Google token with Google OAuth API
-        // For now, this is a placeholder implementation
-        // You'll need to add google-auth-library package and verify the token
+        // Verify Google token
+        const ticket = await client.verifyIdToken({
+            idToken: googleToken,
+            audience: process.env.GOOGLE_CLIENT_ID
+        });
 
-        res.status(501).json({
-            success: false,
-            message: 'Google OAuth not implemented yet'
+        const payload = ticket.getPayload();
+        const { email, name, picture, sub: googleId } = payload;
+
+        // Find or create user
+        let user = await db.user.findUnique({
+            where: { email: email.toLowerCase() }
+        });
+
+        if (!user) {
+            // Create new user if doesn't exist
+            user = await db.user.create({
+                data: {
+                    username: name.replace(/\s+/g, '').toLowerCase().slice(0, 32),
+                    email: email.toLowerCase(),
+                    password: await bcrypt.hash(crypto.randomBytes(16).toString('hex'), 10), // Random password
+                    discriminator: generateDiscriminator(),
+                    avatar: picture,
+                    isVerified: true, // Google emails are already verified
+                    status: 'online',
+                }
+            });
+        }
+
+        // Generate JWT
+        const token = generateToken(user.id);
+
+        // Set token as HTTP-only cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Google login successful',
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                discriminator: user.discriminator,
+                email: user.email,
+                avatar: user.avatar,
+                isVerified: user.isVerified
+            }
         });
     } catch (error) {
-        console.error('Google login error:', error);
         res.status(500).json({
             success: false,
-            message: 'Server error during Google login'
+            message: 'Server error during Google login',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 };
@@ -249,8 +297,15 @@ exports.verifyEmail = async (req, res) => {
             });
         }
 
-        // Get userId from authenticated user
-        const userId = req.user.id;
+        // NEW: Get userId from body instead of req.user (for public access)
+        const { userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'User ID is required'
+            });
+        }
 
         // Verify token from Redis
         const storedUserId = await redis.get(`verify:${token}`);
@@ -529,9 +584,9 @@ exports.getProfile = async (req, res) => {
                 sameSite: 'lax',
                 path: '/'
             });
-            return res.status(401).json({ 
-                success: false, 
-                message: 'User not found. Please log in again.' 
+            return res.status(401).json({
+                success: false,
+                message: 'User not found. Please log in again.'
             });
         }
 
