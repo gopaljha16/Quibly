@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { UserPlus, MessageSquare, Smile } from 'lucide-react'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { useFriends, usePendingRequests } from '@/hooks/queries'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiPost } from '@/lib/api'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 type MemberUser = {
   _id: string
@@ -23,7 +30,7 @@ const StatusIndicator = ({ status }: { status?: 'online' | 'idle' | 'dnd' | 'off
   }
 
   return (
-    <div className={`w-4 h-4 rounded-full border-2 border-[#232428] ${statusColors[status || 'offline']}`} />
+    <div className={`w-[18px] h-[18px] rounded-full border-[4px] border-[#111214] ${statusColors[status || 'offline']}`} />
   )
 }
 
@@ -34,6 +41,7 @@ export default function MemberProfileModal({
   isOwner,
   roleIds,
   roles,
+  currentUserId,
 }: {
   open: boolean
   onClose: () => void
@@ -41,7 +49,71 @@ export default function MemberProfileModal({
   isOwner: boolean
   roleIds?: string[]
   roles?: Array<{ id: string, name: string, color: string | null }>
+  currentUserId?: string
 }) {
+  const [messageInput, setMessageInput] = useState('')
+  const queryClient = useQueryClient()
+  const router = useRouter()
+  
+  const { data: friends = [] } = useFriends()
+  const { data: pendingRequests = [] } = usePendingRequests()
+  
+  const userId = user?._id || ''
+  
+  // Check friendship status
+  const isFriend = friends.some(f => f.id === userId)
+  const hasPendingRequest = pendingRequests.some(
+    req => req.receiverId === userId || req.senderId === userId
+  )
+  
+  // Add Friend mutation
+  const addFriendMutation = useMutation({
+    mutationFn: ({ username, discriminator }: { username: string, discriminator: string }) =>
+      apiPost('/friends/request', { username, discriminator }),
+    onSuccess: () => {
+      toast.success('Friend request sent!')
+      queryClient.invalidateQueries({ queryKey: ['friend-requests'] })
+      queryClient.invalidateQueries({ queryKey: ['friends'] })
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to send friend request')
+    }
+  })
+  
+  // Create DM mutation
+  const createDMMutation = useMutation({
+    mutationFn: (userId: string) => apiPost<{ success: boolean; room: { id: string } }>('/dm/room', { userId }),
+    onSuccess: (data) => {
+      router.push(`/channels/@me/${data.room.id}`)
+      onClose()
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to start conversation')
+    }
+  })
+  
+  const handleAddFriend = () => {
+    if (!user?.discriminator) {
+      toast.error('Cannot add friend: missing discriminator')
+      return
+    }
+    addFriendMutation.mutate({
+      username: user.username,
+      discriminator: user.discriminator
+    })
+  }
+  
+  const handleSendMessage = () => {
+    createDMMutation.mutate(userId)
+  }
+  
+  const handleMessageInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (messageInput.trim()) {
+      createDMMutation.mutate(userId)
+    }
+  }
+
   useEffect(() => {
     if (!open) return
     const onKeyDown = (e: KeyboardEvent) => {
@@ -56,13 +128,10 @@ export default function MemberProfileModal({
   const initials = user.username?.slice(0, 1).toUpperCase() || 'U'
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/70" onClick={onClose} />
-
-      <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[340px] rounded-[8px] bg-[#12131a] shadow-2xl overflow-hidden animate-scale-in relative">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent showCloseButton={false} className="max-w-[340px] bg-[#111214] border-none text-white p-0 overflow-hidden rounded-lg">
           {/* Banner */}
-          <div className="h-[60px] relative overflow-hidden bg-gradient-to-r from-cyan-500 to-purple-600">
+          <div className="h-[60px] relative overflow-hidden bg-gradient-to-r from-[#1e3a8a] via-[#7c3aed] to-[#db2777]">
             {user.banner && (
               <img
                 src={user.banner}
@@ -73,7 +142,7 @@ export default function MemberProfileModal({
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 transition-colors flex items-center justify-center text-white/80 z-10"
+              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-[#0a0a0b]/60 hover:bg-[#0a0a0b]/80 transition-colors flex items-center justify-center text-white/90 hover:text-white z-10"
               aria-label="Close"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" className="fill-current">
@@ -82,97 +151,136 @@ export default function MemberProfileModal({
             </button>
           </div>
 
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-3">
             {/* Avatar */}
-            <div className="-mt-[40px] mb-3 relative inline-block">
-              <div className="w-[80px] h-[80px] rounded-full border-[6px] border-[#232428] bg-[#1E1F22] flex items-center justify-center text-3xl font-bold text-white overflow-hidden relative">
+            <div className="relative -mt-[52px] mb-3">
+              <div className="relative w-[80px] h-[80px] rounded-full border-[6px] border-[#111214] overflow-hidden bg-[#5865f2]">
                 {user.avatar ? (
-                  <img
-                    src={user.avatar}
-                    alt={user.username}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center">
+                  <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-white">
                     {initials}
                   </div>
                 )}
-              </div>
-              <div className="absolute bottom-1 right-1 rounded-full bg-[#232428] p-[4px]">
-                <StatusIndicator status={user.status} />
+                {/* Status Indicator */}
+                <div className="absolute bottom-0 right-0">
+                  <StatusIndicator status={user.status} />
+                </div>
               </div>
             </div>
 
-            {/* User Info */}
-            <div className="mb-4 bg-[#0a0b0f] rounded-[8px] p-3 border border-cyan-500/10">
-              <div className="flex items-center gap-2 mb-1">
-                <div 
-                  className="text-lg font-bold"
-                  style={{ color: isOwner ? '#F0B232' : '#F2F3F5' }}
-                >
-                  {user.username}
-                </div>
-                {isOwner && (
-                  <svg className="w-3.5 h-3.5 text-[#f0b232]" viewBox="0 0 16 16" fill="currentColor">
-                    <path d="M13.6572 5.42868C13.8879 5.29002 14.1806 5.30402 14.3973 5.46468C14.6133 5.62602 14.7119 5.90068 14.6473 6.16202L13.3139 11.4954C13.2393 11.7927 12.9726 12.0007 12.6666 12.0007H3.33325C3.02725 12.0007 2.76058 11.7927 2.68592 11.4954L1.35258 6.16202C1.28792 5.90068 1.38658 5.62602 1.60258 5.46468C1.81992 5.30468 2.11192 5.29068 2.34325 5.42868L5.13192 7.10202L7.44592 3.63068C7.46173 3.60697 7.48026 3.5853 7.50125 3.56602C7.62192 3.45535 7.78058 3.39002 7.94525 3.38202H8.05458C8.21925 3.39002 8.37792 3.45535 8.49925 3.56602C8.52024 3.5853 8.53877 3.60697 8.55458 3.63068L10.8686 7.10202L13.6572 5.42868ZM2.66667 13.334H13.3333V14.6673H2.66667V13.334Z" />
-                  </svg>
-                )}
-              </div>
-              <div className="text-sm text-slate-400 font-medium">#{user.discriminator}</div>
+            {/* User Info Card */}
+            <div className="bg-[#232428] rounded-lg p-3 mb-2">
+              {/* Username */}
+              <h3 className="text-[20px] font-bold text-white mb-0.5 leading-tight">
+                {user.username}
+              </h3>
+              {/* Discriminator */}
+              <p className="text-sm text-[#b5bac1] mb-3 leading-tight">
+                {user.username.toLowerCase()}#{user.discriminator}
+              </p>
 
-              {user.customStatus && (
-                <div className="mt-2 text-sm text-slate-50">
-                  {user.customStatus}
+              <div className="h-px bg-[#3f4147] mb-3" />
+
+              {/* Mutual Servers */}
+              <div className="mb-3">
+                <p className="text-xs font-bold text-white uppercase mb-2">1 Mutual Server</p>
+                {/* Placeholder for server icons - you can add actual server data here */}
+              </div>
+
+              <div className="h-px bg-[#3f4147] mb-3" />
+
+              {/* About Me Section */}
+              <div>
+                <p className="text-xs font-bold text-[#b5bac1] uppercase mb-2">About Me</p>
+                <p className="text-sm text-[#dbdee1] leading-relaxed">
+                  {user.bio || 'Just another discord user.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 mb-2">
+              <button
+                onClick={handleSendMessage}
+                disabled={createDMMutation.isPending}
+                className="flex-1 bg-[#5865f2] hover:bg-[#4752c4] text-white font-medium py-2.5 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
+              >
+                <MessageSquare className="w-4 h-4" />
+                Send Message
+              </button>
+
+              {!isFriend && !hasPendingRequest && currentUserId !== userId && (
+                <button
+                  onClick={handleAddFriend}
+                  disabled={addFriendMutation.isPending}
+                  className="bg-[#3ba55d] hover:bg-[#2d7d46] text-white font-medium py-2.5 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  title="Add Friend"
+                >
+                  <UserPlus className="w-5 h-5" />
+                </button>
+              )}
+
+              {hasPendingRequest && (
+                <div className="bg-[#4e5058] text-[#b5bac1] font-medium py-2.5 px-4 rounded flex items-center justify-center" title="Pending">
+                  <UserPlus className="w-5 h-5" />
                 </div>
               )}
             </div>
 
-            <div className="h-[1px] bg-[#3F4147] mb-3" />
-
-            {/* About Me Section */}
-            <div className="mb-4">
-              <div className="text-xs font-bold text-slate-400 uppercase mb-2">About Me</div>
-              <div className="text-sm text-slate-50 leading-relaxed whitespace-pre-wrap">
-                {user.bio || 'Just another discord user.'}
+            {/* Message Input */}
+            <form onSubmit={handleMessageInputSubmit} className="mb-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder={`Message @${user.username}`}
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  className="w-full bg-[#383a40] text-[#dbdee1] rounded px-3 py-2 pr-10 text-sm outline-none placeholder-[#6d6f78] transition-all"
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-[#b5bac1] hover:text-[#dbdee1] transition-colors"
+                >
+                  <Smile className="w-5 h-5" />
+                </button>
               </div>
-            </div>
+            </form>
 
             {/* Roles Section */}
-            <div className="mb-4">
-              <div className="text-xs font-bold text-slate-400 uppercase mb-2">Roles</div>
-              <div className="flex flex-wrap gap-1">
-                {(roles || []).filter(r => roleIds?.includes(r.id)).map(role => (
-                  <div 
-                    key={role.id}
-                    className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]"
-                  >
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color || '#99AAB5' }} />
-                    <span className="text-xs font-medium text-slate-50">{role.name}</span>
-                  </div>
-                ))}
-                {isOwner && !(roles || []).some(r => r.name === 'Owner' && roleIds?.includes(r.id)) && (
-                  <div className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]">
-                    <div className="w-3 h-3 rounded-full bg-[#F0B232]" />
-                    <span className="text-xs font-medium text-slate-50">Owner</span>
-                  </div>
-                )}
-                {(roles || []).filter(r => roleIds?.includes(r.id)).length === 0 && !isOwner && (
-                  <span className="text-xs text-slate-500 italic">No roles assigned</span>
-                )}
+            {((roles || []).filter(r => roleIds?.includes(r.id)).length > 0 || isOwner) && (
+              <div className="mb-3">
+                <p className="text-xs font-bold text-[#b5bac1] uppercase mb-2">Roles</p>
+                <div className="flex flex-wrap gap-1">
+                  {(roles || []).filter(r => roleIds?.includes(r.id)).map(role => (
+                    <div
+                      key={role.id}
+                      className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]"
+                    >
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: role.color || '#99AAB5' }} />
+                      <span className="text-xs font-medium text-slate-50">{role.name}</span>
+                    </div>
+                  ))}
+                  {isOwner && !(roles || []).some(r => r.name === 'Owner' && roleIds?.includes(r.id)) && (
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-[#2B2D31] rounded-[4px] border border-[#1E1F22]">
+                      <div className="w-3 h-3 rounded-full bg-[#F0B232]" />
+                      <span className="text-xs font-medium text-slate-50">Owner</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Note Section */}
             <div>
-              <div className="text-xs font-bold text-slate-400 uppercase mb-2">Note</div>
+              <p className="text-xs font-bold text-[#b5bac1] uppercase mb-2">Note</p>
               <textarea
                 className="w-full bg-[#111214] text-slate-50 text-xs p-2 rounded-[3px] border-none outline-none resize-none h-[36px] placeholder-[#5C5E66] focus:h-[60px] transition-all duration-200"
                 placeholder="Click to add a note"
               />
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </DialogContent>
+      </Dialog>
   )
 }

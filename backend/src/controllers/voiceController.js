@@ -1,7 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../config/db');
 const { generateToken, LIVEKIT_WS_URL } = require('../config/livekit');
 
-const prisma = new PrismaClient();
 
 
 //  generate LiveKit token for joining a voice channel
