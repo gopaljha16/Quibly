@@ -2,9 +2,14 @@ generator client {
   provider = "prisma-client-js"
 }
 
+
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+model test {
+  id  String @id @default(cuid())
+  name String 
 }
 
 model User {
@@ -57,6 +62,7 @@ model User {
   dailyActivities              UserDailyActivity[]
   userInterests                UserInterest[]
   messages                     Message[]             @relation("MessageSender")
+  reactions                    Reaction[]
 
   @@index([email])
   @@index([username])
@@ -190,6 +196,7 @@ model Message {
   replies     Message[]   @relation("MessageReplies")
   channel     Channel?    @relation(fields: [channelId], references: [id], onDelete: Cascade)
   dmRoom      DMRoom?     @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
+  reactions   Reaction[]
 
   @@index([channelId, createdAt(sort: Desc)])
   @@index([dmRoomId, createdAt(sort: Desc)])
@@ -317,4 +324,18 @@ enum VerificationLevel {
   low
   medium
   high
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
 }
