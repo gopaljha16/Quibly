@@ -6,6 +6,7 @@ export { useProfile } from './useProfile'
 export { useInviteInfo } from './useInviteInfo'
 export * from './useFriendQueries'
 export * from './useDMQueries'
+export { useRoles } from './useRoles'
 
 export type { Server } from './useServers'
 export type { Channel } from './useChannels'

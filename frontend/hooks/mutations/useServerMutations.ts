@@ -104,3 +104,70 @@ export function useUpdateServer() {
     },
   })
 }
+
+export function useRoleMutations(serverId: string | null) {
+  const queryClient = useQueryClient()
+
+  const createRole = useMutation({
+    mutationFn: async (data: { name?: string; color?: string; permissions?: number; hoist?: boolean }) => {
+      if (!serverId) throw new Error('No server ID')
+      const response = await apiPost<{ success: boolean; role: any }>(`/server/${serverId}/roles`, data)
+      return response.role
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['roles', serverId] })
+    },
+  })
+
+  const updateRole = useMutation({
+    mutationFn: async ({ roleId, updates }: { roleId: string; updates: any }) => {
+      if (!serverId) throw new Error('No server ID')
+      const response = await apiRequest<{ success: boolean; role: any }>(
+        `/server/${serverId}/roles/${roleId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(updates),
+        }
+      )
+      return response.role
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['roles', serverId] })
+    },
+  })
+
+  const deleteRole = useMutation({
+    mutationFn: async (roleId: string) => {
+      if (!serverId) throw new Error('No server ID')
+      await apiRequest(`/server/${serverId}/roles/${roleId}`, { method: 'DELETE' })
+      return roleId
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['roles', serverId] })
+    },
+  })
+
+  const updateMemberRoles = useMutation({
+    mutationFn: async ({ userId, roleIds }: { userId: string; roleIds: string[] }) => {
+      if (!serverId) throw new Error('No server ID')
+      const response = await apiRequest<{ success: boolean; member: any }>(
+        `/server/${serverId}/members/${userId}/roles`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify({ roleIds }),
+        }
+      )
+      return response.member
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['members', serverId] })
+    },
+  })
+
+  return {
+    createRole,
+    updateRole,
+    deleteRole,
+    updateMemberRoles,
+  }
+}

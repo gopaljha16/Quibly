@@ -223,6 +223,7 @@ model Role {
   color       String?
   permissions Int      @default(0)
   position    Int      @default(0)
+  hoist       Boolean  @default(false)
   isDefault   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
