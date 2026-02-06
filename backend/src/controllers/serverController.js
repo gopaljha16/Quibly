@@ -952,3 +952,280 @@ exports.unbanMember = async (req, res) => {
         });
     }
 };
+
+// Discover public servers (optionally filtered by interests)
+exports.discoverServers = async (req, res) => {
+    try {
+        const { interests, search, limit = 20, offset = 0 } = req.query;
+        
+        // Parse interests if provided (comma-separated interest IDs)
+        const interestIds = interests ? interests.split(',').filter(Boolean) : [];
+        
+        // Build where clause
+        const whereClause = {
+            isPublic: true
+        };
+
+        // Add search filter if provided
+        if (search) {
+            whereClause.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+
+        // If interests are provided, filter servers that have those interests
+        if (interestIds.length > 0) {
+            whereClause.serverInterests = {
+                some: {
+                    interestId: { in: interestIds }
+                }
+            };
+        }
+
+        // Get servers with their interests
+        const servers = await db.server.findMany({
+            where: whereClause,
+            include: {
+                owner: {
+                    select: {
+                        id: true,
+                        username: true,
+                        discriminator: true,
+                        avatar: true
+                    }
+                },
+                serverInterests: {
+                    include: {
+                        interest: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    }
+                }
+            },
+            take: parseInt(limit),
+            skip: parseInt(offset),
+            orderBy: [
+                { membersCount: 'desc' },
+                { createdAt: 'desc' }
+            ]
+        });
+
+        // Check if user is already a member of these servers
+        const userMemberships = await db.serverMember.findMany({
+            where: {
+                userId: req.user.id,
+                serverId: { in: servers.map(s => s.id) }
+            },
+            select: { serverId: true }
+        });
+
+        const memberServerIds = new Set(userMemberships.map(m => m.serverId));
+
+        // Format response
+        const formattedServers = servers.map(server => {
+            const { id, serverInterests, ...rest } = server;
+            return {
+                _id: id,
+                ...rest,
+                interests: serverInterests.map(si => si.interest),
+                isMember: memberServerIds.has(id),
+                matchCount: interestIds.length > 0 
+                    ? serverInterests.filter(si => interestIds.includes(si.interestId)).length 
+                    : 0
+            };
+        });
+
+        // Sort by match count if interests were provided
+        if (interestIds.length > 0) {
+            formattedServers.sort((a, b) => b.matchCount - a.matchCount);
+        }
+
+        res.status(200).json({
+            success: true,
+            servers: formattedServers,
+            total: formattedServers.length,
+            hasMore: formattedServers.length === parseInt(limit)
+        });
+    } catch (error) {
+        console.error('Discover servers error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while discovering servers'
+        });
+    }
+};
+
+// Get server interests
+exports.getServerInterests = async (req, res) => {
+    try {
+        const { serverId } = req.params;
+
+        const serverInterests = await db.serverInterest.findMany({
+            where: { serverId },
+            include: {
+                interest: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            interests: serverInterests.map(si => si.interest)
+        });
+    } catch (error) {
+        console.error('Get server interests error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching server interests'
+        });
+    }
+};
+
+// Add interests to server (owner only)
+exports.addServerInterests = async (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const { interestIds } = req.body;
+
+        if (!Array.isArray(interestIds) || interestIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Interest IDs must be a non-empty array'
+            });
+        }
+
+        // Check if user is owner
+        const server = await db.server.findUnique({
+            where: { id: serverId },
+            select: { ownerId: true }
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                success: false,
+                message: 'Server not found'
+            });
+        }
+
+        if (server.ownerId !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only the server owner can manage server interests'
+            });
+        }
+
+        // Check current interest count
+        const currentCount = await db.serverInterest.count({
+            where: { serverId }
+        });
+
+        if (currentCount + interestIds.length > 10) {
+            return res.status(400).json({
+                success: false,
+                message: 'Servers can have a maximum of 10 interests'
+            });
+        }
+
+        // Verify all interests exist
+        const interests = await db.interest.findMany({
+            where: { id: { in: interestIds } }
+        });
+
+        if (interests.length !== interestIds.length) {
+            return res.status(400).json({
+                success: false,
+                message: 'One or more interest IDs are invalid'
+            });
+        }
+
+        // Add interests (skip duplicates)
+        const createData = interestIds.map(interestId => ({
+            serverId,
+            interestId
+        }));
+
+        await db.serverInterest.createMany({
+            data: createData,
+            skipDuplicates: true
+        });
+
+        // Fetch updated interests
+        const updatedInterests = await db.serverInterest.findMany({
+            where: { serverId },
+            include: {
+                interest: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
+                }
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Interests added successfully',
+            interests: updatedInterests.map(si => si.interest)
+        });
+    } catch (error) {
+        console.error('Add server interests error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while adding interests'
+        });
+    }
+};
+
+// Remove interest from server (owner only)
+exports.removeServerInterest = async (req, res) => {
+    try {
+        const { serverId, interestId } = req.params;
+
+        // Check if user is owner
+        const server = await db.server.findUnique({
+            where: { id: serverId },
+            select: { ownerId: true }
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                success: false,
+                message: 'Server not found'
+            });
+        }
+
+        if (server.ownerId !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only the server owner can manage server interests'
+            });
+        }
+
+        // Remove the interest
+        await db.serverInterest.deleteMany({
+            where: {
+                serverId,
+                interestId
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Interest removed successfully'
+        });
+    } catch (error) {
+        console.error('Remove server interest error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while removing interest'
+        });
+    }
+};
