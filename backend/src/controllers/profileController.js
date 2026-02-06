@@ -158,6 +158,16 @@ exports.getUserStats = async (req, res) => {
             });
         }
 
+        // Get friends count (accepted friendships)
+        const friendsCount = await db.friendship.count({
+            where: {
+                OR: [
+                    { senderId: userId, status: 'ACCEPTED' },
+                    { receiverId: userId, status: 'ACCEPTED' }
+                ]
+            }
+        });
+
         // Fetch heatmap data (last 365 days)
         const oneYearAgo = new Date();
         oneYearAgo.setDate(oneYearAgo.getDate() - 365);
@@ -172,17 +182,17 @@ exports.getUserStats = async (req, res) => {
         });
 
         const stats = {
-            messagesSent: user.messagesSent,
-            voiceTimeMinutes: user.voiceTimeMinutes,
-            achievements: user.achievements,
+            messagesSent: user.messagesSent || 0,
+            voiceTimeMinutes: user.voiceTimeMinutes || 0,
+            achievements: user.achievements || [],
             serversJoined: user._count.serverMembers + user._count.ownedServers,
-            friendsCount: user.friends.length,
+            friendsCount: friendsCount,
             accountAge: Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)), // days
             heatmap: activities.map(a => ({
                 date: a.date,
-                count: a.count,
-                messages: a.messageCount,
-                voice: a.voiceMinutes
+                count: a.count || 0,
+                messages: a.messageCount || 0,
+                voice: a.voiceMinutes || 0
             }))
         };
 

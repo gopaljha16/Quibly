@@ -101,7 +101,7 @@ const MessageItem = ({
     setShowReactionPicker(false)
   }
 
-  const isSenderMe = typeof message.senderId === 'object' && message.senderId._id === currentUser?._id
+  const isSenderMe = typeof message.senderId === 'object' && message.senderId?._id === currentUser?._id
   
   const senderInfo = isSenderMe ? currentUser : (typeof message.senderId === 'object' ? message.senderId : null)
   
@@ -138,7 +138,7 @@ const MessageItem = ({
   const canReply = !message._id.startsWith('optimistic-')
   
   // Get sender ID for moderation actions
-  const senderId = typeof message.senderId === 'object' ? message.senderId._id : message.senderId
+  const senderId = typeof message.senderId === 'object' ? message.senderId?._id : message?.senderId
 
   useEffect(() => {
     if (!menuOpen) return

@@ -128,7 +128,7 @@ export function useVoice(channelId: string | null) {
         if (socket) {
           socket.emit('voice:join', {
             channelId,
-            userId: identity,
+            userId: user.id,
             username: user.username,
             avatar: user.avatar,
           });
@@ -151,7 +151,7 @@ export function useVoice(channelId: string | null) {
         if (socket) {
           socket.emit('voice:leave', {
             channelId,
-            userId: identity,
+            userId: newRoom.localParticipant.identity,
           });
         }
 

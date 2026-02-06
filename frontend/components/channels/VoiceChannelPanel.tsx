@@ -7,8 +7,9 @@ import {
   VideoConference,
   RoomAudioRenderer,
 } from '@livekit/components-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { apiGet } from '@/lib/api';
+import { useSocket } from '@/providers/SocketProvider';
 
 interface VoiceChannelPanelProps {
   channelId: string;
@@ -30,6 +31,7 @@ export function VoiceChannelPanel({
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const { socket } = useSocket();
 
   const handleJoinVoice = async () => {
     setIsConnecting(true);
@@ -57,11 +59,39 @@ export function VoiceChannelPanel({
     }
   };
 
-  const handleDisconnect = () => {
+  const handleDisconnect = async () => {
+    // Emit leave event
+    if (socket) {
+      socket.emit('voice:leave', {
+        channelId,
+        userId: currentUser.id,
+      });
+    }
+    
+    // Track leave activity
+    try {
+      const { apiPost } = await import('@/lib/api');
+      await apiPost('/voice/track-leave', {});
+    } catch (e) {
+      console.error('Failed to track voice leave activity');
+    }
+    
     setToken('');
     setWsUrl('');
     setIsConnected(false);
   };
+
+  // Cleanup on unmount or when channelId changes
+  useEffect(() => {
+    return () => {
+      if (isConnected && socket) {
+        socket.emit('voice:leave', {
+          channelId,
+          userId: currentUser.id,
+        });
+      }
+    };
+  }, [isConnected, socket, channelId, currentUser.id]);
 
   // Show join button if not connected
   if (!isConnected || !token) {
@@ -137,9 +167,27 @@ export function VoiceChannelPanel({
           connect={true}
           style={{ height: '100%' }}
           data-lk-theme="default"
-          onConnected={() => console.log('🟢 LiveKit connected')}
+          onConnected={() => {
+            console.log('🟢 LiveKit connected');
+            // Emit join event
+            if (socket) {
+              socket.emit('voice:join', {
+                channelId,
+                userId: currentUser.id,
+                username: currentUser.username,
+                avatar: currentUser.avatar,
+              });
+            }
+          }}
           onDisconnected={() => {
             console.log('🔴 LiveKit disconnected');
+            // Emit leave event when LiveKit disconnects
+            if (socket) {
+              socket.emit('voice:leave', {
+                channelId,
+                userId: currentUser.id,
+              });
+            }
             handleDisconnect();
           }}
         >

@@ -22,6 +22,7 @@ import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/c
 import { useUserProfileController } from '@/controllers/profile/useUserProfileController'
 import { connectSocket } from '@/lib/socket'
 import { useNotificationStore } from '@/lib/store/notificationStore'
+import { VoiceChannelItem } from './VoiceChannelItem'
 
 
 
@@ -694,76 +695,19 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               </div>
 
               {channels.filter(c => c.type === 'VOICE').map((c) => (
-                <div
+                <VoiceChannelItem
                   key={c._id}
-                  className={`group relative w-full text-left px-2 py-[6px] rounded-[4px] text-[15px] flex items-center gap-1.5 cursor-pointer ${
-                    c._id === route.channelId
-                      ? 'bg-[#2a2a2a] text-white font-medium'
-                      : 'hover:bg-[#202020] text-[#b4b4b4] hover:text-white'
-                  }`}
-                  onClick={() => {
-                    if (!route.serverId) return
-                    selectChannel(route.serverId, c._id)
+                  channel={c}
+                  isSelected={c._id === route.channelId}
+                  onSelect={() => {
+                    if (!route.serverId) return;
+                    selectChannel(route.serverId, c._id);
                   }}
-                >
-                  <div className="relative flex-shrink-0">
-                    <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current opacity-60">
-                      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10V14C8 16.21 9.79 18 12 18C14.21 18 16 16.21 16 14V10C16 7.79 14.21 6 12 6Z" />
-                    </svg>
-                    {c.isPrivate && (
-                      <div className="absolute -right-1 -bottom-1 w-3.5 h-3.5 bg-[#2b2d31] rounded-full flex items-center justify-center p-0.5">
-                        <svg width="10" height="10" viewBox="0 0 24 24" className="fill-[#b5bac1]">
-                          <path d="M12 2C9.243 2 7 4.243 7 7V11C5.897 11 5 11.897 5 13V20C5 21.103 5.897 22 7 22H17C18.103 22 19 21.103 19 20V13C19 11.897 18.103 11 17 11ZM12 18C11.172 18 10.5 17.328 10.5 16.5C10.5 15.672 11.172 15 12 15C12.828 15 13.5 15.672 13.5 16.5C13.5 17.328 12.828 18 12 18ZM15 11H9V7C9 5.346 10.346 4 12 4C13.654 4 15 5.346 15 7V11Z"/>
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  <span className="truncate font-medium flex-1">{c.name}</span>
-
-                  {/* Channel Settings Icon - Only visible on hover */}
-                  <div
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setChannelMenuOpenId((prev) => (prev === c._id ? null : c._id));
-                    }}
-                    ref={channelMenuOpenId === c._id ? channelMenuRef : undefined}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current hover:text-white cursor-pointer">
-                      <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
-                    </svg>
-
-                    {channelMenuOpenId === c._id && (
-                      <div className="absolute mt-2 left-0 top-full w-44 rounded border border-cyan-500/10 bg-[#111214] shadow-lg z-50 overflow-hidden p-1">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setChannelMenuOpenId(null)
-                            setRenameChannelId(c._id)
-                            setRenameChannelValue(c.name)
-                            setRenameSlowModeValue((c as any).slowMode || 0)
-                          }}
-                          className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#f3c178] text-slate-400 hover:text-white rounded-[2px]"
-                        >
-                          Edit Channel
-                        </button>
-                        <div className="h-px bg-[#1F2023] my-1" />
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setChannelMenuOpenId(null)
-                            if (confirm('Delete this channel?')) {
-                              await deleteChannel(c._id)
-                            }
-                          }}
-                          className="w-full text-left px-2 py-1.5 text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white rounded-[2px]"
-                        >
-                          Delete Channel
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  onSettings={() => {
+                    setChannelMenuOpenId((prev) => (prev === c._id ? null : c._id));
+                  }}
+                  serverId={route.serverId || ''}
+                />
               ))}
 
               {!channelsLoading && channels.filter(c => c.type === 'VOICE').length === 0 && (
