@@ -2,14 +2,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
 }
 
 model test {
-  id  String @id @default(cuid())
-  name String 
+  id   String @id @default(cuid())
+  name String
 }
 
 model User {
@@ -56,13 +55,13 @@ model User {
   receivedFriendRequests       Friendship[]          @relation("ReceivedFriendships")
   sentFriendRequests           Friendship[]          @relation("SentFriendships")
   invitesCreated               Invite[]              @relation("Inviter")
+  messages                     Message[]             @relation("MessageSender")
+  reactions                    Reaction[]
   ownedServers                 Server[]              @relation("ServerOwner")
   serverMembers                ServerMember[]
   activitySessions             UserActivitySession[]
   dailyActivities              UserDailyActivity[]
   userInterests                UserInterest[]
-  messages                     Message[]             @relation("MessageSender")
-  reactions                    Reaction[]
 
   @@index([email])
   @@index([username])
@@ -111,8 +110,10 @@ model Server {
   roles             Role[]
   owner             User              @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members           ServerMember[]
+  serverInterests   ServerInterest[]
 
   @@index([ownerId])
+  @@index([isPublic])
 }
 
 model ServerMember {
@@ -161,10 +162,10 @@ model Channel {
   permissionOverwrites Json             @default("[]")
   isPrivate            Boolean          @default(false)
   isReadOnly           Boolean          @default(false)
-  slowMode             Int              @default(0)
   allowedRoleIds       String[]         @default([])
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
+  slowMode             Int              @default(0)
   server               Server           @relation(fields: [serverId], references: [id], onDelete: Cascade)
   hashtags             ChannelHashtag[]
   messages             Message[]
@@ -177,11 +178,9 @@ model Message {
   channelId   String?
   serverId    String?
   senderId    String?
-  sender      User?       @relation("MessageSender", fields: [senderId], references: [id])
   content     String
   type        MessageType @default(TEXT)
   attachments Json        @default("[]")
-  metadata    Json?       @default("{}")
   mentions    String[]
   isDeleted   Boolean     @default(false)
   createdAt   DateTime    @default(now())
@@ -192,10 +191,12 @@ model Message {
   pinnedAt    DateTime?
   pinnedBy    String?
   parentId    String?
-  parent      Message?    @relation("MessageReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  replies     Message[]   @relation("MessageReplies")
+  metadata    Json?       @default("{}")
   channel     Channel?    @relation(fields: [channelId], references: [id], onDelete: Cascade)
   dmRoom      DMRoom?     @relation(fields: [dmRoomId], references: [id], onDelete: Cascade)
+  parent      Message?    @relation("MessageReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies     Message[]   @relation("MessageReplies")
+  sender      User?       @relation("MessageSender", fields: [senderId], references: [id])
   reactions   Reaction[]
 
   @@index([channelId, createdAt(sort: Desc)])
@@ -265,6 +266,7 @@ model Interest {
   updatedAt       DateTime         @updatedAt
   channelHashtags ChannelHashtag[]
   userInterests   UserInterest[]
+  serverInterests ServerInterest[]
 
   @@index([name])
 }
@@ -292,6 +294,33 @@ model ChannelHashtag {
 
   @@unique([channelId, interestId])
   @@index([channelId])
+  @@index([interestId])
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+  @@index([userId])
+}
+
+model ServerInterest {
+  id         String   @id @default(cuid())
+  serverId   String
+  interestId String
+  createdAt  DateTime @default(now())
+  server     Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, interestId])
+  @@index([serverId])
   @@index([interestId])
 }
 
@@ -324,18 +353,4 @@ enum VerificationLevel {
   low
   medium
   high
-}
-
-model Reaction {
-  id        String   @id @default(cuid())
-  messageId String
-  userId    String
-  emoji     String
-  createdAt DateTime @default(now())
-  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([messageId, userId, emoji])
-  @@index([messageId])
-  @@index([userId])
 }

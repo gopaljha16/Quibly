@@ -5,6 +5,7 @@ import { apiRequest, ApiError } from '@/lib/api'
 import RolesTab from './RolesTab'
 import MembersTab from './MembersTab'
 import { useChannelsData } from '@/hooks/useChannelsData'
+import ServerInterestSelector from '../discovery/ServerInterestSelector'
 
 type Server = {
    _id: string
@@ -120,6 +121,7 @@ export default function ServerSettingsModal({
    const tabs = [
       { id: 'overview', name: 'Overview', icon: '⚙️' },
       { id: 'moderation', name: 'Moderation', icon: '🛡️' },
+      { id: 'interests', name: 'Interests', icon: '✨' },
       { id: 'members', name: 'Members', icon: '👥' },
       { id: 'roles', name: 'Roles', icon: '🏷️' },
       { id: 'channels', name: 'Channels', icon: '#️⃣' },
@@ -315,6 +317,12 @@ export default function ServerSettingsModal({
                         <div className="h-full">
                            <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Members</h2>
                            <MembersTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'interests' && (
+                        <div className="max-w-[460px]">
+                           <ServerInterestSelector serverId={server._id} />
                         </div>
                      )}
 

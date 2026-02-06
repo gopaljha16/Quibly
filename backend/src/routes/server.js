@@ -8,6 +8,9 @@ const { authenticate } = require('../middleware/auth');
 // All routes require authentication
 router.use(authenticate);
 
+// Server discovery route (must be before /:serverId to avoid conflicts)
+router.get('/discover', serverController.discoverServers);
+
 // Server management routes
 router.post('/create', serverController.createServer);
 router.get('/getmy-servers', serverController.getMyServers);
@@ -16,6 +19,11 @@ router.put('/:serverId', serverController.updateServer);
 router.delete('/:serverId', serverController.deleteServer);
 router.post('/:serverId/leave', serverController.leaveServer);
 router.get('/:serverId/members', serverController.getMembers);
+
+// Server interests routes
+router.get('/:serverId/interests', serverController.getServerInterests);
+router.post('/:serverId/interests', serverController.addServerInterests);
+router.delete('/:serverId/interests/:interestId', serverController.removeServerInterest);
 
 // Channel management routes
 router.post('/:serverId/create-channel', channelController.createChannel);
