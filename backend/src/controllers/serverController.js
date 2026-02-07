@@ -1240,3 +1240,323 @@ exports.removeServerInterest = async (req, res) => {
         });
     }
 };
+
+// Check vanity URL availability
+exports.checkVanityUrl = async (req, res) => {
+    try {
+        const { vanityUrl } = req.params;
+
+        // Validate vanity URL format (alphanumeric, hyphens, underscores, 3-32 chars)
+        const vanityRegex = /^[a-zA-Z0-9_-]{3,32}$/;
+        if (!vanityRegex.test(vanityUrl)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Vanity URL must be 3-32 characters and contain only letters, numbers, hyphens, and underscores'
+            });
+        }
+
+        // Reserved vanity URLs
+        const reserved = ['api', 'invite', 'channels', 'login', 'signup', 'admin', 'discover', 'me'];
+        if (reserved.includes(vanityUrl.toLowerCase())) {
+            return res.status(400).json({
+                success: false,
+                available: false,
+                message: 'This vanity URL is reserved'
+            });
+        }
+
+        const existing = await db.server.findUnique({
+            where: { vanityUrl }
+        });
+
+        res.status(200).json({
+            success: true,
+            available: !existing
+        });
+    } catch (error) {
+        console.error('Check vanity URL error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while checking vanity URL'
+        });
+    }
+};
+
+// Set vanity URL for server
+exports.setVanityUrl = async (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const { vanityUrl } = req.body;
+
+        // Check if user is owner
+        const server = await db.server.findUnique({
+            where: { id: serverId }
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                success: false,
+                message: 'Server not found'
+            });
+        }
+
+        if (server.ownerId !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only the server owner can set vanity URL'
+            });
+        }
+
+        // Validate vanity URL
+        const vanityRegex = /^[a-zA-Z0-9_-]{3,32}$/;
+        if (!vanityRegex.test(vanityUrl)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Vanity URL must be 3-32 characters and contain only letters, numbers, hyphens, and underscores'
+            });
+        }
+
+        // Check if already taken
+        const existing = await db.server.findUnique({
+            where: { vanityUrl }
+        });
+
+        if (existing && existing.id !== serverId) {
+            return res.status(400).json({
+                success: false,
+                message: 'This vanity URL is already taken'
+            });
+        }
+
+        // Update server
+        const updatedServer = await db.server.update({
+            where: { id: serverId },
+            data: { vanityUrl }
+        });
+
+        // Create audit log
+        await createAuditLog({
+            serverId,
+            userId: req.user.id,
+            action: 'VANITY_URL_UPDATE',
+            changes: {
+                old: server.vanityUrl,
+                new: vanityUrl
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Vanity URL set successfully',
+            vanityUrl: updatedServer.vanityUrl
+        });
+    } catch (error) {
+        console.error('Set vanity URL error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while setting vanity URL'
+        });
+    }
+};
+
+// Get server by vanity URL
+exports.getServerByVanityUrl = async (req, res) => {
+    try {
+        const { vanityUrl } = req.params;
+
+        const server = await db.server.findUnique({
+            where: { vanityUrl },
+            include: {
+                owner: {
+                    select: {
+                        id: true,
+                        username: true,
+                        discriminator: true,
+                        avatar: true
+                    }
+                }
+            }
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                success: false,
+                message: 'Server not found'
+            });
+        }
+
+        // Check if user is a member
+        const member = await db.serverMember.findFirst({
+            where: {
+                serverId: server.id,
+                userId: req.user.id
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            server: {
+                ...server,
+                isMember: !!member,
+                isOwner: server.ownerId === req.user.id
+            }
+        });
+    } catch (error) {
+        console.error('Get server by vanity URL error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching server'
+        });
+    }
+};
+
+// Get server rules
+exports.getServerRules = async (req, res) => {
+    try {
+        const { serverId } = req.params;
+
+        const server = await db.server.findUnique({
+            where: { id: serverId },
+            select: { rules: true }
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                success: false,
+                message: 'Server not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            rules: server.rules
+        });
+    } catch (error) {
+        console.error('Get server rules error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching rules'
+        });
+    }
+};
+
+// Update server rules
+exports.updateServerRules = async (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const { rules } = req.body;
+
+        if (!Array.isArray(rules)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Rules must be an array'
+            });
+        }
+
+        // Check if user is owner
+        const server = await db.server.findUnique({
+            where: { id: serverId }
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                success: false,
+                message: 'Server not found'
+            });
+        }
+
+        if (server.ownerId !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only the server owner can update rules'
+            });
+        }
+
+        // Validate rules format
+        for (const rule of rules) {
+            if (!rule.title || !rule.description) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Each rule must have a title and description'
+                });
+            }
+        }
+
+        const updatedServer = await db.server.update({
+            where: { id: serverId },
+            data: { rules }
+        });
+
+        // Create audit log
+        await createAuditLog({
+            serverId,
+            userId: req.user.id,
+            action: 'RULES_UPDATE',
+            changes: {
+                ruleCount: rules.length
+            }
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Rules updated successfully',
+            rules: updatedServer.rules
+        });
+    } catch (error) {
+        console.error('Update server rules error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while updating rules'
+        });
+    }
+};
+
+// Update server badges (admin only)
+exports.updateServerBadges = async (req, res) => {
+    try {
+        const { serverId } = req.params;
+        const { badges, isVerified, isPartnered } = req.body;
+
+        // This should be protected by admin middleware in production
+        // For now, only allow owner
+        const server = await db.server.findUnique({
+            where: { id: serverId }
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                success: false,
+                message: 'Server not found'
+            });
+        }
+
+        if (server.ownerId !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only the server owner can update badges'
+            });
+        }
+
+        const updateData = {};
+        if (badges !== undefined) updateData.badges = badges;
+        if (isVerified !== undefined) updateData.isVerified = isVerified;
+        if (isPartnered !== undefined) updateData.isPartnered = isPartnered;
+
+        const updatedServer = await db.server.update({
+            where: { id: serverId },
+            data: updateData
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Server badges updated successfully',
+            server: updatedServer
+        });
+    } catch (error) {
+        console.error('Update server badges error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while updating badges'
+        });
+    }
+};
