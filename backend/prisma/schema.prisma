@@ -23,6 +23,9 @@ model User {
   bio                          String?
   status                       UserStatus            @default(offline)
   customStatus                 String?
+  customStatusEmoji            String?
+  customStatusExpiresAt        DateTime?
+  currentActivity              Json?
   servers                      Json                  @default("[]")
   settings                     Json                  @default("{}")
   isVerified                   Boolean               @default(false)
@@ -33,7 +36,6 @@ model User {
   avatarPublicId               String?
   badges                       String[]              @default([])
   bannerPublicId               String?
-  customStatusEmoji            String?
   displayName                  String?
   pronouns                     String?
   themeColor                   String?               @default("#5865F2")
@@ -59,12 +61,31 @@ model User {
   reactions                    Reaction[]
   ownedServers                 Server[]              @relation("ServerOwner")
   serverMembers                ServerMember[]
+  activities                   UserActivity[]
   activitySessions             UserActivitySession[]
   dailyActivities              UserDailyActivity[]
   userInterests                UserInterest[]
 
   @@index([email])
   @@index([username])
+}
+
+model UserActivity {
+  id          String       @id @default(cuid())
+  userId      String
+  type        ActivityType @default(CUSTOM)
+  name        String
+  details     String?
+  state       String?
+  emoji       String?
+  startedAt   DateTime     @default(now())
+  endsAt      DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, startedAt])
 }
 
 model UserDailyActivity {
@@ -353,4 +374,12 @@ enum VerificationLevel {
   low
   medium
   high
+}
+
+enum ActivityType {
+  CUSTOM
+  LISTENING
+  WATCHING
+  COMPETING
+  STREAMING
 }

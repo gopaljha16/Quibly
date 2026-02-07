@@ -8,6 +8,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiPost } from '@/lib/api'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { useActivity } from '@/hooks/useActivity'
+import { ActivityDisplay } from '@/components/profile/ActivityDisplay'
 
 type MemberUser = {
   _id: string
@@ -59,6 +61,9 @@ export default function MemberProfileModal({
   const { data: pendingRequests = [] } = usePendingRequests()
   
   const userId = user?._id || ''
+  
+  // Get user's activity
+  const { activity, customStatus } = useActivity(userId)
   
   // Check friendship status
   const isFriend = friends.some(f => f.id === userId)
@@ -189,6 +194,21 @@ export default function MemberProfileModal({
               </div>
 
               <div className="h-px bg-[#3f4147] mb-3" />
+
+              {/* Activity & Custom Status */}
+              {(activity || customStatus?.customStatus) && (
+                <>
+                  <div className="mb-3">
+                    <p className="text-xs font-bold text-[#b5bac1] uppercase mb-2">Activity</p>
+                    <ActivityDisplay
+                      activity={activity}
+                      customStatus={customStatus?.customStatus}
+                      customStatusEmoji={customStatus?.customStatusEmoji}
+                    />
+                  </div>
+                  <div className="h-px bg-[#3f4147] mb-3" />
+                </>
+              )}
 
               {/* About Me Section */}
               <div>
