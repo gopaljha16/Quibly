@@ -8,6 +8,10 @@ import AuditLogsTab from './AuditLogsTab'
 import AutoModTab from './AutoModTab'
 import WelcomeScreenTab from './WelcomeScreenTab'
 import MemberScreeningTab from './MemberScreeningTab'
+import ServerAnalyticsTab from './ServerAnalyticsTab'
+import ServerRulesTab from './ServerRulesTab'
+import ServerVanityTab from './ServerVanityTab'
+import ServerBadgesTab from './ServerBadgesTab'
 import { useChannelsData } from '@/hooks/useChannelsData'
 import ServerInterestSelector from '../discovery/ServerInterestSelector'
 import { useProfile } from '@/hooks/queries'
@@ -24,6 +28,10 @@ type Server = {
    verificationLevel?: 'none' | 'low' | 'medium' | 'high'
    ownerId?: string
    membersCount?: number
+   vanityUrl?: string | null
+   isVerified?: boolean
+   isPartnered?: boolean
+   badges?: string[]
 }
 
 export default function ServerSettingsModal({
@@ -186,9 +194,13 @@ export default function ServerSettingsModal({
    // Filter tabs based on user permissions
    const allTabs = [
       { id: 'overview', name: 'Overview', icon: '⚙️', key: 'overview' },
+      { id: 'rules', name: 'Rules', icon: '📜', key: 'overview' },
+      { id: 'vanity', name: 'Vanity URL', icon: '🔗', key: 'overview' },
+      { id: 'badges', name: 'Badges', icon: '🏅', key: 'overview' },
       { id: 'moderation', name: 'Moderation', icon: '🛡️', key: 'moderation' },
       { id: 'automod', name: 'Auto-Mod', icon: '🤖', key: 'autoMod' },
       { id: 'auditlogs', name: 'Audit Logs', icon: '📋', key: 'auditLogs' },
+      { id: 'analytics', name: 'Analytics', icon: '📊', key: 'overview' },
       { id: 'welcome', name: 'Welcome Screen', icon: '👋', key: 'welcomeScreen' },
       { id: 'screening', name: 'Member Screening', icon: '✅', key: 'memberScreening' },
       { id: 'interests', name: 'Interests', icon: '✨', key: 'interests' },
@@ -419,6 +431,30 @@ export default function ServerSettingsModal({
                      {activeTab === 'interests' && (
                         <div className="max-w-[460px]">
                            <ServerInterestSelector serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'rules' && (
+                        <div className="h-full">
+                           <ServerRulesTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'vanity' && (
+                        <div className="h-full">
+                           <ServerVanityTab serverId={server._id} currentVanityUrl={server.vanityUrl} />
+                        </div>
+                     )}
+
+                     {activeTab === 'badges' && (
+                        <div className="h-full">
+                           <ServerBadgesTab server={server} />
+                        </div>
+                     )}
+
+                     {activeTab === 'analytics' && (
+                        <div className="h-full">
+                           <ServerAnalyticsTab serverId={server._id} />
                         </div>
                      )}
 

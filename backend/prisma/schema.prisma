@@ -127,6 +127,12 @@ model Server {
   autoModEnabled          Boolean           @default(false)
   welcomeScreenEnabled    Boolean           @default(false)
   memberScreeningEnabled  Boolean           @default(false)
+  vanityUrl               String?           @unique
+  isVerified              Boolean           @default(false)
+  isPartnered             Boolean           @default(false)
+  badges                  String[]          @default([])
+  rules                   Json              @default("[]")
+  announcementChannelId   String?
   createdAt               DateTime          @default(now())
   updatedAt               DateTime          @updatedAt
   bannedWords             String[]          @default([])
@@ -141,9 +147,11 @@ model Server {
   memberScreening         MemberScreening?
   welcomeScreen           WelcomeScreen?
   memberScreeningResponses MemberScreeningResponse[]
+  analytics               ServerAnalytics[]
 
   @@index([ownerId])
   @@index([isPublic])
+  @@index([vanityUrl])
 }
 
 model ServerMember {
@@ -366,6 +374,8 @@ enum FriendshipStatus {
 enum ChannelType {
   TEXT
   VOICE
+  ANNOUNCEMENT
+  RULES
 }
 
 enum MessageType {
@@ -471,4 +481,38 @@ model WelcomeScreen {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   server          Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+}
+
+model ServerAnalytics {
+  id                String   @id @default(cuid())
+  serverId          String
+  date              DateTime @default(now())
+  newMembers        Int      @default(0)
+  leftMembers       Int      @default(0)
+  totalMessages     Int      @default(0)
+  voiceMinutes      Int      @default(0)
+  activeMembers     Int      @default(0)
+  metadata          Json     @default("{}")
+  server            Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, date])
+  @@index([serverId, date])
+}
+
+model ServerTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  category    String
+  icon        String?
+  channels    Json     @default("[]")
+  roles       Json     @default("[]")
+  settings    Json     @default("{}")
+  isOfficial  Boolean  @default(false)
+  usageCount  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@index([isOfficial])
 }
