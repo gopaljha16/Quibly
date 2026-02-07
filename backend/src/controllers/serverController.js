@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const { createSystemMessage } = require('../utils/systemMessage');
+const { createAuditLog } = require('./auditLogController');
 
 // Create new server
 exports.createServer = async (req, res) => {
@@ -823,6 +824,16 @@ exports.banMember = async (req, res) => {
                 reason: reason || 'No reason provided'
             });
         }
+
+        // Create audit log
+        await createAuditLog({
+            serverId,
+            userId: req.user.id,
+            action: 'MEMBER_BAN',
+            targetType: 'User',
+            targetId: userId,
+            reason
+        });
 
         res.status(200).json({
             success: true,

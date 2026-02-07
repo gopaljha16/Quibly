@@ -65,6 +65,7 @@ model User {
   activitySessions             UserActivitySession[]
   dailyActivities              UserDailyActivity[]
   userInterests                UserInterest[]
+  screeningResponses           MemberScreeningResponse[]
 
   @@index([email])
   @@index([username])
@@ -114,42 +115,53 @@ model UserActivitySession {
 }
 
 model Server {
-  id                String            @id @default(cuid())
-  name              String
-  ownerId           String
-  icon              String?
-  banner            String?
-  description       String?
-  membersCount      Int               @default(1)
-  isPublic          Boolean           @default(false)
-  verificationLevel VerificationLevel @default(none)
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  bannedWords       String[]          @default([])
-  channels          Channel[]
-  invites           Invite[]
-  roles             Role[]
-  owner             User              @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members           ServerMember[]
-  serverInterests   ServerInterest[]
+  id                      String            @id @default(cuid())
+  name                    String
+  ownerId                 String
+  icon                    String?
+  banner                  String?
+  description             String?
+  membersCount            Int               @default(1)
+  isPublic                Boolean           @default(false)
+  verificationLevel       VerificationLevel @default(none)
+  autoModEnabled          Boolean           @default(false)
+  welcomeScreenEnabled    Boolean           @default(false)
+  memberScreeningEnabled  Boolean           @default(false)
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  bannedWords             String[]          @default([])
+  channels                Channel[]
+  invites                 Invite[]
+  roles                   Role[]
+  owner                   User              @relation("ServerOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members                 ServerMember[]
+  serverInterests         ServerInterest[]
+  auditLogs               AuditLog[]
+  autoModRules            AutoModRule[]
+  memberScreening         MemberScreening?
+  welcomeScreen           WelcomeScreen?
+  memberScreeningResponses MemberScreeningResponse[]
 
   @@index([ownerId])
   @@index([isPublic])
 }
 
 model ServerMember {
-  id            String    @id @default(cuid())
-  serverId      String
-  userId        String
-  roleIds       String[]
-  joinedAt      DateTime  @default(now())
-  isMuted       Boolean   @default(false)
-  isBanned      Boolean   @default(false)
-  timeoutReason String?
-  timeoutUntil  DateTime?
-  banReason     String?
-  server        Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String    @id @default(cuid())
+  serverId           String
+  userId             String
+  roleIds            String[]
+  joinedAt           DateTime  @default(now())
+  isMuted            Boolean   @default(false)
+  isBanned           Boolean   @default(false)
+  timeoutReason      String?
+  timeoutUntil       DateTime?
+  banReason          String?
+  verificationStatus String?   @default("unverified")
+  verifiedAt         DateTime?
+  screeningPassed    Boolean   @default(false)
+  server             Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([serverId, userId])
   @@index([serverId])
@@ -382,4 +394,81 @@ enum ActivityType {
   WATCHING
   COMPETING
   STREAMING
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  serverId   String
+  userId     String
+  action     String
+  targetType String?
+  targetId   String?
+  changes    Json     @default("{}")
+  reason     String?
+  metadata   Json     @default("{}")
+  createdAt  DateTime @default(now())
+  server     Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@index([serverId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+  @@index([serverId, createdAt(sort: Desc)])
+}
+
+model AutoModRule {
+  id              String   @id @default(cuid())
+  serverId        String
+  name            String
+  enabled         Boolean  @default(true)
+  triggerType     String
+  triggerMetadata Json     @default("{}")
+  actions         Json     @default("[]")
+  exemptRoles     String[] @default([])
+  exemptChannels  String[] @default([])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  server          Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+
+  @@index([serverId])
+  @@index([enabled])
+}
+
+model MemberScreening {
+  id               String   @id @default(cuid())
+  serverId         String   @unique
+  enabled          Boolean  @default(false)
+  questions        Json     @default("[]")
+  requiresApproval Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  server           Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+}
+
+model MemberScreeningResponse {
+  id         String    @id @default(cuid())
+  serverId   String
+  userId     String
+  responses  Json      @default("{}")
+  status     String    @default("pending")
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime  @default(now())
+  server     Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([serverId, userId])
+  @@index([status])
+}
+
+model WelcomeScreen {
+  id              String   @id @default(cuid())
+  serverId        String   @unique
+  enabled         Boolean  @default(false)
+  title           String?
+  description     String?
+  welcomeChannels Json     @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  server          Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
 }

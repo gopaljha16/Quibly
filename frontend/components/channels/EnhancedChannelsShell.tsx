@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useChannelsData } from '@/hooks/useChannelsData'
-import { useProfile, useDMConversations } from '@/hooks/queries'
+import { useProfile, useDMConversations, useMembers, useRoles } from '@/hooks/queries'
 
 import { usePresenceContext } from '@/components/PresenceProvider'
 import { apiPost } from '@/lib/api'
@@ -24,6 +24,7 @@ import { useUserProfileController } from '@/controllers/profile/useUserProfileCo
 import { connectSocket } from '@/lib/socket'
 import { useNotificationStore } from '@/lib/store/notificationStore'
 import { VoiceChannelItem } from './VoiceChannelItem'
+import { calculateUserPermissions, canAccessServerSettings } from '@/lib/permissions'
 
 
 
@@ -192,6 +193,34 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
   const { unreads, mentions, serverUnreads, serverMentions, clearNotifications } = useNotificationStore()
   
+  // Get members and roles data for permission checking
+  const { data: membersData } = useMembers(selectedServer?._id || null)
+  const { data: rolesData = [] } = useRoles(selectedServer?._id || null)
+  
+  // Calculate if current user can access server settings
+  const canAccessSettings = useMemo(() => {
+    if (!selectedServer || !currentUser) return false
+    
+    const isOwner = selectedServer.ownerId === currentUser._id
+    if (isOwner) return true
+    
+    // Find current user's member data
+    const currentMember = membersData?.members?.find((m: any) => 
+      m.userId._id === currentUser._id || m.user._id === currentUser._id
+    )
+    
+    if (!currentMember) return false
+    
+    // Calculate user permissions
+    const userPermissions = calculateUserPermissions(
+      rolesData,
+      currentMember.roleIds || [],
+      isOwner
+    )
+    
+    return canAccessServerSettings(userPermissions, isOwner)
+  }, [selectedServer, currentUser, membersData, rolesData])
+  
   // If profile fails to load, redirect to login ONCE
   useEffect(() => {
     // Don't do anything if already redirecting
@@ -306,7 +335,6 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     const socket = connectSocket()
     const { setCalling } = useCallStore.getState()
     
-    console.log('📞 [Shell] Initiating call to:', targetUser, 'in room:', dmRoomId)
     setCalling(targetUser, dmRoomId, hasVideo)
     
     socket.emit('call:initiate', {
@@ -459,19 +487,21 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
                 </svg>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setServerMenuOpen(false)
-                  setServerSettingsOpen(true)
-                }}
-                className="w-full text-left px-2 py-1.5 text-sm text-[#b4b4b4] hover:bg-[#2a2a2a] hover:text-white rounded-[2px] transition-colors flex items-center justify-between"
-              >
-                Server Settings
-                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current">
-                  <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
-                </svg>
-              </button>
+              {canAccessSettings && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setServerMenuOpen(false)
+                    setServerSettingsOpen(true)
+                  }}
+                  className="w-full text-left px-2 py-1.5 text-sm text-[#b4b4b4] hover:bg-[#2a2a2a] hover:text-white rounded-[2px] transition-colors flex items-center justify-between"
+                >
+                  Server Settings
+                  <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current">
+                    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
+                  </svg>
+                </button>
+              )}
               <div className="h-px bg-[#1F2023] my-1" />
               <button
                 type="button"
@@ -964,11 +994,6 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   <button 
                     onClick={() => {
                       const conv = conversations.find(c => c.id === route.channelId)
-                      console.log('[Header] Initiate Voice Call Clicked', { 
-                        channelId: route.channelId, 
-                        otherUser: conv?.otherUser,
-                        otherUserId: (conv?.otherUser as any)?.id || (conv?.otherUser as any)?._id
-                      })
                       if (conv?.otherUser) {
                         initiateCall(conv.otherUser, route.channelId!, false)
                       }
@@ -983,11 +1008,6 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   <button 
                     onClick={() => {
                       const conv = conversations.find(c => c.id === route.channelId)
-                      console.log('[Header] Initiate Video Call Clicked', { 
-                        channelId: route.channelId, 
-                        otherUser: conv?.otherUser,
-                        otherUserId: (conv?.otherUser as any)?.id || (conv?.otherUser as any)?._id
-                      })
                       if (conv?.otherUser) {
                         initiateCall(conv.otherUser, route.channelId!, true)
                       }

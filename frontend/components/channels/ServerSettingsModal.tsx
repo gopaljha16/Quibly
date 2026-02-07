@@ -1,11 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { apiRequest, ApiError } from '@/lib/api'
 import RolesTab from './RolesTab'
 import MembersTab from './MembersTab'
+import AuditLogsTab from './AuditLogsTab'
+import AutoModTab from './AutoModTab'
+import WelcomeScreenTab from './WelcomeScreenTab'
+import MemberScreeningTab from './MemberScreeningTab'
 import { useChannelsData } from '@/hooks/useChannelsData'
 import ServerInterestSelector from '../discovery/ServerInterestSelector'
+import { useProfile } from '@/hooks/queries'
+import { useMembers, useRoles } from '@/hooks/queries'
+import { calculateUserPermissions, getAccessibleSettingsTabs, canAccessServerSettings } from '@/lib/permissions'
 
 type Server = {
    _id: string
@@ -32,6 +39,10 @@ export default function ServerSettingsModal({
 }) {
    const [activeTab, setActiveTab] = useState('overview')
    const { deleteServer } = useChannelsData()
+   const { data: currentUser } = useProfile()
+   const { data: membersData } = useMembers(server?._id || null)
+   const { data: roles = [] } = useRoles(server?._id || null)
+   
    const [formData, setFormData] = useState({
       name: '',
       description: '',
@@ -44,6 +55,36 @@ export default function ServerSettingsModal({
    const [error, setError] = useState<string | null>(null)
    const [bannedWords, setBannedWords] = useState<string[]>([])
    const [newWord, setNewWord] = useState('')
+
+   // Calculate user permissions
+   const { userPermissions, isOwner, accessibleTabs } = useMemo(() => {
+      if (!server || !currentUser || !membersData) {
+        return { userPermissions: 0, isOwner: false, accessibleTabs: {} }
+      }
+
+      const isOwner = server.ownerId === currentUser._id
+      const currentMember = membersData.members?.find((m: any) => m.userId._id === currentUser._id || m.user._id === currentUser._id)
+      
+      if (!currentMember) {
+        return { userPermissions: 0, isOwner, accessibleTabs: {} }
+      }
+
+      const userPermissions = calculateUserPermissions(
+        roles,
+        currentMember.roleIds || [],
+        isOwner
+      )
+
+      const accessibleTabs = getAccessibleSettingsTabs(userPermissions, isOwner)
+
+      return { userPermissions, isOwner, accessibleTabs }
+   }, [server, currentUser, membersData, roles])
+
+   // Check if user can access server settings at all
+   const canAccess = useMemo(() => {
+      if (!server || !currentUser) return false
+      return canAccessServerSettings(userPermissions, isOwner)
+   }, [server, currentUser, userPermissions, isOwner])
 
    useEffect(() => {
       if (server) {
@@ -116,17 +157,48 @@ export default function ServerSettingsModal({
       }
    }
 
+   // Check if user can access server settings at all
    if (!open || !server) return null
+   
+   // If user doesn't have access, show error
+   if (!canAccess) {
+      return (
+         <div className="fixed inset-0 z-50">
+            <div className="absolute inset-0 bg-black/70" onClick={onClose} />
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+               <div className="bg-[#313338] rounded-lg shadow-xl p-6 max-w-md">
+                  <h2 className="text-xl font-bold text-white mb-2">Access Denied</h2>
+                  <p className="text-slate-400 mb-4">
+                     You don't have permission to access server settings. Only the server owner and members with "Manage Server" permission can access this.
+                  </p>
+                  <button
+                     onClick={onClose}
+                     className="px-4 py-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-sm font-medium rounded-[3px] transition-colors"
+                  >
+                     Close
+                  </button>
+               </div>
+            </div>
+         </div>
+      )
+   }
 
-   const tabs = [
-      { id: 'overview', name: 'Overview', icon: '⚙️' },
-      { id: 'moderation', name: 'Moderation', icon: '🛡️' },
-      { id: 'interests', name: 'Interests', icon: '✨' },
-      { id: 'members', name: 'Members', icon: '👥' },
-      { id: 'roles', name: 'Roles', icon: '🏷️' },
-      { id: 'channels', name: 'Channels', icon: '#️⃣' },
-      { id: 'integrations', name: 'Integrations', icon: '🔗' },
+   // Filter tabs based on user permissions
+   const allTabs = [
+      { id: 'overview', name: 'Overview', icon: '⚙️', key: 'overview' },
+      { id: 'moderation', name: 'Moderation', icon: '🛡️', key: 'moderation' },
+      { id: 'automod', name: 'Auto-Mod', icon: '🤖', key: 'autoMod' },
+      { id: 'auditlogs', name: 'Audit Logs', icon: '📋', key: 'auditLogs' },
+      { id: 'welcome', name: 'Welcome Screen', icon: '👋', key: 'welcomeScreen' },
+      { id: 'screening', name: 'Member Screening', icon: '✅', key: 'memberScreening' },
+      { id: 'interests', name: 'Interests', icon: '✨', key: 'interests' },
+      { id: 'members', name: 'Members', icon: '👥', key: 'members' },
+      { id: 'roles', name: 'Roles', icon: '🏷️', key: 'roles' },
+      { id: 'channels', name: 'Channels', icon: '#️⃣', key: 'channels' },
+      { id: 'integrations', name: 'Integrations', icon: '🔗', key: 'integrations' },
    ]
+   
+   const tabs = allTabs.filter(tab => accessibleTabs[tab.key as keyof typeof accessibleTabs])
 
    return (
       <div className="fixed inset-0 z-50">
@@ -317,6 +389,30 @@ export default function ServerSettingsModal({
                         <div className="h-full">
                            <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Members</h2>
                            <MembersTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'auditlogs' && (
+                        <div className="h-full">
+                           <AuditLogsTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'automod' && (
+                        <div className="h-full">
+                           <AutoModTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'welcome' && (
+                        <div className="h-full">
+                           <WelcomeScreenTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'screening' && (
+                        <div className="h-full">
+                           <MemberScreeningTab serverId={server._id} />
                         </div>
                      )}
 
