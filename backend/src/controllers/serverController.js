@@ -287,6 +287,66 @@ exports.updateServer = async (req, res) => {
     }
 };
 
+// Upload server icon
+exports.uploadServerIcon = async (req, res) => {
+    try {
+        const { serverId } = req.params;
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No file uploaded'
+            });
+        }
+
+        // Check if user is owner or has manage server permission
+        const server = await db.server.findUnique({
+            where: { id: serverId }
+        });
+
+        if (!server) {
+            return res.status(404).json({
+                success: false,
+                message: 'Server not found'
+            });
+        }
+
+        if (server.ownerId !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only the server owner can update server icon'
+            });
+        }
+
+        // Update server with new icon URL
+        const updatedServer = await db.server.update({
+            where: { id: serverId },
+            data: { icon: req.file.path }
+        });
+
+        // Emit socket event to notify all server members
+        if (global.io) {
+            global.io.to(serverId).emit('server_updated', {
+                serverId,
+                icon: req.file.path
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Server icon uploaded successfully',
+            icon: req.file.path,
+            server: updatedServer
+        });
+    } catch (error) {
+        console.error('Upload server icon error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while uploading icon'
+        });
+    }
+};
+
 // Delete server
 exports.deleteServer = async (req, res) => {
     try {

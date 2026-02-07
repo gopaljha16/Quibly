@@ -62,8 +62,16 @@ export function setupSocketQuerySync(socket: Socket, queryClient: QueryClient) {
   })
   
   // Handle server updates (if you add socket events for these)
-  socket.on('server_updated', () => {
-    queryClient.invalidateQueries({ queryKey: ['servers'] })
+  socket.on('server_updated', (data: { serverId: string; icon?: string }) => {
+    if (data.icon) {
+      // Update specific server icon in cache
+      queryClient.setQueryData<any[]>(['servers'], (old = []) =>
+        old.map((s) => (s._id === data.serverId ? { ...s, icon: data.icon } : s))
+      )
+    } else {
+      // General server update, invalidate to refetch
+      queryClient.invalidateQueries({ queryKey: ['servers'] })
+    }
   })
   
   socket.on('channel_created', (data: { serverId: string }) => {

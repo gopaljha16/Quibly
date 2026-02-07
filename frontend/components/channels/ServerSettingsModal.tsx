@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { apiRequest, ApiError } from '@/lib/api'
+import { useEffect, useState, useMemo, useRef } from 'react'
+import { apiRequest, apiPost, ApiError } from '@/lib/api'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import RolesTab from './RolesTab'
 import MembersTab from './MembersTab'
 import AuditLogsTab from './AuditLogsTab'
@@ -50,6 +52,8 @@ export default function ServerSettingsModal({
    const { data: currentUser } = useProfile()
    const { data: membersData } = useMembers(server?._id || null)
    const { data: roles = [] } = useRoles(server?._id || null)
+   const iconInputRef = useRef<HTMLInputElement>(null)
+   const queryClient = useQueryClient()
    
    const [formData, setFormData] = useState({
       name: '',
@@ -63,6 +67,7 @@ export default function ServerSettingsModal({
    const [error, setError] = useState<string | null>(null)
    const [bannedWords, setBannedWords] = useState<string[]>([])
    const [newWord, setNewWord] = useState('')
+   const [uploadingIcon, setUploadingIcon] = useState(false)
 
    // Calculate user permissions
    const { userPermissions, isOwner, accessibleTabs } = useMemo(() => {
@@ -162,6 +167,61 @@ export default function ServerSettingsModal({
          onClose()
       } catch (e) {
          setError('Failed to delete server')
+      }
+   }
+
+   const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+         toast.error('Please upload an image file')
+         setError('Please upload an image file')
+         return
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+         toast.error('Image must be less than 5MB')
+         setError('Image must be less than 5MB')
+         return
+      }
+
+      setUploadingIcon(true)
+      setError(null)
+
+      try {
+         const uploadFormData = new FormData()
+         uploadFormData.append('file', file)
+
+         // Use apiPost which handles authentication automatically
+         const data = await apiPost<{ success: boolean; icon: string; message: string }>(
+            `/server/${server?._id}/icon`,
+            uploadFormData
+         )
+         
+         // Update local form state
+         setFormData(prev => ({ ...prev, icon: data.icon }))
+         
+         // Immediately update React Query cache for instant UI update
+         queryClient.setQueryData<any[]>(['servers'], (old = []) =>
+            old.map((s) => (s._id === server?._id ? { ...s, icon: data.icon } : s))
+         )
+         
+         // Update the server in parent component
+         if (server) {
+            const updatedServer = { ...server, icon: data.icon }
+            onUpdate(updatedServer)
+         }
+         
+         toast.success('Server icon updated successfully!')
+      } catch (e: any) {
+         console.error('Icon upload error:', e)
+         toast.error(e.message || 'Failed to upload icon')
+         setError(e.message || 'Failed to upload icon')
+      } finally {
+         setUploadingIcon(false)
       }
    }
 
@@ -300,15 +360,29 @@ export default function ServerSettingsModal({
                                  </div>
                               </div>
 
-                              {/* Icon Upload Placeholder */}
+                              {/* Icon Upload */}
                               <div className="flex flex-col items-center gap-2">
-                                 <div className="w-[100px] h-[100px] rounded-full bg-[#1E1F22] border-2 border-dashed border-[#4E5058] flex items-center justify-center text-slate-400 text-xs text-center p-2 cursor-pointer hover:border-[#F2F3F5] transition-colors">
-                                    {formData.icon ? (
+                                 <input
+                                    ref={iconInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleIconUpload}
+                                    className="hidden"
+                                 />
+                                 <button
+                                    type="button"
+                                    onClick={() => iconInputRef.current?.click()}
+                                    disabled={uploadingIcon}
+                                    className="w-[100px] h-[100px] rounded-full bg-[#1E1F22] border-2 border-dashed border-[#4E5058] flex items-center justify-center text-slate-400 text-xs text-center p-2 cursor-pointer hover:border-[#F2F3F5] transition-colors disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+                                 >
+                                    {uploadingIcon ? (
+                                       <div className="w-6 h-6 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                                    ) : formData.icon ? (
                                        <img src={formData.icon} alt="Server Icon" className="w-full h-full rounded-full object-cover" />
                                     ) : (
                                        <span>Upload Icon</span>
                                     )}
-                                 </div>
+                                 </button>
                                  <div className="text-[10px] text-slate-500">Minimum Size: 128x128</div>
                               </div>
                            </div>
