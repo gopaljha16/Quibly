@@ -1,7 +1,10 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "quibly-frontend",
+  "version": "1.0.0",
+  "description": "Quibly Frontend - Real-time communication platform client",
   "private": true,
+  "author": "Quibly Team",
+  "license": "MIT",
   "scripts": {
     "dev": "npm run docker:check && next dev",
     "dev:only": "next dev",
