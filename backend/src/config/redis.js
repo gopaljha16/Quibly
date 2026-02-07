@@ -2,7 +2,12 @@ const { createClient } = require("redis");
 require("dotenv").config();
 
 let client = null;
+let pubClient = null;
+let subClient = null;
 let isConnected = false;
+
+// Generate unique server ID for this instance
+const SERVER_ID = process.env.SERVER_ID || `server_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
 // Check for cloud Redis (REDIS_STRING) or local Redis (REDIS_HOST)
 const hasCloudRedis = process.env.REDIS_STRING && process.env.REDIS_PASSWORD;
@@ -11,37 +16,70 @@ const hasLocalRedis = process.env.REDIS_HOST || process.env.REDIS_PORT;
 if (hasCloudRedis || hasLocalRedis) {
     const redisConfig = {
         socket: {
-            connectTimeout: 5000 // 5 second timeout
+            connectTimeout: 5000,
+            reconnectStrategy: (retries) => {
+                if (retries > 10) {
+                    console.error('❌ Redis max retries reached');
+                    return new Error('Max retries exceeded');
+                }
+                const delay = Math.min(retries * 100, 3000);
+                console.log(`🔄 Redis reconnecting... (attempt ${retries}, delay ${delay}ms)`);
+                return delay;
+            }
         }
     };
 
     if (hasCloudRedis) {
-        // Cloud Redis configuration (with password)
         console.log('🔧 Connecting to Cloud Redis...');
         redisConfig.username = 'default';
         redisConfig.password = process.env.REDIS_PASSWORD;
         redisConfig.socket.host = process.env.REDIS_STRING;
         redisConfig.socket.port = parseInt(process.env.REDIS_PORT_NO);
     } else {
-        // Local Redis configuration (no password)
         console.log('🔧 Connecting to Local Redis...');
         redisConfig.socket.host = process.env.REDIS_HOST || 'localhost';
         redisConfig.socket.port = parseInt(process.env.REDIS_PORT) || 6379;
     }
 
+    // Main client for general operations
     client = createClient(redisConfig);
 
-    client.on('error', err => console.log('Redis Client Error', err));
+    // Pub/Sub clients for Socket.IO adapter (must be separate instances)
+    pubClient = createClient(redisConfig);
+    subClient = createClient(redisConfig);
+
+    // Event handlers for main client
+    client.on('error', err => console.error('❌ Redis Client Error:', err.message));
+    client.on('reconnecting', () => console.log('🔄 Redis reconnecting...'));
+    client.on('ready', () => {
+        isConnected = true;
+        console.log('✅ Redis ready');
+    });
+    client.on('end', () => {
+        isConnected = false;
+        console.log('⚠️  Redis connection closed');
+    });
+
+    // Event handlers for pub/sub clients
+    pubClient.on('error', err => console.error('❌ Redis Pub Error:', err.message));
+    pubClient.on('ready', () => console.log('✅ Redis Pub client ready'));
+
+    subClient.on('error', err => console.error('❌ Redis Sub Error:', err.message));
+    subClient.on('ready', () => console.log('✅ Redis Sub client ready'));
 
     // Connect to Redis
     const connectRedis = async () => {
         try {
-            await client.connect();
+            await Promise.all([
+                client.connect(),
+                pubClient.connect(),
+                subClient.connect()
+            ]);
             isConnected = true;
-            console.log('Connected to Redis successfully');
+            console.log(`✅ Connected to Redis successfully (Server ID: ${SERVER_ID})`);
         } catch (error) {
-            console.error('Redis connection failed:', error);
-            console.log('App will continue without Redis caching');
+            console.error('❌ Redis connection failed:', error);
+            console.log('⚠️  App will continue without Redis caching');
             isConnected = false;
         }
     };
@@ -258,6 +296,113 @@ const redisWrapper = {
             console.error('Redis KEYS error:', error);
             return [];
         }
+    },
+
+    // Distributed presence operations
+    async trackUserOnline(userId, socketId) {
+        if (!client || !isConnected) return null;
+        try {
+            await Promise.all([
+                client.sAdd('online:users', userId),
+                client.hSet(`user:${userId}:connection`, {
+                    serverId: SERVER_ID,
+                    socketId: socketId,
+                    connectedAt: Date.now().toString()
+                }),
+                client.expire(`user:${userId}:connection`, 3600) // 1 hour TTL
+            ]);
+            return true;
+        } catch (error) {
+            console.error('Redis trackUserOnline error:', error);
+            return null;
+        }
+    },
+
+    async trackUserOffline(userId) {
+        if (!client || !isConnected) return null;
+        try {
+            await Promise.all([
+                client.sRem('online:users', userId),
+                client.del(`user:${userId}:connection`)
+            ]);
+            return true;
+        } catch (error) {
+            console.error('Redis trackUserOffline error:', error);
+            return null;
+        }
+    },
+
+    async getOnlineUsers() {
+        if (!client || !isConnected) return [];
+        try {
+            return await client.sMembers('online:users');
+        } catch (error) {
+            console.error('Redis getOnlineUsers error:', error);
+            return [];
+        }
+    },
+
+    async isUserOnline(userId) {
+        if (!client || !isConnected) return false;
+        try {
+            return await client.sIsMember('online:users', userId);
+        } catch (error) {
+            console.error('Redis isUserOnline error:', error);
+            return false;
+        }
+    },
+
+    // Leader election for batch writer
+    async acquireLock(lockKey, ttlSeconds = 60) {
+        if (!client || !isConnected) return false;
+        try {
+            const result = await client.set(lockKey, SERVER_ID, {
+                NX: true,
+                EX: ttlSeconds
+            });
+            return result === 'OK';
+        } catch (error) {
+            console.error('Redis acquireLock error:', error);
+            return false;
+        }
+    },
+
+    async releaseLock(lockKey) {
+        if (!client || !isConnected) return false;
+        try {
+            const value = await client.get(lockKey);
+            if (value === SERVER_ID) {
+                await client.del(lockKey);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Redis releaseLock error:', error);
+            return false;
+        }
+    },
+
+    async getLockOwner(lockKey) {
+        if (!client || !isConnected) return null;
+        try {
+            return await client.get(lockKey);
+        } catch (error) {
+            console.error('Redis getLockOwner error:', error);
+            return null;
+        }
+    },
+
+    // Getters for Socket.IO adapter
+    getPubClient() {
+        return pubClient;
+    },
+
+    getSubClient() {
+        return subClient;
+    },
+
+    getServerId() {
+        return SERVER_ID;
     }
 };
 
@@ -265,10 +410,18 @@ module.exports = redisWrapper;
 
 // Export disconnect function for graceful shutdown
 module.exports.disconnectRedis = async () => {
-    if (client && isConnected) {
-        await client.quit();
-        isConnected = false;
-        console.log('Redis client disconnected');
+    if (isConnected) {
+        try {
+            await Promise.allSettled([
+                client?.quit(),
+                pubClient?.quit(),
+                subClient?.quit()
+            ]);
+            isConnected = false;
+            console.log('✅ Redis clients disconnected');
+        } catch (err) {
+            console.error('Error disconnecting Redis:', err);
+        }
     }
 };
 

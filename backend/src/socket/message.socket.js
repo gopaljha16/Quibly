@@ -125,12 +125,27 @@ module.exports = (io, socket) => {
         const published = await publishMessage(messageData);
 
         if (published) {
-          // Send immediate acknowledgment to sender
+          // Send immediate acknowledgment to sender ONLY
+          // Redis adapter + Kafka fanout will broadcast to ALL servers
           socket.emit("message_sent", {
             id: messageId,
             tempId: data.tempId,
             status: "queued"
           });
+
+          // Immediate broadcast to users on THIS server
+          // (Kafka fanout will handle other servers via Redis adapter)
+          io.to(channelId).emit("receive_message", {
+            _id: messageId,
+            content: messageData.content,
+            senderId: userId,
+            sender: sender,
+            createdAt: messageData.createdAt,
+            channelId: messageData.channelId,
+            serverId: messageData.serverId,
+            type: 'TEXT'
+          });
+
           return;
         } else {
           console.error('Kafka publish failed, falling back to direct DB');
@@ -151,7 +166,7 @@ module.exports = (io, socket) => {
         }
       });
 
-      // Broadcast directly
+      // Broadcast directly to ALL servers via Redis adapter
       io.to(channelId).emit("receive_message", {
         _id: message.id,
         content: message.content,

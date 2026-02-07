@@ -1,5 +1,7 @@
 const { Server } = require("socket.io");
+const { createAdapter } = require("@socket.io/redis-adapter");
 const jwt = require("jsonwebtoken");
+const redis = require("../config/redis");
 
 module.exports = (httpServer) => {
   const io = new Server(httpServer, {
@@ -7,7 +9,26 @@ module.exports = (httpServer) => {
       origin: process.env.FRONTEND_URL || "http://localhost:3000",
       credentials: true,
     },
+    // Connection settings for better reliability
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    transports: ['websocket', 'polling'],
   });
+
+  // Setup Redis adapter for cross-server broadcasting
+  if (redis.isConnected()) {
+    const pubClient = redis.getPubClient();
+    const subClient = redis.getSubClient();
+
+    if (pubClient && subClient) {
+      io.adapter(createAdapter(pubClient, subClient));
+      console.log(`✅ Socket.IO Redis adapter enabled (Server: ${redis.getServerId()})`);
+    } else {
+      console.warn('⚠️  Redis Pub/Sub clients not available - running in single-server mode');
+    }
+  } else {
+    console.warn('⚠️  Redis not connected - Socket.IO running in single-server mode');
+  }
 
   // expose io so REST controllers can broadcast events
   global.io = io;
@@ -47,4 +68,6 @@ module.exports = (httpServer) => {
       // Silent disconnect
     });
   });
+
+  return io;
 };
