@@ -94,6 +94,8 @@ module.exports = (io, socket) => {
 
       const { userId, channel } = await ensureChannelAccess(channelId);
 
+      console.log(`[${global.INSTANCE_ID}] 📨 MESSAGE_SEND: User ${userId} → Channel ${channelId} | "${content.substring(0, 50)}..."`);
+
       // Get sender info for the message
       const sender = await db.user.findUnique({
         where: { id: userId },
@@ -152,6 +154,7 @@ module.exports = (io, socket) => {
       });
 
       // Broadcast directly
+      console.log(`[${global.INSTANCE_ID}] 📡 BROADCAST: Emitting to channel ${channelId} | Message ${message.id}`);
       io.to(channelId).emit("receive_message", {
         _id: message.id,
         content: message.content,
