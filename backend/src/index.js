@@ -23,13 +23,59 @@ app.use(cookieParser());
 const routes = require('./routes');
 app.use('/api', routes);
 
-// Health check
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: 'Server is running',
-        timestamp: new Date()
-    });
+// Health check with detailed status
+app.get('/health', async (req, res) => {
+    try {
+        const health = {
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            serverId: require('./config/redis').getServerId(),
+            uptime: process.uptime(),
+            services: {
+                redis: false,
+                kafka: false,
+                database: false,
+                socketio: false
+            }
+        };
+
+        // Check Redis
+        const redis = require('./config/redis');
+        health.services.redis = redis.isConnected();
+
+        // Check Kafka
+        const { isKafkaConnected } = require('./config/kafka');
+        health.services.kafka = isKafkaConnected();
+
+        // Check Database
+        try {
+            await db.$queryRaw`SELECT 1`;
+            health.services.database = true;
+        } catch (dbErr) {
+            health.services.database = false;
+        }
+
+        // Check Socket.IO
+        health.services.socketio = global.io ? true : false;
+
+        // Check if batch writer is leader
+        if (health.services.redis) {
+            const lockOwner = await redis.getLockOwner('batch-writer-leader');
+            health.batchWriterLeader = lockOwner === redis.getServerId();
+        }
+
+        // Overall health status
+        const allHealthy = Object.values(health.services).every(v => v === true);
+        health.status = allHealthy ? 'healthy' : 'degraded';
+
+        res.status(allHealthy ? 200 : 503).json(health);
+    } catch (error) {
+        res.status(503).json({
+            status: 'unhealthy',
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // Test route (can be removed later)

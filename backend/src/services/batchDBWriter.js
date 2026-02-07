@@ -3,15 +3,18 @@ const redis = require('../config/redis');
 
 let isRunning = false;
 let intervalId = null;
-
-/**
- * Batch DB Writer Service
- * Processes messages from Redis queue and saves them to PostgreSQL in batches
- * Runs every 30 seconds (configurable)
- */
+let isLeader = false;
 
 const BATCH_INTERVAL = 30000; // 30 seconds
-const MAX_BATCH_SIZE = 500; // Process max 5 messages per batch
+const MAX_BATCH_SIZE = 500; // Process max 500 messages per batch
+const LOCK_KEY = 'batch-writer-leader';
+const LOCK_TTL = 60; // 60 seconds
+
+/**
+ * Batch DB Writer Service with Leader Election
+ * Only ONE server instance processes the batch at a time
+ * Uses Redis distributed lock for leader election
+ */
 
 async function processBatch() {
     if (!redis.isConnected()) {
@@ -19,6 +22,24 @@ async function processBatch() {
     }
 
     try {
+        // Try to acquire leader lock
+        const acquired = await redis.acquireLock(LOCK_KEY, LOCK_TTL);
+
+        if (!acquired) {
+            // Another server is the leader
+            if (isLeader) {
+                console.log(`⚠️  Lost leadership - another server is now batch writer leader`);
+                isLeader = false;
+            }
+            return;
+        }
+
+        // We are the leader!
+        if (!isLeader) {
+            console.log(`✅ Acquired batch writer leadership (Server: ${redis.getServerId()})`);
+            isLeader = true;
+        }
+
         // Get messages from batch queue
         const messages = await redis.getBatchQueue(MAX_BATCH_SIZE);
 
@@ -38,7 +59,7 @@ async function processBatch() {
                 id: msg.id,
                 channelId: msg.channelId,
                 serverId: msg.serverId,
-                senderId: senderId, // Use extracted string ID
+                senderId: senderId,
                 content: msg.content,
                 type: msg.type || 'TEXT',
                 attachments: msg.attachments || [],
@@ -54,12 +75,17 @@ async function processBatch() {
             skipDuplicates: true
         });
 
-        console.log(`✅ Saved ${result.count} messages to PostgreSQL`);
+        console.log(`✅ [LEADER] Saved ${result.count} messages to PostgreSQL`);
 
         // Clear processed messages from queue
         await redis.clearBatchQueue(messages.length);
     } catch (error) {
-        console.error('Batch DB write error:', error);
+        console.error('❌ Batch DB write error:', error);
+        // Release lock on error
+        if (isLeader) {
+            await redis.releaseLock(LOCK_KEY);
+            isLeader = false;
+        }
     }
 }
 
@@ -90,6 +116,14 @@ function stopBatchWriter() {
         clearInterval(intervalId);
         intervalId = null;
         isRunning = false;
+
+        // Release leadership lock
+        if (isLeader && redis.isConnected()) {
+            redis.releaseLock(LOCK_KEY).then(() => {
+                console.log('✅ Released batch writer leadership');
+                isLeader = false;
+            });
+        }
     }
 }
 

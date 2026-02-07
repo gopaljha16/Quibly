@@ -1,17 +1,13 @@
 const db = require("../config/db");
 const redis = require("../config/redis");
 
-// Store active connections in memory for this server instance
-const activeConnections = new Map(); // userId -> Set of socketIds
-const socketToUser = new Map(); // socketId -> userId
-
 module.exports = (io, socket) => {
   const getSocketUserId = () => {
     const id = socket.user?._id || socket.user?.id;
     return typeof id === "string" ? id : String(id || "");
   };
 
-  // User comes online
+  // User comes online - DISTRIBUTED VERSION
   const handleUserOnline = async (userId) => {
     try {
       // Check if user exists first
@@ -36,21 +32,13 @@ module.exports = (io, socket) => {
         }
       });
 
-      // Store in Redis with expiration (for distributed systems)
-      if (redis.client && redis.client.isReady) {
-        await redis.client.setEx(`user:${userId}:status`, 300, "online"); // 5 min expiry
-        await redis.client.setEx(`user:${userId}:lastSeen`, 300, new Date().toISOString());
+      // Track in distributed Redis (replaces in-memory Map)
+      if (redis.isConnected()) {
+        await redis.trackUserOnline(userId, socket.id);
       }
 
-      // Track connection
-      if (!activeConnections.has(userId)) {
-        activeConnections.set(userId, new Set());
-      }
-      activeConnections.get(userId).add(socket.id);
-      socketToUser.set(socket.id, userId);
-
-      // Broadcast status to all connected clients
-      socket.broadcast.emit("user_status_change", {
+      // Broadcast status to ALL servers via Redis adapter
+      io.emit("user_status_change", {
         userId,
         status: "online",
         lastSeen: new Date().toISOString()
@@ -60,50 +48,37 @@ module.exports = (io, socket) => {
     }
   };
 
-  // User goes offline
+  // User goes offline - DISTRIBUTED VERSION
   const handleUserOffline = async (userId) => {
     try {
-      // Remove this socket from user's connections
-      if (activeConnections.has(userId)) {
-        activeConnections.get(userId).delete(socket.id);
+      // Check if user exists before updating
+      const userExists = await db.user.findUnique({
+        where: { id: userId },
+        select: { id: true }
+      });
 
-        // If no more connections for this user, mark as offline
-        if (activeConnections.get(userId).size === 0) {
-          activeConnections.delete(userId);
-
-          // Check if user exists before updating
-          const userExists = await db.user.findUnique({
-            where: { id: userId },
-            select: { id: true }
-          });
-
-          if (userExists) {
-            // Update database
-            await db.user.update({
-              where: { id: userId },
-              data: {
-                status: "offline",
-                lastSeen: new Date()
-              }
-            });
-
-            // Update Redis
-            if (redis.client && redis.client.isReady) {
-              await redis.client.setEx(`user:${userId}:status`, 300, "offline");
-              await redis.client.setEx(`user:${userId}:lastSeen`, 300, new Date().toISOString());
-            }
-
-            // Broadcast offline status
-            socket.broadcast.emit("user_status_change", {
-              userId,
-              status: "offline",
-              lastSeen: new Date().toISOString()
-            });
+      if (userExists) {
+        // Update database
+        await db.user.update({
+          where: { id: userId },
+          data: {
+            status: "offline",
+            lastSeen: new Date()
           }
-        }
-      }
+        });
 
-      socketToUser.delete(socket.id);
+        // Remove from distributed Redis
+        if (redis.isConnected()) {
+          await redis.trackUserOffline(userId);
+        }
+
+        // Broadcast offline status to ALL servers
+        io.emit("user_status_change", {
+          userId,
+          status: "offline",
+          lastSeen: new Date().toISOString()
+        });
+      }
     } catch (error) {
       console.error("Error handling user offline:", error);
     }
@@ -440,7 +415,7 @@ module.exports = (io, socket) => {
 
   // Handle disconnect
   socket.on("disconnect", () => {
-    const userId = socketToUser.get(socket.id);
+    const userId = getSocketUserId();
     if (userId) {
       handleUserOffline(userId);
     }

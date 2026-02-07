@@ -116,10 +116,28 @@ async function processMessage(messageData) {
             }
         }
 
-        // STEP 3: Broadcast is REMOVED here.
-        // Direct broadcast happens in messageController.js or message.socket.js
-        // for instant delivery, before the message even hits Kafka.
-        // Re-broadcasting here causes duplicate messages.
+        // STEP 3: RE-ENABLED - Broadcast to ALL servers via Redis adapter
+        // This ensures users on OTHER servers receive the message
+        // Redis adapter prevents duplicates automatically
+        if (global.io) {
+            const broadcastData = {
+                _id: messageData.id,
+                content: messageData.content,
+                senderId: messageData.senderId,
+                sender: messageData.sender,
+                createdAt: messageData.createdAt,
+                channelId: messageData.channelId || null,
+                dmRoomId: messageData.dmRoomId || null,
+                serverId: messageData.serverId,
+                type: messageData.type || 'TEXT',
+                attachments: messageData.attachments || [],
+                mentions: messageData.mentions || [],
+                parentId: messageData.parentId || null
+            };
+
+            // Broadcast to the appropriate room (channel or DM)
+            global.io.to(targetId).emit("receive_message", broadcastData);
+        }
 
     } catch (error) {
         console.error('Error in processMessage:', error);
