@@ -3,6 +3,8 @@ const redis = require('../config/redis');
 const { publishMessage } = require('../services/messageProducer');
 const { isKafkaConnected } = require('../config/kafka');
 const { canAccessChannel } = require('../utils/channelPermissions');
+const { checkMessageAutoMod } = require('./autoModController');
+const { createAuditLog } = require('./auditLogController');
 
 // Send new message
 exports.createMessage = async (req, res) => {
@@ -146,6 +148,84 @@ exports.createMessage = async (req, res) => {
                             message: `Message contains a banned word: ${word}`,
                             bannedWord: word
                         });
+                    }
+                }
+            }
+
+            // Check auto-moderation rules
+            if (content) {
+                const autoModResult = await checkMessageAutoMod(
+                    serverId,
+                    channelId,
+                    req.user.id,
+                    content,
+                    member.roleIds
+                );
+
+                if (autoModResult.triggered) {
+                    // Execute auto-mod actions
+                    const actions = autoModResult.actions;
+                    
+                    for (const action of actions) {
+                        // Handle both string and object action formats
+                        const actionType = typeof action === 'string' ? action : action.type;
+                        
+                        switch (actionType) {
+                            case 'DELETE_MESSAGE':
+                                // Message won't be created
+                                await createAuditLog({
+                                    serverId,
+                                    userId: req.user.id,
+                                    action: 'AUTO_MOD_MESSAGE_BLOCKED',
+                                    metadata: { rule: autoModResult.rule.name, content }
+                                });
+                                return res.status(400).json({
+                                    success: false,
+                                    message: 'Your message was blocked by auto-moderation',
+                                    rule: autoModResult.rule.name
+                                });
+
+                            case 'TIMEOUT':
+                                const duration = action.duration || 10; // minutes
+                                
+                                await db.serverMember.update({
+                                    where: { serverId_userId: { serverId, userId: req.user.id } },
+                                    data: {
+                                        timeoutUntil: new Date(Date.now() + duration * 60 * 1000),
+                                        timeoutReason: `Auto-mod: ${autoModResult.rule.name}`
+                                    }
+                                });
+                                
+                                await createAuditLog({
+                                    serverId,
+                                    userId: req.user.id,
+                                    action: 'AUTO_MOD_TIMEOUT',
+                                    targetType: 'User',
+                                    targetId: req.user.id,
+                                    metadata: { rule: autoModResult.rule.name, duration }
+                                });
+                                
+                                // Emit socket event
+                                if (global.io) {
+                                    global.io.to(req.user.id).emit('auto_mod_timeout', {
+                                        serverId,
+                                        duration,
+                                        reason: `Auto-mod: ${autoModResult.rule.name}`
+                                    });
+                                }
+                                
+                                break;
+
+                            case 'WARN':
+                                // Send warning message
+                                if (global.io) {
+                                    global.io.to(req.user.id).emit('auto_mod_warning', {
+                                        rule: autoModResult.rule.name,
+                                        message: action.message || 'Your message violated server rules'
+                                    });
+                                }
+                                break;
+                        }
                     }
                 }
             }

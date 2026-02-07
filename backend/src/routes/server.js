@@ -3,6 +3,10 @@ const router = express.Router();
 const serverController = require('../controllers/serverController');
 const channelController = require('../controllers/channelController');
 const roleController = require('../controllers/roleController');
+const auditLogController = require('../controllers/auditLogController');
+const autoModController = require('../controllers/autoModController');
+const welcomeScreenController = require('../controllers/welcomeScreenController');
+const memberScreeningController = require('../controllers/memberScreeningController');
 const { authenticate } = require('../middleware/auth');
 
 // All routes require authentication
@@ -47,5 +51,26 @@ router.patch('/:serverId/members/:userId/unban', serverController.unbanMember);
 // Banned words routes
 router.get('/:serverId/banned-words', serverController.getBannedWords);
 router.put('/:serverId/banned-words', serverController.updateBannedWords);
+
+// Audit log routes
+router.get('/:serverId/audit-logs', auditLogController.getAuditLogs);
+router.get('/:serverId/audit-logs/stats', auditLogController.getAuditLogStats);
+
+// Auto-moderation routes
+router.get('/:serverId/auto-mod/rules', autoModController.getAutoModRules);
+router.post('/:serverId/auto-mod/rules', autoModController.createAutoModRule);
+router.patch('/:serverId/auto-mod/rules/:ruleId', autoModController.updateAutoModRule);
+router.delete('/:serverId/auto-mod/rules/:ruleId', autoModController.deleteAutoModRule);
+
+// Welcome screen routes
+router.get('/:serverId/welcome-screen', welcomeScreenController.getWelcomeScreen);
+router.put('/:serverId/welcome-screen', welcomeScreenController.updateWelcomeScreen);
+
+// Member screening routes
+router.get('/:serverId/member-screening', memberScreeningController.getMemberScreening);
+router.put('/:serverId/member-screening', memberScreeningController.updateMemberScreening);
+router.post('/:serverId/member-screening/submit', memberScreeningController.submitScreeningResponse);
+router.get('/:serverId/member-screening/pending', memberScreeningController.getPendingScreeningResponses);
+router.patch('/:serverId/member-screening/responses/:responseId', memberScreeningController.reviewScreeningResponse);
 
 module.exports = router;

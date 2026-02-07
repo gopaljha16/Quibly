@@ -40,7 +40,9 @@ export const fetchLinkPreview = async (url: string): Promise<LinkPreview | null>
 
     // Use our backend endpoint for fetching link previews
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:5000/api'
-    const response = await fetch(`${API_BASE_URL}/link-preview?url=${encodeURIComponent(url)}`, {
+    const fetchUrl = `${API_BASE_URL}/link-preview?url=${encodeURIComponent(url)}`
+    
+    const response = await fetch(fetchUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -49,7 +51,9 @@ export const fetchLinkPreview = async (url: string): Promise<LinkPreview | null>
     })
 
     if (!response.ok) {
-      throw new Error('Failed to fetch preview')
+      const errorText = await response.text()
+      console.error('[LinkPreview] Failed to fetch preview:', response.status, errorText)
+      throw new Error(`Failed to fetch preview: ${response.status}`)
     }
 
     const data = await response.json()
@@ -76,7 +80,7 @@ export const fetchLinkPreview = async (url: string): Promise<LinkPreview | null>
     }
 
   } catch (error) {
-    console.error('Link preview error:', error)
+    console.error('[LinkPreview] Error fetching preview:', error)
     return null
   }
 }

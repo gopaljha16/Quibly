@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { fetchLinkPreview, getDomainInfo, getPlatformType, type LinkPreview as LinkPreviewType } from '@/lib/linkPreview'
 
 interface LinkPreviewProps {
@@ -8,22 +8,42 @@ interface LinkPreviewProps {
   className?: string
 }
 
+// Cache for link previews to avoid refetching
+const previewCache = new Map<string, LinkPreviewType | null>()
+
 export default function LinkPreview({ url, className = '' }: LinkPreviewProps) {
   const [preview, setPreview] = useState<LinkPreviewType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const loadedRef = useRef(false)
 
   useEffect(() => {
+    // Reset loaded ref when URL changes
+    loadedRef.current = false
+    
     const loadPreview = async () => {
+      // Check cache first
+      if (previewCache.has(url)) {
+        const cachedPreview = previewCache.get(url)
+        setPreview(cachedPreview || null)
+        setLoading(false)
+        setError(cachedPreview === null)
+        return
+      }
+
       setLoading(true)
       setError(false)
       
       try {
         const previewData = await fetchLinkPreview(url)
         setPreview(previewData)
+        // Cache the result (even if null)
+        previewCache.set(url, previewData)
       } catch (err) {
-        console.error('Failed to load preview:', err)
+        console.error('Link preview error:', err)
         setError(true)
+        // Cache the error result
+        previewCache.set(url, null)
       } finally {
         setLoading(false)
       }
