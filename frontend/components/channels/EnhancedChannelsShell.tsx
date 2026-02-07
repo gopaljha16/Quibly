@@ -585,7 +585,11 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
               </button>
 
               <div className="mt-4 space-y-[2px]">
-                {conversations.map((conv) => (
+                {conversations.map((conv) => {
+                  const { callStep, dmRoomId: activeDmRoomId } = useCallStore.getState()
+                  const isInCall = (callStep === 'calling' || callStep === 'in-call') && activeDmRoomId === conv.id
+                  
+                  return (
                   <button
                     key={conv.id}
                     onClick={() => {
@@ -602,27 +606,42 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                           conv.otherUser?.username[0].toUpperCase()
                         )}
                       </div>
-                      <div className={`absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full border-[3px] border-[#2b2d31] ${
-                        conv.otherUser?.status === 'online' ? 'bg-[#23a55a]' : 
-                        conv.otherUser?.status === 'idle' ? 'bg-[#f0b232]' : 
-                        conv.otherUser?.status === 'dnd' ? 'bg-[#f23f43]' : 'bg-[#80848e]'
-                      }`} />
+                      {isInCall ? (
+                        <div className="absolute -right-0.5 -bottom-0.5 w-4 h-4 rounded-full bg-[#23a55a] border-[3px] border-[#2b2d31] flex items-center justify-center">
+                          <Phone className="w-2 h-2 text-white" />
+                        </div>
+                      ) : (
+                        <div className={`absolute -right-0.5 -bottom-0.5 w-3 h-3 rounded-full border-[3px] border-[#2b2d31] ${
+                          conv.otherUser?.status === 'online' ? 'bg-[#23a55a]' : 
+                          conv.otherUser?.status === 'idle' ? 'bg-[#f0b232]' : 
+                          conv.otherUser?.status === 'dnd' ? 'bg-[#f23f43]' : 'bg-[#80848e]'
+                        }`} />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{conv.otherUser?.username}</div>
-                      {conv.lastMessage && (
+                      <div className="font-medium truncate flex items-center gap-2">
+                        {conv.otherUser?.username}
+                        {isInCall && (
+                          <span className="text-[10px] text-[#23a55a] font-semibold flex items-center gap-1">
+                            <span className="inline-block w-1.5 h-1.5 bg-[#23a55a] rounded-full animate-pulse"></span>
+                            In Call
+                          </span>
+                        )}
+                      </div>
+                      {conv.lastMessage && !isInCall && (
                         <div className={`text-[12px] truncate group-hover:text-[#dbdee1] ${unreads[conv.id] ? 'text-white' : 'text-[#b5bac1]'}`}>
                           {conv.lastMessage?.senderId === currentUser?._id ? 'You: ' : ''}{conv.lastMessage?.content}
                         </div>
                       )}
                     </div>
-                    {unreads[conv.id] > 0 && (
+                    {unreads[conv.id] > 0 && !isInCall && (
                       <div className="ml-auto bg-[#ed4245] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                         {unreads[conv.id]}
                       </div>
                     )}
                   </button>
-                ))}
+                  )
+                })}
               </div>
             </div>
           ) : (

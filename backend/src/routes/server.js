@@ -10,6 +10,7 @@ const memberScreeningController = require('../controllers/memberScreeningControl
 const serverTemplateController = require('../controllers/serverTemplateController');
 const serverAnalyticsController = require('../controllers/serverAnalyticsController');
 const { authenticate } = require('../middleware/auth');
+const { uploadServerIcon } = require('../utils/cloudinary');
 
 // All routes require authentication
 router.use(authenticate);
@@ -35,6 +36,9 @@ router.put('/:serverId', serverController.updateServer);
 router.delete('/:serverId', serverController.deleteServer);
 router.post('/:serverId/leave', serverController.leaveServer);
 router.get('/:serverId/members', serverController.getMembers);
+
+// Server icon upload
+router.post('/:serverId/icon', uploadServerIcon.single('file'), serverController.uploadServerIcon);
 
 // Server interests routes
 router.get('/:serverId/interests', serverController.getServerInterests);

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { UserPlus, MessageSquare, Smile } from 'lucide-react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useFriends, usePendingRequests } from '@/hooks/queries'
@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { useActivity } from '@/hooks/useActivity'
 import { ActivityDisplay } from '@/components/profile/ActivityDisplay'
+import EmojiPicker, { Theme, EmojiStyle } from 'emoji-picker-react'
 
 type MemberUser = {
   _id: string
@@ -54,6 +55,8 @@ export default function MemberProfileModal({
   currentUserId?: string
 }) {
   const [messageInput, setMessageInput] = useState('')
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
   const router = useRouter()
   
@@ -120,10 +123,10 @@ export default function MemberProfileModal({
       // Create DM room if it doesn't exist
       const dmData = await apiPost<{ success: boolean; room: { id: string } }>('/dm/room', { userId })
       
-      // Send the message
-      await apiPost('/messages', {
+      // Send the message with dmRoomId instead of channelId
+      await apiPost('/message', {
         content: messageInput.trim(),
-        channelId: dmData.room.id,
+        dmRoomId: dmData.room.id,
       })
       
       // Navigate to the DM
@@ -143,6 +146,25 @@ export default function MemberProfileModal({
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [open, onClose])
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false)
+      }
+    }
+    
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showEmojiPicker])
+
+  const onEmojiClick = (emojiData: any) => {
+    setMessageInput(prev => prev + emojiData.emoji)
+    setShowEmojiPicker(false)
+  }
 
   if (!open || !user) return null
 
@@ -281,15 +303,38 @@ export default function MemberProfileModal({
                   placeholder={`Message @${user.username}`}
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      handleMessageInputSubmit(e)
+                    }
+                  }}
                   className="w-full bg-[#383a40] text-[#dbdee1] rounded px-3 py-2 pr-10 text-sm outline-none placeholder-[#6d6f78] transition-all"
                 />
                 <button
                   type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-[#b5bac1] hover:text-[#dbdee1] transition-colors"
                 >
                   <Smile className="w-5 h-5" />
                 </button>
               </div>
+
+              {/* Emoji Picker */}
+              {showEmojiPicker && (
+                <div 
+                  ref={emojiPickerRef}
+                  className="absolute bottom-[60px] right-4 z-50 shadow-2xl"
+                >
+                  <EmojiPicker
+                    onEmojiClick={onEmojiClick}
+                    theme={Theme.DARK}
+                    emojiStyle={EmojiStyle.NATIVE}
+                    width={320}
+                    height={400}
+                  />
+                </div>
+              )}
             </form>
 
             {/* Roles Section */}
