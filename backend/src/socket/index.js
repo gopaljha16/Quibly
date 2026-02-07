@@ -43,7 +43,7 @@ module.exports = (httpServer) => {
 
     if (pubClient && subClient) {
       io.adapter(createAdapter(pubClient, subClient));
-      console.log(`✅ Socket.IO Redis adapter enabled (Server: ${redis.getServerId()})`);
+      console.log(`Socket.IO Redis adapter enabled (Server: ${redis.getServerId()})`);
     } else {
       console.warn('⚠️  Redis Pub/Sub clients not available - running in single-server mode');
     }

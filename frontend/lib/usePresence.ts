@@ -31,7 +31,7 @@ export function usePresence() {
     setSocket(socketInstance)
 
     const handleConnect = () => {
-      console.log('🟢 Presence connected')
+      console.log('Presence connected')
       setIsConnected(true)
       // Automatically mark user as online when connected
       socketInstance.emit('user_online')
@@ -39,7 +39,7 @@ export function usePresence() {
     }
 
     const handleDisconnect = () => {
-      console.log('🔴 Presence disconnected')
+      console.log('Presence disconnected')
       setIsConnected(false)
       setMyStatus('offline')
     }

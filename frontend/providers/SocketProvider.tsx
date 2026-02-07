@@ -30,7 +30,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Only connect if user is authenticated
     if (!hasUser) {
-      console.log('📵 No user found, skipping socket connection')
+      console.log('No user found, skipping socket connection')
       
       // Disconnect if previously connected
       if (socket) {
@@ -43,18 +43,18 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     // Don't reconnect if already connected
     if (socket?.connected) {
-      console.log('✅ Socket already connected, skipping reconnect')
+      console.log('Socket already connected, skipping reconnect')
       return
     }
 
-    console.log('🔌 Connecting socket in provider...')
+    console.log('Connecting socket in provider...')
     
     // Connect socket
     const newSocket = connectSocket()
     
     // Setup event handlers
     const handleConnect = () => {
-      console.log('🟢 Socket connected in provider, updating state')
+      console.log('Socket connected in provider, updating state')
       setSocket(newSocket)
       setIsConnected(true)
       setRenderKey(k => k + 1) // Force re-render
@@ -64,7 +64,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
 
     const handleDisconnect = () => {
-      console.log('🔴 Socket disconnected in provider')
+      console.log('Socket disconnected in provider')
       setIsConnected(false)
       setRenderKey(k => k + 1) // Force re-render
     }
@@ -92,7 +92,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
   }, [hasUser])
 
-  console.log('🔄 SocketProvider render - socket:', !!socket, 'connected:', isConnected, 'key:', renderKey)
+  console.log('SocketProvider render - socket:', !!socket, 'connected:', isConnected, 'key:', renderKey)
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }} key={renderKey}>

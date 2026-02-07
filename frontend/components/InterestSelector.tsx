@@ -29,7 +29,7 @@ export default function InterestSelector({
     const interests = INTERESTS_LIST // Use static list instead of fetching
     const [expanded, setExpanded] = useState(false)
 
-    console.log('🎯 InterestSelector: Loaded', interests.length, 'interests from static list')
+    console.log('InterestSelector: Loaded', interests.length, 'interests from static list')
 
     // Auto-expand when user starts selecting interests
     useEffect(() => {

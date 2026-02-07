@@ -81,7 +81,7 @@ export function useVoice(channelId: string | null) {
     setError(null);
 
     try {
-      console.log('🎤 Requesting voice token for channel:', channelId);
+      console.log('Requesting voice token for channel:', channelId);
 
       // Get LiveKit token from backend
       const response = await apiGet<{
@@ -98,7 +98,7 @@ export function useVoice(channelId: string | null) {
       }>(`/voice/token/${channelId}`);
       const { token, wsUrl, identity, user } = response;
 
-      console.log('✅ Received voice token:', {
+      console.log('Received voice token:', {
         wsUrl,
         roomName: response.roomName,
         identity,
@@ -120,7 +120,7 @@ export function useVoice(channelId: string | null) {
 
       // Set up room event listeners
       newRoom.on(RoomEvent.Connected, async () => {
-        console.log('🟢 Connected to voice channel');
+        console.log('Connected to voice channel');
         setIsConnected(true);
         setIsConnecting(false);
 
@@ -144,7 +144,7 @@ export function useVoice(channelId: string | null) {
       });
 
       newRoom.on(RoomEvent.Disconnected, async () => {
-        console.log('🔴 Disconnected from voice channel');
+        console.log('Disconnected from voice channel');
         setIsConnected(false);
 
         // Notify server via socket
@@ -165,36 +165,36 @@ export function useVoice(channelId: string | null) {
       });
 
       newRoom.on(RoomEvent.ParticipantConnected, (participant) => {
-        console.log('👤 Participant connected:', participant.identity);
+        console.log('Participant connected:', participant.identity);
       });
 
       newRoom.on(RoomEvent.ParticipantDisconnected, (participant) => {
-        console.log('👋 Participant disconnected:', participant.identity);
+        console.log('Participant disconnected:', participant.identity);
       });
 
       newRoom.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
         if (track.kind === Track.Kind.Audio) {
           const audioElement = track.attach();
           document.body.appendChild(audioElement);
-          console.log('🔊 Audio track subscribed from:', participant.identity);
+          console.log('Audio track subscribed from:', participant.identity);
         }
       });
 
       newRoom.on(RoomEvent.TrackUnsubscribed, (track) => {
         track.detach().forEach((element) => element.remove());
-        console.log('🔇 Track unsubscribed');
+        console.log('Track unsubscribed');
       });
 
       newRoom.on(RoomEvent.ConnectionQualityChanged, (quality, participant) => {
-        console.log('📶 Connection quality changed:', quality, participant?.identity);
+        console.log('Connection quality changed:', quality, participant?.identity);
       });
 
       // Connect to the room
-      console.log('🔌 Connecting to LiveKit room...');
+      console.log('Connecting to LiveKit room...');
       await newRoom.connect(wsUrl, token);
       setRoom(newRoom);
       setConnectionInfo({ token, wsUrl });
-      console.log('✅ Successfully connected to LiveKit room');
+      console.log('Successfully connected to LiveKit room');
     } catch (err: any) {
       console.error('❌ Failed to connect to voice:', err);
 

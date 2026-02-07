@@ -10,7 +10,7 @@ if (process.env.KAFKA_BROKERS) {
     const brokers = process.env.KAFKA_BROKERS.split(",").map(b => b.trim());
     const useAuth = process.env.KAFKA_USERNAME && process.env.KAFKA_PASSWORD;
 
-    console.log("🔧 Kafka Configuration:");
+    console.log("Kafka Configuration:");
     console.log("  Brokers:", brokers);
     console.log("  Auth:", useAuth ? "SASL (Aiven)" : "None");
 
@@ -46,29 +46,29 @@ if (process.env.KAFKA_BROKERS) {
 
         // PRIORITY 1: Load from environment variables (Base64 encoded)
         if (hasCertsInEnv) {
-            console.log("  ✅ Loading certificates from environment variables (Base64)");
+            console.log("  Loading certificates from environment variables (Base64)");
             try {
                 // Decode Base64 to original certificate format
                 sslConfig.ca = [Buffer.from(process.env.KAFKA_CA_CERT_BASE64, 'base64').toString('utf-8')];
                 sslConfig.cert = Buffer.from(process.env.KAFKA_CLIENT_CERT_BASE64, 'base64').toString('utf-8');
                 sslConfig.key = Buffer.from(process.env.KAFKA_CLIENT_KEY_BASE64, 'base64').toString('utf-8');
-                console.log("  🔐 Using certificate-based authentication (from env)");
+                console.log("  Using certificate-based authentication (from env)");
                 kafkaConfig.ssl = sslConfig;
             } catch (error) {
                 console.error("  ❌ Failed to decode Base64 certificates:", error.message);
-                console.log("  ⚠️  Falling back to file-based certificates");
+                console.log("  Falling back to file-based certificates");
                 // Fall through to file-based loading
             }
         }
         // PRIORITY 2: Load from files (fallback for development)
         else if (hasCaCertFile || hasClientCertsFiles) {
-            console.log("  ⚠️  Loading certificates from files (fallback mode)");
+            console.log("  Loading certificates from files (fallback mode)");
 
             // Load CA certificate from file
             if (hasCaCertFile) {
                 try {
                     sslConfig.ca = [fs.readFileSync(caPath, "utf-8")];
-                    console.log("  ✅ CA certificate loaded from file");
+                    console.log("  CA certificate loaded from file");
                 } catch (error) {
                     console.warn("  ⚠️  Could not load CA certificate:", error.message);
                 }
@@ -79,8 +79,8 @@ if (process.env.KAFKA_BROKERS) {
                 try {
                     sslConfig.cert = fs.readFileSync(certPath, "utf-8");
                     sslConfig.key = fs.readFileSync(keyPath, "utf-8");
-                    console.log("  ✅ Client certificates loaded from files (mTLS mode)");
-                    console.log("  🔐 Using certificate-based authentication");
+                    console.log("  Client certificates loaded from files (mTLS mode)");
+                    console.log("  Using certificate-based authentication");
                     kafkaConfig.ssl = sslConfig;
                 } catch (error) {
                     console.warn("  ⚠️  Could not load client certificates:", error.message);
@@ -88,7 +88,7 @@ if (process.env.KAFKA_BROKERS) {
                 }
             } else {
                 // Method 2: SASL authentication (username/password)
-                console.log("  🔐 Using SASL authentication");
+                console.log("  Using SASL authentication");
                 kafkaConfig.ssl = sslConfig;
 
                 const saslMechanism = process.env.KAFKA_SASL_MECHANISM || "scram-sha-256";
@@ -106,7 +106,7 @@ if (process.env.KAFKA_BROKERS) {
         }
         // PRIORITY 3: SASL only (no certificates)
         else {
-            console.log("  🔐 Using SASL authentication (no certificates found)");
+            console.log("  Using SASL authentication (no certificates found)");
             kafkaConfig.ssl = sslConfig;
 
             const saslMechanism = process.env.KAFKA_SASL_MECHANISM || "scram-sha-256";
@@ -140,21 +140,21 @@ if (process.env.KAFKA_BROKERS) {
                 await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
             }
 
-            console.log("🔄 Connecting to Kafka...");
+            console.log("Connecting to Kafka...");
             await producer.connect();
             isConnected = true;
-            console.log("✅ Connected to Kafka successfully");
+            console.log("Connected to Kafka successfully");
 
             // Notify that Kafka is ready
             if (global.onKafkaConnected) {
-                console.log("📢 Triggering Kafka connected callback...");
+                console.log("Triggering Kafka connected callback...");
                 global.onKafkaConnected();
             }
         } catch (error) {
             console.error("❌ Kafka connection failed:", error.message);
             console.error("   Error type:", error.type);
             console.error("   Full error:", error);
-            console.log("⚠️  App will continue without Kafka (direct DB writes)");
+            console.log("App will continue without Kafka (direct DB writes)");
             isConnected = false;
         }
     };
@@ -167,7 +167,7 @@ if (process.env.KAFKA_BROKERS) {
         }
     });
 } else {
-    console.log("⚠️  KAFKA_BROKERS not set, running without Kafka");
+    console.log("KAFKA_BROKERS not set, running without Kafka");
 }
 
 module.exports = {

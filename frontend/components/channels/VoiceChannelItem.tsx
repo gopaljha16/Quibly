@@ -49,14 +49,14 @@ export function VoiceChannelItem({
 
     const handleVoiceUpdate = (data: any) => {
       if (data.channelId === channel._id) {
-        console.log('🔄 Voice participants update:', data.participants);
+        console.log('Voice participants update:', data.participants);
         setParticipants(data.participants || []);
       }
     };
 
     const handleUserJoined = (data: any) => {
       if (data.channelId === channel._id) {
-        console.log('👋 User joined voice channel:', data.participant);
+        console.log('User joined voice channel:', data.participant);
         setParticipants((prev) => {
           // Check if user already exists
           if (prev.some((p) => p.userId === data.userId)) {

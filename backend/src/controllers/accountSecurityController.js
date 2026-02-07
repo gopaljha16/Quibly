@@ -101,7 +101,7 @@ exports.requestEmailChange = async (req, res) => {
         });
 
         // TODO: Send verification email with token
-        console.log(`📧 Email verification code for ${newEmail}: ${verificationToken}`);
+        console.log(`Email verification code for ${newEmail}: ${verificationToken}`);
 
         res.status(200).json({
             success: true,

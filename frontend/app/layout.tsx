@@ -47,7 +47,7 @@ export default function RootLayout({
                 if (isProtectedRoute) {
                   const hasToken = document.cookie.includes('token=');
                   if (!hasToken) {
-                    console.log('🔒 No token - redirecting to login');
+                    console.log('No token - redirecting to login');
                     window.location.href = '/login';
                   }
                 }
