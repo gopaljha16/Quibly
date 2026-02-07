@@ -30,7 +30,7 @@ async function startFanoutService() {
         });
 
         await consumer.connect();
-        console.log('✅ Fanout service connected to Kafka');
+        console.log('Fanout service connected to Kafka');
 
         await consumer.subscribe({
             topic: TOPIC_CHAT_MESSAGES,
@@ -52,7 +52,7 @@ async function startFanoutService() {
             },
         });
 
-        console.log('✅ Fanout service is running');
+        console.log('Fanout service is running');
     } catch (error) {
         console.error('Failed to start fanout service:', error);
         isRunning = false;

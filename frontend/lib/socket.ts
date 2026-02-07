@@ -23,7 +23,7 @@ export const getSocket = (): Socket => {
     const token = getTokenFromCookies()
 
     socket = io(SOCKET_URL, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'], // Add polling fallback for load balancer compatibility
       withCredentials: true,
       autoConnect: false, // Don't connect until explicitly told to
       reconnection: true,
@@ -38,7 +38,7 @@ export const getSocket = (): Socket => {
     const socketInstance = socket
 
     socket.on('connect', () => {
-      console.log('🔌 Socket connected:', socketInstance?.id)
+      console.log('Socket connected:', socketInstance?.id)
     })
 
     socket.on('connect_error', (err) => {
@@ -48,7 +48,7 @@ export const getSocket = (): Socket => {
     })
 
     socket.on('disconnect', (reason) => {
-      console.log('🔌 Socket disconnected:', reason)
+      console.log('Socket disconnected:', reason)
     })
 
     socket.on('auth_error', (data) => {

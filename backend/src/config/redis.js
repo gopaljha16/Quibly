@@ -23,20 +23,20 @@ if (hasCloudRedis || hasLocalRedis) {
                     return new Error('Max retries exceeded');
                 }
                 const delay = Math.min(retries * 100, 3000);
-                console.log(`🔄 Redis reconnecting... (attempt ${retries}, delay ${delay}ms)`);
+                console.log(`Redis reconnecting... (attempt ${retries}, delay ${delay}ms)`);
                 return delay;
             }
         }
     };
 
     if (hasCloudRedis) {
-        console.log('🔧 Connecting to Cloud Redis...');
+        console.log('Connecting to Cloud Redis...');
         redisConfig.username = 'default';
         redisConfig.password = process.env.REDIS_PASSWORD;
         redisConfig.socket.host = process.env.REDIS_STRING;
         redisConfig.socket.port = parseInt(process.env.REDIS_PORT_NO);
     } else {
-        console.log('🔧 Connecting to Local Redis...');
+        console.log('Connecting to Local Redis...');
         redisConfig.socket.host = process.env.REDIS_HOST || 'localhost';
         redisConfig.socket.port = parseInt(process.env.REDIS_PORT) || 6379;
     }
@@ -50,22 +50,22 @@ if (hasCloudRedis || hasLocalRedis) {
 
     // Event handlers for main client
     client.on('error', err => console.error('❌ Redis Client Error:', err.message));
-    client.on('reconnecting', () => console.log('🔄 Redis reconnecting...'));
+    client.on('reconnecting', () => console.log('Redis reconnecting...'));
     client.on('ready', () => {
         isConnected = true;
-        console.log('✅ Redis ready');
+        console.log('Redis ready');
     });
     client.on('end', () => {
         isConnected = false;
-        console.log('⚠️  Redis connection closed');
+        console.log('Redis connection closed');
     });
 
     // Event handlers for pub/sub clients
     pubClient.on('error', err => console.error('❌ Redis Pub Error:', err.message));
-    pubClient.on('ready', () => console.log('✅ Redis Pub client ready'));
+    pubClient.on('ready', () => console.log('Redis Pub client ready'));
 
     subClient.on('error', err => console.error('❌ Redis Sub Error:', err.message));
-    subClient.on('ready', () => console.log('✅ Redis Sub client ready'));
+    subClient.on('ready', () => console.log('Redis Sub client ready'));
 
     // Connect to Redis
     const connectRedis = async () => {
@@ -76,10 +76,10 @@ if (hasCloudRedis || hasLocalRedis) {
                 subClient.connect()
             ]);
             isConnected = true;
-            console.log(`✅ Connected to Redis successfully (Server ID: ${SERVER_ID})`);
+            console.log(`Connected to Redis successfully (Server ID: ${SERVER_ID})`);
         } catch (error) {
             console.error('❌ Redis connection failed:', error);
-            console.log('⚠️  App will continue without Redis caching');
+            console.log('App will continue without Redis caching');
             isConnected = false;
         }
     };
@@ -87,7 +87,7 @@ if (hasCloudRedis || hasLocalRedis) {
     // Initialize connection
     connectRedis();
 } else {
-    console.log('⚠️  Redis not configured (set REDIS_HOST/REDIS_PORT for local or REDIS_STRING/REDIS_PASSWORD for cloud)');
+    console.log('Redis not configured (set REDIS_HOST/REDIS_PORT for local or REDIS_STRING/REDIS_PASSWORD for cloud)');
 }
 
 // Redis wrapper with common operations
@@ -418,7 +418,7 @@ module.exports.disconnectRedis = async () => {
                 subClient?.quit()
             ]);
             isConnected = false;
-            console.log('✅ Redis clients disconnected');
+            console.log('Redis clients disconnected');
         } catch (err) {
             console.error('Error disconnecting Redis:', err);
         }

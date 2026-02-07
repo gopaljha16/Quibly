@@ -11,16 +11,16 @@ import { Message } from '@/hooks/queries'
 export function setupSocketQuerySync(socket: Socket, queryClient: QueryClient) {
   // Handle new messages
   socket.on('receive_message', (incoming: any) => {
-    console.log('📨 FRONTEND: receive_message event received:', incoming)
+    console.log('FRONTEND: receive_message event received:', incoming)
     const msg = incoming as Message
     const channelId = msg.channelId
     
     if (!channelId) {
-      console.log('⚠️  No channelId in message, skipping')
+      console.log('No channelId in message, skipping')
       return
     }
     
-    console.log('✅ Adding message to cache for channel:', channelId)
+    console.log('Adding message to cache for channel:', channelId)
     
     // Add message to cache
     queryClient.setQueryData<Message[]>(['messages', channelId], (old = []) => {

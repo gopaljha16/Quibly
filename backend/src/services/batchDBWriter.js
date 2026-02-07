@@ -28,7 +28,7 @@ async function processBatch() {
         if (!acquired) {
             // Another server is the leader
             if (isLeader) {
-                console.log(`⚠️  Lost leadership - another server is now batch writer leader`);
+                console.log(`Lost leadership - another server is now batch writer leader`);
                 isLeader = false;
             }
             return;
@@ -36,7 +36,7 @@ async function processBatch() {
 
         // We are the leader!
         if (!isLeader) {
-            console.log(`✅ Acquired batch writer leadership (Server: ${redis.getServerId()})`);
+            console.log(`Acquired batch writer leadership (Server: ${redis.getServerId()})`);
             isLeader = true;
         }
 
@@ -75,7 +75,7 @@ async function processBatch() {
             skipDuplicates: true
         });
 
-        console.log(`✅ [LEADER] Saved ${result.count} messages to PostgreSQL`);
+        console.log(`[LEADER] Saved ${result.count} messages to PostgreSQL`);
 
         // Clear processed messages from queue
         await redis.clearBatchQueue(messages.length);
@@ -98,7 +98,7 @@ function startBatchWriter(intervalMs = BATCH_INTERVAL) {
         return;
     }
 
-    console.log(`✅ Batch DB writer started (interval: ${intervalMs / 1000} seconds)`);
+    console.log(`Batch DB writer started (interval: ${intervalMs / 1000} seconds)`);
 
     // Run immediately on start
     processBatch();
@@ -120,7 +120,7 @@ function stopBatchWriter() {
         // Release leadership lock
         if (isLeader && redis.isConnected()) {
             redis.releaseLock(LOCK_KEY).then(() => {
-                console.log('✅ Released batch writer leadership');
+                console.log('Released batch writer leadership');
                 isLeader = false;
             });
         }

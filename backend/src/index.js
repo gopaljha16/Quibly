@@ -11,6 +11,12 @@ const app = express();
 const server = http.createServer(app);
 
 // Middleware
+// Add server ID to all responses for debugging
+app.use((req, res, next) => {
+    res.setHeader('X-Server-ID', require('./config/redis').getServerId());
+    next();
+});
+
 // Parse FRONTEND_URL to support multiple origins
 const allowedOrigins = process.env.FRONTEND_URL 
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
@@ -181,20 +187,20 @@ const redis = require('./config/redis');
 // Wait a bit for Redis to connect, then start batch writer
 setTimeout(() => {
     if (redis.isConnected()) {
-        console.log('🔄 Starting batch DB writer service...');
+        console.log('Starting batch DB writer service...');
         startBatchWriter(); // Runs every 30 seconds, processes 5 messages per batch
     } else {
-        console.log('⚠️  Batch writer not started (Redis not connected)');
+        console.log('Batch writer not started (Redis not connected)');
     }
 }, 2000);
 
 server.listen(PORT, () => {
-    console.log(`✅ Server is running on port ${PORT}`);
-    console.log(`📧 Email: ${process.env.EMAIL_USER}`);
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`Email: ${process.env.EMAIL_USER}`);
 
     // Verify LiveKit configuration
     if (process.env.LIVEKIT_API_KEY && process.env.LIVEKIT_API_SECRET && process.env.LIVEKIT_WS_URL) {
-        console.log('🎤 LiveKit configured:');
+        console.log('LiveKit configured:');
         console.log(`   - API Key: ${process.env.LIVEKIT_API_KEY.substring(0, 10)}...`);
         console.log(`   - Secret Length: ${process.env.LIVEKIT_API_SECRET.length} chars`);
         console.log(`   - WebSocket URL: ${process.env.LIVEKIT_WS_URL}`);
@@ -212,7 +218,7 @@ server.listen(PORT, () => {
 
     // Wait for Kafka to connect, then start fanout service
     global.onKafkaConnected = () => {
-        console.log("🎯 Kafka connected! Now starting fanout service...");
+        console.log("Kafka connected! Now starting fanout service...");
         startFanoutService().catch(err => {
             console.error('Failed to start fanout service:', err);
         });
@@ -222,7 +228,7 @@ server.listen(PORT, () => {
     setTimeout(() => {
         const { isKafkaConnected } = require('./config/kafka');
         if (isKafkaConnected()) {
-            console.log("🎯 Kafka already connected! Starting fanout service...");
+            console.log("Kafka already connected! Starting fanout service...");
             startFanoutService().catch(err => {
                 console.error('Failed to start fanout service:', err);
             });
@@ -248,7 +254,7 @@ const gracefulShutdown = async (signal) => {
         // Stop accepting new connections
         await new Promise((resolve) => {
             server.close(() => {
-                console.log('✓ HTTP server closed');
+                console.log('HTTP server closed');
                 resolve();
             });
         });
@@ -259,7 +265,7 @@ const gracefulShutdown = async (signal) => {
                 try {
                     const { disconnectKafka } = require('./config/kafka');
                     await disconnectKafka();
-                    console.log('✓ Kafka disconnected');
+                    console.log('Kafka disconnected');
                 } catch (err) {
                     console.error('Error disconnecting Kafka:', err.message);
                 }
@@ -268,7 +274,7 @@ const gracefulShutdown = async (signal) => {
                 try {
                     const { disconnectRedis } = require('./config/redis');
                     await disconnectRedis();
-                    console.log('✓ Redis disconnected');
+                    console.log('Redis disconnected');
                 } catch (err) {
                     console.error('Error disconnecting Redis:', err.message);
                 }
@@ -276,7 +282,7 @@ const gracefulShutdown = async (signal) => {
             (async () => {
                 try {
                     await db.$disconnect();
-                    console.log('✓ Database disconnected');
+                    console.log('Database disconnected');
                 } catch (err) {
                     console.error('Error disconnecting database:', err.message);
                 }
@@ -285,7 +291,7 @@ const gracefulShutdown = async (signal) => {
 
         shutdownComplete = true;
         clearTimeout(forceShutdownTimer);
-        console.log('✓ Graceful shutdown complete');
+        console.log('Graceful shutdown complete');
         process.exit(0);
     } catch (err) {
         console.error('Error during shutdown:', err);

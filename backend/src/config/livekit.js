@@ -5,7 +5,7 @@ const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_WS_URL = process.env.LIVEKIT_WS_URL;
 
 // Log on module load to verify env vars are available
-console.log('📦 LiveKit module loaded:', {
+console.log('LiveKit module loaded:', {
   hasApiKey: !!LIVEKIT_API_KEY,
   hasApiSecret: !!LIVEKIT_API_SECRET,
   hasWsUrl: !!LIVEKIT_WS_URL,
@@ -30,7 +30,7 @@ async function generateToken(roomName, participantName, metadata = {}) {
     throw error;
   }
 
-  console.log('🎤 Generating LiveKit token:', {
+  console.log('Generating LiveKit token:', {
     roomName,
     participantName,
     participantUsername: metadata.username,
@@ -69,7 +69,7 @@ async function generateToken(roomName, participantName, metadata = {}) {
     // toJwt() returns a Promise in newer versions
     const token = await at.toJwt();
     
-    console.log('✅ Token generated successfully:', {
+    console.log('Token generated successfully:', {
       tokenLength: token.length,
       tokenPreview: token.substring(0, 50) + '...',
     });

@@ -14,7 +14,7 @@
         const hasToken = document.cookie.includes('token=');
 
         if (!hasToken) {
-            console.log('🔒 No token found on protected route, redirecting to login');
+            console.log('No token found on protected route, redirecting to login');
             window.location.href = '/login';
         }
     }
@@ -27,7 +27,7 @@
 
             // If we get a 401, clear token and redirect
             if (response.status === 401) {
-                console.log('🚫 401 Unauthorized - Clearing token and redirecting to login');
+                console.log('401 Unauthorized - Clearing token and redirecting to login');
                 document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 
                 // Only redirect if not already on login/signup

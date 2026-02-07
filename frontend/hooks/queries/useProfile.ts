@@ -37,10 +37,10 @@ export function useProfile() {
   return useQuery({
     queryKey: ['profile'],
     queryFn: async () => {
-      console.log('📡 Fetching user profile...')
+      console.log('Fetching user profile...')
       try {
         const response = await apiGet<ProfileResponse>('/auth/profile')
-        console.log('✅ Profile response:', response)
+        console.log('Profile response:', response)
         
         // Handle different response formats
         let user: UserProfile | null = null;
@@ -63,7 +63,7 @@ export function useProfile() {
           } as UserProfile
         }
 
-        console.log('👤 Parsed user:', user)
+        console.log('Parsed user:', user)
         return user
         
       } catch (error: any) {
