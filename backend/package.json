@@ -1,8 +1,12 @@
 {
-  "name": "discord-backend",
+  "name": "quibly-backend",
+  "version": "1.0.0",
+  "description": "Quibly Backend - Real-time communication platform server",
   "module": "index.ts",
   "type": "commonjs",
   "private": true,
+  "author": "Quibly Team",
+  "license": "MIT",
   "scripts": {
     "dev": "npm run docker:up && bun run --hot src/index.js",
     "dev:only": "bun run --hot src/index.js",
