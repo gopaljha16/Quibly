@@ -55,7 +55,7 @@ export default function LinkPreview({ url, className = '' }: LinkPreviewProps) {
   // Show loading state
   if (loading) {
     return (
-      <div className={`max-w-md rounded-lg border border-white/10 bg-[#2f3136] p-3 animate-pulse ${className}`}>
+      <div className={`max-w-full md:max-w-md rounded-lg border border-white/10 bg-[#2f3136] p-3 animate-pulse ${className}`}>
         <div className="flex gap-3">
           <div className="w-16 h-16 bg-white/10 rounded flex-shrink-0" />
           <div className="flex-1 space-y-2">
@@ -74,7 +74,7 @@ export default function LinkPreview({ url, className = '' }: LinkPreviewProps) {
     const platformType = getPlatformType(url)
     
     return (
-      <div className={`max-w-md rounded-lg border border-white/10 bg-[#2f3136] p-3 hover:bg-[#36393f] transition-colors ${className}`}>
+      <div className={`max-w-full md:max-w-md rounded-lg border border-white/10 bg-[#2f3136] p-3 hover:bg-[#36393f] transition-colors ${className}`}>
         <a 
           href={url} 
           target="_blank" 
@@ -123,7 +123,7 @@ export default function LinkPreview({ url, className = '' }: LinkPreviewProps) {
 
   // Show full preview
   return (
-    <div className={`max-w-md rounded-lg border border-white/10 bg-[#2f3136] overflow-hidden hover:bg-[#36393f] transition-colors ${className}`}>
+    <div className={`max-w-full md:max-w-md rounded-lg border border-white/10 bg-[#2f3136] overflow-hidden hover:bg-[#36393f] transition-colors ${className}`}>
       <a 
         href={preview.url} 
         target="_blank" 
@@ -132,11 +132,11 @@ export default function LinkPreview({ url, className = '' }: LinkPreviewProps) {
       >
         {/* Image */}
         {preview.image && (
-          <div className="aspect-video w-full bg-black/20 overflow-hidden">
+          <div className="aspect-video w-full max-w-full bg-black/20 overflow-hidden">
             <img 
               src={preview.image} 
               alt={preview.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover max-w-full"
               onError={(e) => {
                 const target = e.target as HTMLImageElement
                 target.style.display = 'none'

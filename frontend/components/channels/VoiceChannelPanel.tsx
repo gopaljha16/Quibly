@@ -113,16 +113,31 @@ export function VoiceChannelPanel({
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-              <p className="text-red-400 text-sm">{error}</p>
+              <p className="text-red-400 text-sm mb-3">{error}</p>
+              <Button
+                onClick={handleJoinVoice}
+                variant="outline"
+                size="sm"
+                className="w-full"
+              >
+                Retry Connection
+              </Button>
             </div>
           )}
 
           <Button
             onClick={handleJoinVoice}
             disabled={isConnecting}
-            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            className="w-full bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
           >
-            {isConnecting ? 'Connecting...' : 'Join Voice Channel'}
+            {isConnecting ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Connecting...
+              </div>
+            ) : (
+              'Join Voice Channel'
+            )}
           </Button>
         </div>
       </div>

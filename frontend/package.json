@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "generate:ringtones": "node scripts/generate-ringtones.js",
     "docker:check": "cd ../backend && docker-compose ps --quiet postgres redis kafka || docker-compose up -d",
     "docker:up": "cd ../backend && docker-compose up -d",
     "docker:down": "cd ../backend && docker-compose down",

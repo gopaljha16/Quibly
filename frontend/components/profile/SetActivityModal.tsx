@@ -43,8 +43,10 @@ export function SetActivityModal({ isOpen, onClose }: SetActivityModalProps) {
       });
       onClose();
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to set activity:", error);
+      const { toast } = await import('sonner');
+      toast.error(error.message || 'Failed to set activity');
     }
   };
 
@@ -53,8 +55,10 @@ export function SetActivityModal({ isOpen, onClose }: SetActivityModalProps) {
       await clearActivity();
       onClose();
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to clear activity:", error);
+      const { toast } = await import('sonner');
+      toast.error(error.message || 'Failed to clear activity');
     }
   };
 
@@ -70,7 +74,7 @@ export function SetActivityModal({ isOpen, onClose }: SetActivityModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[440px] bg-[#313338] border-none p-0 gap-0">
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[440px] bg-[#313338] border-none p-0 gap-0">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4">
           <DialogTitle className="text-xl font-semibold text-white">
@@ -187,7 +191,14 @@ export function SetActivityModal({ isOpen, onClose }: SetActivityModalProps) {
               disabled={isLoading || !name.trim()}
               className="flex-1 bg-[#5865f2] hover:bg-[#4752c4] text-white border-none disabled:opacity-50"
             >
-              {isLoading ? "Saving..." : "Save"}
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </div>
+              ) : (
+                'Save'
+              )}
             </Button>
           </div>
         </form>

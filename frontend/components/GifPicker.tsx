@@ -64,7 +64,7 @@ export default function GifPicker({ onGifSelect, onClose }: GifPickerProps) {
 
   return (
     <div 
-      className="bg-[#2b2d31] rounded-lg shadow-2xl border border-[#1e1f22] w-[350px] h-[450px] flex flex-col overflow-hidden"
+      className="bg-[#2b2d31] rounded-lg shadow-2xl border border-[#1e1f22] w-full max-w-[350px] h-[450px] max-h-[80vh] flex flex-col overflow-hidden"
     >
       <div className="p-3 border-b border-[#1e1f22]">
         <input

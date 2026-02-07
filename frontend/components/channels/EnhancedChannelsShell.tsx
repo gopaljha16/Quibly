@@ -98,6 +98,10 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   const [createOpen, setCreateOpen] = useState(false)
   const [serverMenuOpen, setServerMenuOpen] = useState(false)
   const [channelMenuOpenId, setChannelMenuOpenId] = useState<string | null>(null)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const [mobileChannelsOpen, setMobileChannelsOpen] = useState(false)
+  const [mobileMembersOpen, setMobileMembersOpen] = useState(false)
   const [renameChannelId, setRenameChannelId] = useState<string | null>(null)
   const [renameChannelValue, setRenameChannelValue] = useState('')
   const [renameSlowModeValue, setRenameSlowModeValue] = useState(0)
@@ -124,6 +128,8 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   const [createChannelOpen, setCreateChannelOpen] = useState(false)
   const [joinOpen, setJoinOpen] = useState(false)
   const [discoverOpen, setDiscoverOpen] = useState(false)
+  const [memberListVisible, setMemberListVisible] = useState(true)
+  const [memberSearchQuery, setMemberSearchQuery] = useState('')
   
   // ALL useRef calls
   const serverMenuRef = useRef<HTMLDivElement | null>(null)
@@ -346,9 +352,23 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   }
 
   return (
-    <div className="h-screen w-screen bg-[#313338] text-white flex overflow-hidden font-sans">
+    <div className="h-screen w-screen bg-[#313338] text-white flex overflow-hidden font-sans relative">
+      {/* Mobile Overlay */}
+      {(mobileSidebarOpen || mobileChannelsOpen || mobileMembersOpen) && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => {
+            setMobileSidebarOpen(false)
+            setMobileChannelsOpen(false)
+            setMobileMembersOpen(false)
+          }}
+        />
+      )}
+
       {/* Server Sidebar */}
-      <div className="w-[72px] bg-[#1e1f22] flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-hide">
+      <div className={`fixed md:relative w-[72px] bg-[#1e1f22] flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-hide z-50 h-full transition-transform duration-300 ${
+        mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
         {/* Home/DM Button */}
         <div className="relative group">
           <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ${route.isMe ? 'h-10' : 'h-2 group-hover:h-5 opacity-0 group-hover:opacity-100'
@@ -451,7 +471,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       </div>
 
       {/* Channels Sidebar */}
-      <div className="w-[240px] bg-[#2b2d31] flex flex-col">
+      <div className={`fixed md:relative w-[240px] bg-[#2b2d31] flex flex-col z-40 h-full transition-transform duration-300 left-0 md:left-auto ${
+        mobileChannelsOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+      }`}>
         {/* Server Header */}
         <div className="relative">
           <div className="h-12 px-4 flex items-center border-b border-[#1e1f22] shadow-md cursor-pointer hover:bg-[#35373c] transition-colors"
@@ -943,9 +965,36 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col bg-[#313338]">
+      <div className="flex-1 flex flex-col bg-[#313338] min-w-0">
           {/* Channel Header */}
-          <div className="h-12 border-b border-[#26272b] flex items-center px-4 gap-3 shadow-sm flex-shrink-0 bg-[#313338]">
+          <div className="h-12 border-b border-[#26272b] flex items-center px-2 md:px-4 gap-2 md:gap-3 shadow-sm flex-shrink-0 bg-[#313338]">
+            {/* Mobile Menu Buttons */}
+            <button
+              onClick={() => {
+                setMobileSidebarOpen(!mobileSidebarOpen)
+                setMobileChannelsOpen(false)
+                setMobileMembersOpen(false)
+              }}
+              className="md:hidden w-8 h-8 flex items-center justify-center text-[#b5bac1] hover:text-white"
+              title="Toggle Server List"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+              </svg>
+            </button>
+            <button
+              onClick={() => {
+                setMobileChannelsOpen(!mobileChannelsOpen)
+                setMobileSidebarOpen(false)
+                setMobileMembersOpen(false)
+              }}
+              className="md:hidden w-8 h-8 flex items-center justify-center text-[#b5bac1] hover:text-white"
+              title="Toggle Channels"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z"/>
+              </svg>
+            </button>
             {(() => {
               const isDM = route.isMe && route.channelId
               const conv = isDM ? conversations.find(c => c.id === route.channelId) : null
@@ -974,7 +1023,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                       <path d="M5.88657 21C5.57547 21 5.3399 20.7189 5.39427 20.4126L6.00001 17H2.59511C2.28449 17 2.04905 16.7198 2.10259 16.4138L2.27759 15.4138C2.31946 15.1746 2.52722 15 2.77011 15H6.35001L7.41001 9H4.00511C3.69449 9 3.45905 8.71977 3.51259 8.41381L3.68759 7.41381C3.72946 7.17456 3.93722 7 4.18011 7H7.76001L8.39677 3.41262C8.43914 3.17391 8.64664 3 8.88907 3H9.87344C10.1845 3 10.4201 3.28107 10.3657 3.58738L9.76001 7H15.76L16.3968 3.41262C16.4391 3.17391 16.6466 3 16.8891 3H17.8734C18.1845 3 18.4201 3.28107 18.3657 3.58738L17.76 7H21.1649C21.4755 7 21.711 7.28023 21.6574 7.58619L21.4824 8.58619C21.4406 8.82544 21.2328 9 20.9899 9H17.41L16.35 15H19.7549C20.0655 15 20.301 15.2802 20.2474 15.5862L20.0724 16.5862C20.0306 16.8254 19.8228 17 19.5799 17H16L15.3632 20.5874C15.3209 20.8261 15.1134 21 14.8709 21H13.8866C13.5755 21 13.3399 20.7189 13.3943 20.4126L14 17H8.00001L7.36325 20.5874C7.32088 20.8261 7.11337 21 6.87094 21H5.88657ZM9.41001 9L8.35001 15H14.35L15.41 9H9.41001Z" />
                     </svg>
                   )}
-                  <div className="font-bold text-[#f2f3f5] truncate text-[16px]">
+                  <div className="font-bold text-[#f2f3f5] truncate text-sm md:text-[16px] flex-1 min-w-0">
                     {title}
                   </div>
                 </>
@@ -988,7 +1037,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 </div>
               </>
             )}
-            <div className="ml-auto flex items-center gap-4">
+            <div className="ml-auto flex items-center gap-2 md:gap-4">
               {route.isMe && route.channelId && (
                 <>
                   <button 
@@ -998,7 +1047,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                         initiateCall(conv.otherUser, route.channelId!, false)
                       }
                     }}
-                    className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
+                    className="hidden sm:block w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
                   >
                     <Phone className="w-5 h-5" />
                     <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
@@ -1012,7 +1061,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                         initiateCall(conv.otherUser, route.channelId!, true)
                       }
                     }}
-                    className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
+                    className="hidden sm:block w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
                   >
                     <Video className="w-5 h-5" />
                     <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
@@ -1021,7 +1070,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   </button>
                 </>
               )}
-              <button className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
+              <button className="hidden sm:block w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
                 <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
                   <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1L13.5 2.5L16.17 5.17C15.24 5.06 14.32 5 13.4 5H12C7.58 5 4 8.58 4 13C4 17.42 7.58 21 12 21C16.42 21 20 17.42 20 13H18C18 16.31 15.31 19 12 19C8.69 19 6 16.31 6 13C6 9.69 8.69 7 12 7H13.4C14.8 7 16.2 7.2 17.6 7.7L21 9Z" />
                 </svg>
@@ -1029,7 +1078,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   Notification Settings
                 </div>
               </button>
-              <button className="w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
+              <button className="hidden sm:block w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
                 <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
@@ -1037,31 +1086,38 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                   Pinned Messages
                 </div>
               </button>
-              <button
-                className={`w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group ${route.isMe ? 'hidden' : ''}`}
-                onClick={() => {
-                  // Toggle member list visibility if I had state for it
-                  // For now just visual
-                }}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-                  <path d="M16 4C16 2.89 16.89 2 18 2C19.11 2 20 2.89 20 4C20 5.11 19.11 6 18 6C16.89 6 16 5.11 16 4ZM16 20V14H18.5L15.96 6.37C15.5 4.97 13.92 4.97 13.46 6.37L10.92 14H13.42V20H16ZM4 4C4 2.89 4.89 2 6 2C7.11 2 8 2.89 8 4C8 5.11 7.11 6 6 6C4.89 6 4 5.11 4 4ZM1.75 16L4.5 7.94C4.96 6.54 6.54 6.54 7 7.94L9.75 16H8V22H4V16H1.75Z" />
-                </svg>
-                <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                  Hide Member List
-                </div>
-              </button>
+              {!route.isMe && route.serverId && (
+                <button
+                  className="hidden sm:block w-6 h-6 text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
+                  onClick={() => setMemberListVisible(!memberListVisible)}
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                    <path d="M16 4C16 2.89 16.89 2 18 2C19.11 2 20 2.89 20 4C20 5.11 19.11 6 18 6C16.89 6 16 5.11 16 4ZM16 20V14H18.5L15.96 6.37C15.5 4.97 13.92 4.97 13.46 6.37L10.92 14H13.42V20H16ZM4 4C4 2.89 4.89 2 6 2C7.11 2 8 2.89 8 4C8 5.11 7.11 6 6 6C4.89 6 4 5.11 4 4ZM1.75 16L4.5 7.94C4.96 6.54 6.54 6.54 7 7.94L9.75 16H8V22H4V16H1.75Z" />
+                  </svg>
+                  <div className="absolute top-full right-0 mt-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                    {memberListVisible ? 'Hide' : 'Show'} Member List
+                  </div>
+                </button>
+              )}
+              
+              {/* Mobile Members Toggle Button */}
+              {!route.isMe && route.serverId && (
+                <button
+                  onClick={() => {
+                    setMobileMembersOpen(!mobileMembersOpen)
+                    setMobileSidebarOpen(false)
+                    setMobileChannelsOpen(false)
+                  }}
+                  className="md:hidden w-8 h-8 flex items-center justify-center text-[#b5bac1] hover:text-white"
+                  title="Toggle Members"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                    <path d="M16 4C16 2.89 16.89 2 18 2C19.11 2 20 2.89 20 4C20 5.11 19.11 6 18 6C16.89 6 16 5.11 16 4ZM16 20V14H18.5L15.96 6.37C15.5 4.97 13.92 4.97 13.46 6.37L10.92 14H13.42V20H16ZM4 4C4 2.89 4.89 2 6 2C7.11 2 8 2.89 8 4C8 5.11 7.11 6 6 6C4.89 6 4 5.11 4 4ZM1.75 16L4.5 7.94C4.96 6.54 6.54 6.54 7 7.94L9.75 16H8V22H4V16H1.75Z" />
+                  </svg>
+                </button>
+              )}
 
-              <div className="relative group">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  className="bg-[#1e1f22] text-sm text-[#f2f3f5] placeholder-[#949ba4] rounded px-2 py-1 w-36 transition-all focus:w-60 focus:outline-none border border-transparent focus:border-[#00a8fc]"
-                />
-                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current text-[#949ba4] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <path d="M21.707 20.293L16.314 14.9C17.403 13.504 18 11.799 18 10C18 6.009 15.363 2.691 11.609 2.133C7.527 1.517 3.966 4.394 3.125 8.406C2.35 12.096 5.167 15.65 8.921 15.957C10.799 16.111 12.504 15.514 13.9 14.425L19.293 19.818C19.488 20.013 19.744 20.11 20 20.11C20.256 20.11 20.512 20.013 20.707 19.818C21.098 19.427 21.098 18.795 21.707 20.293ZM10 14C7.794 14 6 12.206 6 10C6 7.794 7.794 6 10 6C12.206 6 14 7.794 14 10C14 12.206 12.206 14 10 14Z" />
-                </svg>
-              </div>
+
             </div>
           </div>
 
@@ -1069,10 +1125,24 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       </div>
 
       {/* Members Sidebar */}
-      {!route.isMe && route.serverId && (
-        <div className="w-[240px] bg-[#2b2d31] flex flex-col flex-shrink-0">
-            <div className="h-12 px-4 flex items-center shadow-sm flex-shrink-0">
-              {/* Use same height as header but transparent or matching bg */}
+      {!route.isMe && route.serverId && memberListVisible && (
+        <div className={`fixed md:relative w-[240px] bg-[#2b2d31] flex flex-col flex-shrink-0 z-40 h-full transition-transform duration-300 right-0 ${
+          mobileMembersOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'
+        }`}>
+            <div className="h-12 px-4 flex items-center shadow-sm flex-shrink-0 border-b border-[#1e1f22]">
+              {/* Member Search */}
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="Search Members"
+                  value={memberSearchQuery}
+                  onChange={(e) => setMemberSearchQuery(e.target.value)}
+                  className="bg-[#1e1f22] text-sm text-[#f2f3f5] placeholder-[#949ba4] rounded px-2 py-1 w-full pr-8 focus:outline-none border border-transparent focus:border-[#00a8fc]"
+                />
+                <svg width="16" height="16" viewBox="0 0 24 24" className="fill-current text-[#949ba4] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <path d="M21.707 20.293L16.314 14.9C17.403 13.504 18 11.799 18 10C18 6.009 15.363 2.691 11.609 2.133C7.527 1.517 3.966 4.394 3.125 8.406C2.35 12.096 5.167 15.65 8.921 15.957C10.799 16.111 12.504 15.514 13.9 14.425L19.293 19.818C19.488 20.013 19.744 20.11 20 20.11C20.256 20.11 20.512 20.013 20.707 19.818C21.098 19.427 21.098 18.795 21.707 20.293ZM10 14C7.794 14 6 12.206 6 10C6 7.794 7.794 6 10 6C12.206 6 14 7.794 14 10C14 12.206 12.206 14 10 14Z" />
+                </svg>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto px-2 py-3 scrollbar-thin scrollbar-thumb-[#1e1f22] scrollbar-track-transparent">
@@ -1084,6 +1154,12 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
               {/* Group Members by Roles */}
               {(() => {
+                // Filter members by search query first
+                const searchLower = memberSearchQuery.toLowerCase().trim()
+                const filteredMembers = searchLower 
+                  ? members.filter(m => m.user.username.toLowerCase().includes(searchLower))
+                  : members
+
                 // 1. Sort roles by position (highest first)
                 const sortedRoles = [...roles].sort((a, b) => b.position - a.position)
                 
@@ -1107,7 +1183,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 const ownerRoleExists = roles.some(r => r.name === 'Owner' && r.hoist)
                 
                 if (!ownerRoleExists) {
-                  const ownerMembers = members.filter(m => {
+                  const ownerMembers = filteredMembers.filter(m => {
                     const isOwner = ownerId ? ownerId === m.user._id : false
                     return isOwner && isUserOnline(m.user._id)
                   })
@@ -1122,7 +1198,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
                 // Group by hoisted roles (Online only)
                 hoistedRoles.forEach(role => {
-                  const roleMembers = members.filter(m => 
+                  const roleMembers = filteredMembers.filter(m => 
                     m.roleIds.includes(role.id) && 
                     !placedMemberIds.has(m._id) && 
                     isUserOnline(m.user._id)
@@ -1137,7 +1213,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 })
 
                 // Remaining ONLINE members go to "Online" group
-                const onlineMembers = members.filter(m => 
+                const onlineMembers = filteredMembers.filter(m => 
                   !placedMemberIds.has(m._id) && 
                   isUserOnline(m.user._id)
                 )
@@ -1150,7 +1226,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                 }
 
                 // All OFFLINE members go to "Offline" group
-                const offlineMembers = members.filter(m => !placedMemberIds.has(m._id))
+                const offlineMembers = filteredMembers.filter(m => !placedMemberIds.has(m._id))
                 if (offlineMembers.length > 0) {
                   groups['offline'] = {
                     name: 'Offline',
