@@ -1,12 +1,14 @@
 'use client'
 
 import { Badge, Calendar, Hash } from 'lucide-react'
+import { StatusMenu } from '../StatusMenu'
 
 interface OverviewTabProps {
   user: any
+  isOwnProfile?: boolean
 }
 
-export default function OverviewTab({ user }: OverviewTabProps) {
+export default function OverviewTab({ user, isOwnProfile }: OverviewTabProps) {
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
       month: 'long',
@@ -17,8 +19,18 @@ export default function OverviewTab({ user }: OverviewTabProps) {
 
   return (
     <div className="space-y-5">
-      {/* Custom Status */}
-      {user.customStatus && (
+      {/* Activity & Status Controls - Only show for own profile */}
+      {isOwnProfile && (
+        <div className="bg-[#1e1f22] rounded-lg p-4">
+          <h3 className="text-xs font-semibold text-[#949ba4] uppercase mb-3 tracking-wide">
+            Activity & Status
+          </h3>
+          <StatusMenu />
+        </div>
+      )}
+
+      {/* Custom Status - Show for viewing other profiles */}
+      {!isOwnProfile && user.customStatus && (
         <div className="bg-[#1e1f22] rounded-lg p-4">
           <div className="flex items-center gap-2">
             {user.customStatusEmoji && <span className="text-xl">{user.customStatusEmoji}</span>}

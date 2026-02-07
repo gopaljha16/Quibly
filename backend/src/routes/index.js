@@ -13,6 +13,7 @@ const accountSecurityRoutes = require('./accountSecurity');
 const inviteRoutes = require('./inviteRoutes');
 const friendRoutes = require('./friends');
 const dmRoutes = require('./dm');
+const activityRoutes = require('./activity');
 
 // Use routes
 router.use('/auth', authRoutes);
@@ -27,6 +28,7 @@ router.use('/account', accountSecurityRoutes);
 router.use('/invites', inviteRoutes);
 router.use('/friends', friendRoutes);
 router.use('/dm', dmRoutes);
+router.use('/activity', activityRoutes);
 
 // Health check route
 router.get('/health', (req, res) => {

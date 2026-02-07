@@ -125,7 +125,7 @@ export default function UserProfileView({ user, isOwnProfile, onEdit, onUpdate }
 
           {/* Tab Content */}
           <div className="mt-6">
-            {activeTab === 'overview' && <OverviewTab user={user} />}
+            {activeTab === 'overview' && <OverviewTab user={user} isOwnProfile={isOwnProfile} />}
             {activeTab === 'activity' && <ActivityTab user={user} />}
             {activeTab === 'connections' && <ConnectionsTab user={user} isOwnProfile={isOwnProfile} onUpdate={onUpdate} />}
             {activeTab === 'settings' && isOwnProfile && <SettingsTab user={user} onUpdate={onUpdate} />}
