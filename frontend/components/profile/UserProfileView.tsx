@@ -63,10 +63,10 @@ export default function UserProfileView({ user, isOwnProfile, onEdit, onUpdate }
       )}
 
       {/* Profile Content */}
-      <div className="px-6 pb-6">
+      <div className="px-4 md:px-6 pb-4 md:pb-6">
         {/* Avatar */}
-        <div className={`relative ${user.showBanner !== false ? '-mt-16' : 'mt-6'} mb-5`}>
-          <div className={`relative w-32 h-32 ${cardStyles[cardStyle as keyof typeof cardStyles]} border-[6px] border-[#111214] overflow-hidden bg-[#5865f2]`}>
+        <div className={`relative ${user.showBanner !== false ? '-mt-16' : 'mt-6'} mb-4 md:mb-5`}>
+          <div className={`relative w-24 h-24 md:w-32 md:h-32 ${cardStyles[cardStyle as keyof typeof cardStyles]} border-4 md:border-[6px] border-[#111214] overflow-hidden bg-[#5865f2]`}>
             {user.avatar ? (
               <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
             ) : (
@@ -84,8 +84,8 @@ export default function UserProfileView({ user, isOwnProfile, onEdit, onUpdate }
         </div>
 
         {/* Username Header */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-1">
+        <div className="mb-4 md:mb-6">
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-1">
             {user.displayName || user.username}
           </h2>
           <p className="text-[#b5bac1] text-sm">
@@ -117,14 +117,14 @@ export default function UserProfileView({ user, isOwnProfile, onEdit, onUpdate }
                   }`}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{tab.label}</span>
+                  <span className="text-sm font-medium hidden sm:inline">{tab.label}</span>
                 </button>
               )
             })}
           </div>
 
           {/* Tab Content */}
-          <div className="mt-6">
+          <div className="mt-4 md:mt-6">
             {activeTab === 'overview' && <OverviewTab user={user} isOwnProfile={isOwnProfile} />}
             {activeTab === 'activity' && <ActivityTab user={user} />}
             {activeTab === 'connections' && <ConnectionsTab user={user} isOwnProfile={isOwnProfile} onUpdate={onUpdate} />}

@@ -45,13 +45,13 @@ export function VoiceControls({
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 md:gap-2">
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggleMute}
             disabled={isDeafened}
-            className={`h-8 w-8 ${
+            className={`h-9 w-9 md:h-8 md:w-8 ${
               isMuted
                 ? 'bg-red-500 hover:bg-red-600 text-white'
                 : 'hover:bg-zinc-800 text-zinc-400'
@@ -65,7 +65,7 @@ export function VoiceControls({
             variant="ghost"
             size="icon"
             onClick={onToggleDeafen}
-            className={`h-8 w-8 ${
+            className={`h-9 w-9 md:h-8 md:w-8 ${
               isDeafened
                 ? 'bg-red-500 hover:bg-red-600 text-white'
                 : 'hover:bg-zinc-800 text-zinc-400'
@@ -83,7 +83,7 @@ export function VoiceControls({
             variant="ghost"
             size="icon"
             onClick={onToggleVideo}
-            className={`h-8 w-8 ${
+            className={`h-9 w-9 md:h-8 md:w-8 ${
               isVideoEnabled
                 ? 'bg-green-500 hover:bg-green-600 text-white'
                 : 'hover:bg-zinc-800 text-zinc-400'
@@ -97,7 +97,7 @@ export function VoiceControls({
             variant="ghost"
             size="icon"
             onClick={onDisconnect}
-            className="h-8 w-8 bg-red-500 hover:bg-red-600 text-white"
+            className="h-9 w-9 md:h-8 md:w-8 bg-red-500 hover:bg-red-600 text-white"
             title="Disconnect"
           >
             <PhoneOff className="h-4 w-4" />
@@ -106,7 +106,7 @@ export function VoiceControls({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 hover:bg-zinc-800 text-zinc-400"
+            className="h-9 w-9 md:h-8 md:w-8 hover:bg-zinc-800 text-zinc-400"
             title="Voice Settings"
           >
             <Settings className="h-4 w-4" />

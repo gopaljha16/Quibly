@@ -52,8 +52,10 @@ export function SetCustomStatusModal({ isOpen, onClose }: SetCustomStatusModalPr
       });
       onClose();
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to set custom status:", error);
+      const { toast } = await import('sonner');
+      toast.error(error.message || 'Failed to set custom status');
     }
   };
 
@@ -62,8 +64,10 @@ export function SetCustomStatusModal({ isOpen, onClose }: SetCustomStatusModalPr
       await clearCustomStatus();
       onClose();
       resetForm();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to clear custom status:", error);
+      const { toast } = await import('sonner');
+      toast.error(error.message || 'Failed to clear custom status');
     }
   };
 
@@ -76,7 +80,7 @@ export function SetCustomStatusModal({ isOpen, onClose }: SetCustomStatusModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[440px] bg-[#313338] border-none p-0 gap-0">
+      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-[440px] bg-[#313338] border-none p-0 gap-0">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-4">
           <DialogTitle className="text-xl font-semibold text-white">
@@ -175,7 +179,14 @@ export function SetCustomStatusModal({ isOpen, onClose }: SetCustomStatusModalPr
               disabled={isLoading || !status.trim()}
               className="flex-1 bg-[#5865f2] hover:bg-[#4752c4] text-white border-none disabled:opacity-50"
             >
-              {isLoading ? "Saving..." : "Save"}
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Saving...
+                </div>
+              ) : (
+                'Save'
+              )}
             </Button>
           </div>
         </form>

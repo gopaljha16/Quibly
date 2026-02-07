@@ -75,11 +75,11 @@ export default function SignupVisualization() {
   ]
 
   return (
-    <div id="viz-container" className="relative w-full h-[650px] flex items-center justify-center overflow-visible">
+    <div id="viz-container" className="relative w-full h-[650px] hidden lg:flex items-center justify-center overflow-visible">
       {/* Dynamic Background with Parallax */}
       <div className="absolute inset-0 overflow-hidden">
         <div 
-          className="absolute w-[600px] h-[600px] rounded-full blur-[100px] opacity-20"
+          className="absolute w-[300px] h-[300px] md:w-[600px] md:h-[600px] rounded-full blur-[100px] opacity-20"
           style={{
             background: 'radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%)',
             top: '20%',
@@ -89,7 +89,7 @@ export default function SignupVisualization() {
           }}
         />
         <div 
-          className="absolute w-[500px] h-[500px] rounded-full blur-[100px] opacity-20"
+          className="absolute w-[250px] h-[250px] md:w-[500px] md:h-[500px] rounded-full blur-[100px] opacity-20"
           style={{
             background: 'radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%)',
             bottom: '10%',
@@ -104,7 +104,7 @@ export default function SignupVisualization() {
       <div className="relative w-full h-full flex items-center justify-center">
         
         {/* Central Orbital System */}
-        <div className="relative w-[500px] h-[500px] flex items-center justify-center">
+        <div className="relative w-[300px] h-[300px] md:w-[500px] md:h-[500px] flex items-center justify-center">
           
           {/* Outer Rotating Rings */}
           <div className="absolute inset-0 flex items-center justify-center">

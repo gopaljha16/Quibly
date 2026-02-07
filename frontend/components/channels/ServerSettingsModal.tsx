@@ -217,10 +217,10 @@ export default function ServerSettingsModal({
          <div className="absolute inset-0 bg-black/70" onClick={() => { if (!saving) onClose() }} />
 
          <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-[800px] h-[600px] bg-[#12131a] rounded-[4px] shadow-2xl overflow-hidden flex animate-scale-in">
+            <div className="w-full max-w-full md:max-w-[800px] h-[90vh] md:h-[600px] bg-[#12131a] rounded-[4px] shadow-2xl overflow-hidden flex flex-col md:flex-row animate-scale-in">
 
                {/* Sidebar */}
-               <div className="w-[218px] bg-[#12131a] flex flex-col pt-[60px] pb-4">
+               <div className="hidden md:flex w-[218px] bg-[#12131a] flex-col pt-[60px] pb-4">
                   <div className="px-[10px] mb-2 flex justify-between items-center">
                      <div className="text-xs font-bold text-slate-500 px-2 uppercase truncate">{server.name}</div>
                   </div>
@@ -252,12 +252,27 @@ export default function ServerSettingsModal({
 
                {/* Main Content */}
                <div className="flex-1 bg-[#12131a] flex flex-col relative">
-                  <div className="flex-1 overflow-y-auto p-[40px] custom-scrollbar">
+                  {/* Mobile Tab Selector */}
+                  <div className="md:hidden p-4 border-b border-[#3f4147]">
+                     <select
+                        value={activeTab}
+                        onChange={(e) => setActiveTab(e.target.value)}
+                        className="w-full bg-[#1e1f22] text-white p-2 rounded border-none outline-none"
+                     >
+                        {tabs.map((tab) => (
+                           <option key={tab.id} value={tab.id}>
+                              {tab.name}
+                           </option>
+                        ))}
+                     </select>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto p-4 md:p-[40px] custom-scrollbar">
                      {activeTab === 'overview' && (
-                        <div className="max-w-[460px]">
-                           <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Overview</h2>
+                        <div className="max-w-full md:max-w-[460px]">
+                           <h2 className="text-lg md:text-xl font-bold text-[#F2F3F5] mb-4 md:mb-5">Server Overview</h2>
                            
-                           <div className="flex gap-8 mb-8">
+                           <div className="flex flex-col md:flex-row gap-4 md:gap-8 mb-6 md:mb-8">
                               <div className="flex-1">
                                  {/* Server Name */}
                                  <div className="mb-6">

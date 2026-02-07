@@ -112,10 +112,26 @@ export default function MemberProfileModal({
     createDMMutation.mutate(userId)
   }
   
-  const handleMessageInputSubmit = (e: React.FormEvent) => {
+  const handleMessageInputSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (messageInput.trim()) {
-      createDMMutation.mutate(userId)
+    if (!messageInput.trim()) return
+    
+    try {
+      // Create DM room if it doesn't exist
+      const dmData = await apiPost<{ success: boolean; room: { id: string } }>('/dm/room', { userId })
+      
+      // Send the message
+      await apiPost('/messages', {
+        content: messageInput.trim(),
+        channelId: dmData.room.id,
+      })
+      
+      // Navigate to the DM
+      router.push(`/channels/@me/${dmData.room.id}`)
+      setMessageInput('')
+      onClose()
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to send message')
     }
   }
 
@@ -134,7 +150,7 @@ export default function MemberProfileModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent showCloseButton={false} className="max-w-[340px] bg-[#111214] border-none text-white p-0 overflow-hidden rounded-lg">
+      <DialogContent showCloseButton={false} className="max-w-[calc(100%-2rem)] sm:max-w-[340px] bg-[#111214] border-none text-white p-0 overflow-hidden rounded-lg">
           {/* Banner */}
           <div className="h-[60px] relative overflow-hidden bg-gradient-to-r from-[#1e3a8a] via-[#7c3aed] to-[#db2777]">
             {user.banner && (
@@ -226,8 +242,17 @@ export default function MemberProfileModal({
                 disabled={createDMMutation.isPending}
                 className="flex-1 bg-[#5865f2] hover:bg-[#4752c4] text-white font-medium py-2.5 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm"
               >
-                <MessageSquare className="w-4 h-4" />
-                Send Message
+                {createDMMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Opening...
+                  </>
+                ) : (
+                  <>
+                    <MessageSquare className="w-4 h-4" />
+                    Send Message
+                  </>
+                )}
               </button>
 
               {!isFriend && !hasPendingRequest && currentUserId !== userId && (
