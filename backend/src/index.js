@@ -7,6 +7,10 @@ const http = require("http");
 const db = require("./config/db");
 const { startFanoutService } = require("./services/messageFanout");
 
+// Instance identifier for multi-instance debugging
+const INSTANCE_ID = process.env.INSTANCE_ID || `PID-${process.pid}`;
+global.INSTANCE_ID = INSTANCE_ID;
+
 const app = express();
 const server = http.createServer(app);
 
@@ -121,6 +125,8 @@ setTimeout(() => {
 }, 2000);
 
 server.listen(PORT, () => {
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`🚀 INSTANCE: ${INSTANCE_ID}`);
     console.log(`✅ Server is running on port ${PORT}`);
     console.log(`📧 Email: ${process.env.EMAIL_USER}`);
 

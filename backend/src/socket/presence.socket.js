@@ -49,6 +49,8 @@ module.exports = (io, socket) => {
       activeConnections.get(userId).add(socket.id);
       socketToUser.set(socket.id, userId);
 
+      console.log(`[${global.INSTANCE_ID}] 👤 PRESENCE_ONLINE: User ${userId} | Local connections: ${activeConnections.get(userId)?.size || 0}`);
+
       // Broadcast status to all connected clients
       socket.broadcast.emit("user_status_change", {
         userId,
@@ -92,6 +94,8 @@ module.exports = (io, socket) => {
               await redis.client.setEx(`user:${userId}:status`, 300, "offline");
               await redis.client.setEx(`user:${userId}:lastSeen`, 300, new Date().toISOString());
             }
+
+            console.log(`[${global.INSTANCE_ID}] 👤 PRESENCE_OFFLINE: User ${userId} | No more local connections`);
 
             // Broadcast offline status
             socket.broadcast.emit("user_status_change", {

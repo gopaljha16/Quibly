@@ -37,6 +37,8 @@ module.exports = (httpServer) => {
     // Store userId on socket for voice disconnect handling
     socket.userId = socket.user.id;
 
+    console.log(`[${global.INSTANCE_ID}] 🔌 CONNECT: User ${socket.user.id} | Socket ${socket.id}`);
+
     require("./message.socket")(io, socket);
     require("./presence.socket")(io, socket);
     require("./voice.socket")(io, socket);
@@ -44,7 +46,7 @@ module.exports = (httpServer) => {
     require("./typing.socket")(io, socket);
 
     socket.on("disconnect", () => {
-      // Silent disconnect
+      console.log(`[${global.INSTANCE_ID}] 🔌 DISCONNECT: User ${socket.user.id} | Socket ${socket.id}`);
     });
   });
 };

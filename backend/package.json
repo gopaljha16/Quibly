@@ -11,7 +11,10 @@
     "docker:logs": "docker-compose logs -f",
     "docker:restart": "docker-compose restart",
     "docker:status": "docker-compose ps",
-    "docker:clean": "docker-compose down -v"
+    "docker:clean": "docker-compose down -v",
+    "test:instance1": "INSTANCE_ID=Instance-1 PORT=5000 node src/index.js",
+    "test:instance2": "INSTANCE_ID=Instance-2 PORT=5001 node src/index.js",
+    "test:multi": "node test-multi-instance.js"
   },
   "devDependencies": {
     "@types/bun": "latest"
