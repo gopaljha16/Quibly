@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { useChannelsData } from '@/hooks/useChannelsData'
 import { useProfile, useDMConversations, useMembers, useRoles } from '@/hooks/queries'
 
@@ -17,6 +18,7 @@ import LeaveServerModal from './LeaveServerModal'
 import UserProfileViewModal from '../profile/UserProfileViewModal'
 import CallOverlay from '../calls/CallOverlay'
 import DiscoverServersModal from '../discovery/DiscoverServersModal'
+import LoadingScreen from '@/components/LoadingScreen'
 import { Phone, Video, Users, MoreVertical, Settings } from 'lucide-react'
 import { useCallStore } from '@/lib/store'
 import { ServerListSkeleton, ChannelListSkeleton, MemberListSkeleton } from '@/components/LoadingSkeletons'
@@ -69,6 +71,13 @@ const UserAvatar = ({
     lg: 'w-12 h-12 text-lg'
   }
 
+  const statusColors = {
+    online: 'bg-[#23a55a]',
+    idle: 'bg-[#f0b232]',
+    dnd: 'bg-[#f23f43]',
+    offline: 'bg-[#80848e]'
+  }
+
   const initials = username?.slice(0, 1).toUpperCase() || 'U'
 
   return (
@@ -82,7 +91,7 @@ const UserAvatar = ({
       </div>
       {showStatus && (
         <div className="absolute -bottom-0.5 -right-0.5">
-          <StatusBadge status={status} />
+          <div className={`w-4 h-4 rounded-full border-[3px] border-[#1e1f22] ${statusColors[status || 'offline']}`} />
         </div>
       )}
     </div>
@@ -248,6 +257,24 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       }, 100)
     }
   }, [profileLoading, profileError, currentUser, router, redirecting])
+  
+  // Timeout for loading - if it takes more than 10 seconds, redirect to login
+  useEffect(() => {
+    if (!profileLoading) return
+    
+    const timeout = setTimeout(() => {
+      if (profileLoading && !currentUser) {
+        console.error('❌ Profile loading timeout, redirecting to login')
+        setRedirecting(true)
+        if (typeof document !== 'undefined') {
+          document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+        }
+        router.push('/login')
+      }
+    }, 10000) // 10 second timeout
+    
+    return () => clearTimeout(timeout)
+  }, [profileLoading, currentUser, router])
 
   // Event handlers for menus - MUST be before conditional returns
   useEffect(() => {
@@ -319,14 +346,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
   // Show loading state
   if (profileLoading || redirecting) {
-    return (
-      <div className="h-screen w-screen bg-[#313338] text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4"></div>
-          <div className="text-lg text-[#b5bac1]">Loading...</div>
-        </div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   // Don't render if no user
@@ -366,107 +386,212 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       )}
 
       {/* Server Sidebar */}
-      <div className={`fixed md:relative w-[72px] bg-[#1e1f22] flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-hide z-50 h-full transition-transform duration-300 ${
+      <div className={`fixed md:relative w-[72px] bg-[#1e1f22] flex flex-col items-center z-50 h-full transition-transform duration-300 ${
         mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
       }`}>
-        {/* Home/DM Button */}
-        <div className="relative group">
-          <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ${route.isMe ? 'h-10' : 'h-2 group-hover:h-5 opacity-0 group-hover:opacity-100'
-            }`} />
-          <button
-            type="button"
-            onClick={goToMe}
-            className={`w-12 h-12 flex items-center justify-center text-lg font-bold transition-all duration-200 overflow-hidden ${route.isMe
-              ? 'bg-[#5865f2] rounded-[16px]'
-              : 'bg-[#1a1a1a] text-gray-100 group-hover:bg-[#5865f2] group-hover:text-white rounded-[24px] group-hover:rounded-[16px]'
-              }`}
-          >
-            <svg width="28" height="20" viewBox="0 0 28 20" className="fill-current">
-              <path d="M23.0212 1.67671C21.3107 0.879656 19.5079 0.318797 17.6584 0C17.4062 0.461742 17.1749 0.934541 16.9708 1.4184C15.003 1.12145 12.9974 1.12145 11.0283 1.4184C10.819 0.934541 10.589 0.461744 10.3368 0.00546311C8.48074 0.324393 6.67795 0.885118 4.96746 1.68231C1.56727 6.77853 0.649666 11.7538 1.11108 16.652C3.10102 18.1418 5.3262 19.2743 7.69177 20C8.22338 19.2743 8.69519 18.4993 9.09812 17.691C8.32996 17.3997 7.58522 17.0424 6.87684 16.6291C7.06531 16.4979 7.25183 16.3615 7.43624 16.2202C11.4193 18.0402 15.9176 18.0402 19.8555 16.2202C20.0403 16.3615 20.2268 16.4979 20.4148 16.6291C19.7059 17.0427 18.9606 17.4 18.1921 17.691C18.5949 18.4993 19.0667 19.2743 19.5984 20C21.9639 19.2743 24.1894 18.1418 26.1794 16.652C26.7228 11.0369 25.2119 6.10654 23.0212 1.67671ZM9.68041 13.6383C8.39754 13.6383 7.34085 12.4453 7.34085 10.994C7.34085 9.54272 8.37155 8.34973 9.68041 8.34973C10.9893 8.34973 12.0395 9.54272 12.0187 10.994C12.0187 12.4453 10.9893 13.6383 9.68041 13.6383ZM18.5129 13.6383C17.2271 13.6383 16.1703 12.4453 16.1703 10.994C16.1703 9.54272 17.2009 8.34973 18.5129 8.34973C19.8248 8.34973 20.8751 9.54272 20.8542 10.994C20.8542 12.4453 19.8248 13.6383 18.5129 13.6383Z" />
-            </svg>
-          </button>
-        </div>
+        {/* Scrollable Server List Area */}
+        <div className="flex-1 flex flex-col items-center py-3 gap-2 overflow-y-auto scrollbar-hide w-full">
+          {/* Home/DM Button */}
+          <div className="relative">
+            <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ${route.isMe ? 'h-10' : 'h-0 opacity-0'
+              }`} />
+            <button
+              type="button"
+              onClick={goToMe}
+              className={`w-12 h-12 flex items-center justify-center text-lg font-bold overflow-hidden ${route.isMe
+                ? 'rounded-[16px]'
+                : 'bg-transparent rounded-[24px] hover:bg-transparent'
+                }`}
+            >
+              <Image src="/logo.png" alt="Quibly Logo" width={28} height={28} className="rounded-lg" />
+            </button>
+          </div>
 
-        <div className="w-8 h-[2px] bg-[#2a2a2a] rounded-lg my-1" />
+          <div className="w-8 h-[2px] bg-[#2a2a2a] rounded-lg my-1" />
 
-        {/* Server List */}
-        {serversLoading ? (
-          <ServerListSkeleton />
-        ) : (
-          servers.map((s) => (
-            <div key={s._id} className="relative group">
-              <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ${s._id === route.serverId ? 'h-10' : 'h-2 group-hover:h-5 opacity-0 group-hover:opacity-100'
-                }`} />
-              <button
-                type="button"
-                onClick={() => void selectServer(s._id)}
-                className={`w-12 h-12 flex items-center justify-center text-lg font-bold transition-all duration-200 overflow-hidden ${s._id === route.serverId
-                  ? 'bg-[#5865f2] rounded-[16px] text-white'
-                  : 'bg-[#1a1a1a] text-gray-100 group-hover:bg-[#5865f2] group-hover:text-white rounded-[24px] group-hover:rounded-[16px]'
-                  }`}
-                title={s.name || 'Server'}
-              >
-                {s.icon ? (
-                  <img src={s.icon} alt={s.name} className="w-full h-full object-cover" />
-                ) : (
-                  (s.name || 'S').slice(0, 1).toUpperCase()
+          {/* Server List */}
+          {serversLoading ? (
+            <ServerListSkeleton />
+          ) : (
+            servers.map((s) => (
+              <div key={s._id} className="relative group">
+                <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ${s._id === route.serverId ? 'h-10' : 'h-2 group-hover:h-5 opacity-0 group-hover:opacity-100'
+                  }`} />
+                <button
+                  type="button"
+                  onClick={() => void selectServer(s._id)}
+                  className={`w-12 h-12 flex items-center justify-center text-lg font-bold transition-all duration-200 overflow-hidden ${s._id === route.serverId
+                    ? 'bg-[#5865f2] rounded-[16px] text-white'
+                    : 'bg-[#1a1a1a] text-gray-100 group-hover:bg-[#5865f2] group-hover:text-white rounded-[24px] group-hover:rounded-[16px]'
+                    }`}
+                  title={s.name || 'Server'}
+                >
+                  {s.icon ? (
+                    <img src={s.icon} alt={s.name} className="w-full h-full object-cover" />
+                  ) : (
+                    (s.name || 'S').slice(0, 1).toUpperCase()
+                  )}
+                </button>
+                
+                {/* Server Unread Dot */}
+                {serverUnreads[s._id] > 0 && s._id !== route.serverId && (
+                  <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" />
                 )}
-              </button>
-              
-              {/* Server Unread Dot */}
-              {serverUnreads[s._id] > 0 && s._id !== route.serverId && (
-                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full" />
-              )}
-              {/* Server Mention Badge */}
-              {serverMentions[s._id] > 0 && (
-                <div className="absolute -right-1 -bottom-1 bg-[#ed4245] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-4 border-[#1e1f22] min-w-[20px] flex items-center justify-center">
-                  {serverMentions[s._id]}
+                {/* Server Mention Badge */}
+                {serverMentions[s._id] > 0 && (
+                  <div className="absolute -right-1 -bottom-1 bg-[#ed4245] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-4 border-[#1e1f22] min-w-[20px] flex items-center justify-center">
+                    {serverMentions[s._id]}
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+
+          {/* Add Server Button */}
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="w-12 h-12 rounded-[24px] bg-[#1a1a1a] hover:bg-[#3ba55d] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#3ba55d] hover:text-white text-2xl font-normal group"
+              title="Add a Server"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Join Server Button */}
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={() => setJoinOpen(true)}
+              className="w-12 h-12 rounded-[24px] bg-[#1a1a1a] hover:bg-[#5865f2] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#5865f2] hover:text-white"
+              title="Join a Server"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Discover Servers Button */}
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={() => setDiscoverOpen(true)}
+              className="w-12 h-12 rounded-[24px] bg-[#1a1a1a] hover:bg-[#f3c178] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#f3c178] hover:text-[#0b0500]"
+              title="Discover Servers"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Fixed User Panel at Bottom */}
+        <div className="relative pb-4 flex-shrink-0 w-full flex justify-center border-t border-[#1a1a1a] pt-4" ref={userMenuRef}>
+          <button
+            type="button"
+            onClick={() => setUserMenuOpen(!userMenuOpen)}
+            className="w-12 h-12 mx-auto flex items-center justify-center rounded-full overflow-hidden relative hover:rounded-[16px] transition-all"
+          >
+            <UserAvatar
+              username={currentUser?.username || 'User'}
+              avatar={currentUser?.avatar}
+              size="lg"
+              status={myStatus}
+              showStatus
+            />
+          </button>
+
+          {userMenuOpen && (
+            <div className="fixed bottom-20 left-20 w-64 rounded-lg bg-[#111214] shadow-2xl z-[100] overflow-hidden">
+              <div 
+                className="h-16 relative bg-[#5865f2]"
+                style={currentUser?.banner ? {
+                  backgroundImage: `url(${currentUser.banner})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                } : {}}
+              >
+                <div className="absolute -bottom-6 left-4 border-[6px] border-[#1a1a1a] rounded-full">
+                  <UserAvatar
+                    username={currentUser?.username || 'User'}
+                    avatar={currentUser?.avatar}
+                    size="lg"
+                    status={myStatus}
+                    showStatus
+                  />
                 </div>
-              )}
+              </div>
+              <div className="px-4 pt-10 pb-4">
+                <div className="mb-4">
+                  <div className="text-white font-bold text-lg">{currentUser?.username}</div>
+                  <div className="text-[#808080] text-sm">
+                    {currentUser?.username}#{currentUser?.discriminator || '0001'}
+                  </div>
+                </div>
+
+                <div className="space-y-1 mb-2">
+                  <div className="text-[#5865f2] text-xs font-bold uppercase mb-2">Set Status</div>
+                  {(['online', 'idle', 'dnd', 'offline'] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        changeStatus(s)
+                        setUserMenuOpen(false)
+                      }}
+                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm ${myStatus === s
+                        ? 'bg-[#2a2a2a] text-white'
+                        : 'text-[#b4b4b4] hover:bg-[#202020] hover:text-white'
+                        }`}
+                    >
+                      <StatusBadge status={s} />
+                      <span className="capitalize">
+                        {s === 'dnd' ? 'Do Not Disturb' : s === 'offline' ? 'Invisible' : s}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="border-t border-[#2a2a2a] pt-2 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openProfileModal()
+                      setUserMenuOpen(false)
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-[#b4b4b4] hover:bg-[#202020] hover:text-white transition-colors"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                    <span className="font-medium">Edit Profile</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await apiPost('/auth/logout')
+                        router.push('/')
+                      } catch (err) {
+                        console.error('Logout failed:', err)
+                      }
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white transition-colors"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
+                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                    </svg>
+                    <span className="font-medium">Log Out</span>
+                  </button>
+                </div>
+              </div>
             </div>
-          ))
-        )}
-
-        {/* Add Server Button */}
-        <div className="relative group">
-          <button
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            className="w-12 h-12 rounded-[24px] bg-[#1a1a1a] hover:bg-[#3ba55d] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#3ba55d] hover:text-white text-2xl font-normal group"
-            title="Add a Server"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Join Server Button */}
-        <div className="relative group">
-          <button
-            type="button"
-            onClick={() => setJoinOpen(true)}
-            className="w-12 h-12 rounded-[24px] bg-[#1a1a1a] hover:bg-[#5865f2] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#5865f2] hover:text-white"
-            title="Join a Server"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Discover Servers Button */}
-        <div className="relative group">
-          <button
-            type="button"
-            onClick={() => setDiscoverOpen(true)}
-            className="w-12 h-12 rounded-[24px] bg-[#1a1a1a] hover:bg-[#f3c178] group-hover:rounded-[16px] transition-all duration-200 flex items-center justify-center text-[#f3c178] hover:text-[#0b0500]"
-            title="Discover Servers"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" className="fill-current">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
-          </button>
+          )}
         </div>
       </div>
 
@@ -839,148 +964,6 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
             </div>
           </div>
         )}
-
-        {/* User Panel */}
-        <div className="h-[52px] bg-[#232428] px-2 flex items-center gap-1 flex-shrink-0" ref={userMenuRef}>
-          <div
-            className="flex items-center gap-2 hover:bg-[#35373c] rounded px-2 py-1 cursor-pointer transition-colors min-w-0 flex-1"
-            onClick={() => setUserMenuOpen(!userMenuOpen)}
-          >
-            <UserAvatar
-              username={currentUser?.username || 'User'}
-              avatar={currentUser?.avatar}
-              size="sm"
-              status={myStatus}
-              showStatus
-            />
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-[#f2f3f5] truncate leading-tight">
-                {currentUser?.username || 'Loading...'}
-              </div>
-              <div className="text-xs text-[#949ba4] truncate leading-tight">
-                {myStatus === 'online' ? 'Online' : myStatus === 'idle' ? 'Idle' : myStatus === 'dnd' ? 'Do Not Disturb' : 'Invisible'}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <button className="w-8 h-8 rounded hover:bg-[#35373c] flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
-              <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
-                <path d="M14.99 11C14.99 12.66 13.66 14 12 14C10.34 14 9 12.66 9 11V5C9 3.34 10.34 2 12 2C13.66 2 15 3.34 15 5L14.99 11ZM12 16.1C14.76 16.1 17.3 14 17.3 11H19C19 14.42 16.28 17.17 13 17.65V21H11V17.65C7.72 17.17 5 14.42 5 11H6.7C6.7 14 9.24 16.1 12 16.1Z" />
-              </svg>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Mute
-              </div>
-            </button>
-            <button className="w-8 h-8 rounded hover:bg-[#35373c] flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group">
-              <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
-                <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10V14C8 16.21 9.79 18 12 18C14.21 18 16 16.21 16 14V10C16 7.79 14.21 6 12 6Z" />
-              </svg>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                Deafen
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="w-8 h-8 rounded hover:bg-[#35373c] flex items-center justify-center text-[#b5bac1] hover:text-[#dbdee1] transition-colors relative group"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
-                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z" />
-              </svg>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-xs text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                User Settings
-              </div>
-            </button>
-          </div>
-
-          {userMenuOpen && (
-            <div className="absolute bottom-16 left-2 w-64 rounded-lg bg-[#111214] shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div 
-                className="h-16 relative bg-[#5865f2]"
-                style={currentUser?.banner ? {
-                  backgroundImage: `url(${currentUser.banner})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                } : {}}
-              >
-                <div className="absolute -bottom-6 left-4 border-[6px] border-[#1a1a1a] rounded-full">
-                  <UserAvatar
-                    username={currentUser?.username || 'User'}
-                    avatar={currentUser?.avatar}
-                    size="lg"
-                    status={myStatus}
-                    showStatus
-                  />
-                </div>
-              </div>
-              <div className="px-4 pt-10 pb-4">
-                <div className="mb-4">
-                  <div className="text-white font-bold text-lg">{currentUser?.username}</div>
-                  <div className="text-[#808080] text-sm">
-                    {currentUser?.username}#{currentUser?.discriminator || '0001'}
-                  </div>
-                </div>
-
-                <div className="space-y-1 mb-2">
-                  <div className="text-[#5865f2] text-xs font-bold uppercase mb-2">Set Status</div>
-                  {(['online', 'idle', 'dnd', 'offline'] as const).map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => {
-                        changeStatus(s)
-                        setUserMenuOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm ${myStatus === s
-                        ? 'bg-[#2a2a2a] text-white'
-                        : 'text-[#b4b4b4] hover:bg-[#202020] hover:text-white'
-                        }`}
-                    >
-                      <StatusBadge status={s} />
-                      <span className="capitalize">
-                        {s === 'dnd' ? 'Do Not Disturb' : s === 'offline' ? 'Invisible' : s}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="border-t border-[#2a2a2a] pt-2 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      openProfileModal()
-                      setUserMenuOpen(false)
-                    }}
-                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-[#b4b4b4] hover:bg-[#202020] hover:text-white transition-colors"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                    <span className="font-medium">Edit Profile</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await apiPost('/auth/logout')
-                        router.push('/')
-                      } catch (err) {
-                        console.error('Logout failed:', err)
-                      }
-                    }}
-                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm text-[#DA373C] hover:bg-[#DA373C] hover:text-white transition-colors"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" className="fill-current">
-                      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
-                    </svg>
-                    <span className="font-medium">Log Out</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Main Content Area */}

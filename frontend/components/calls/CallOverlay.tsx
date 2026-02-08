@@ -51,11 +51,11 @@ export default function CallOverlay() {
               const audioPath = `/sounds/${type}-call.${ext}`
               audio.src = audioPath
               
-              // Wait for audio to be ready
+              // Wait for audio to be ready with shorter timeout
               await new Promise<void>((resolve, reject) => {
                 const timeout = setTimeout(() => {
                   reject(new Error('Audio load timeout'))
-                }, 5000)
+                }, 1000) // Reduced to 1 second
                 
                 const onCanPlay = () => {
                   clearTimeout(timeout)
@@ -92,17 +92,22 @@ export default function CallOverlay() {
           return false
         }
 
-        // Load both audio files
-        await Promise.all([
+        // Load both audio files (don't await - let it happen in background)
+        Promise.all([
           tryLoadAudio(outgoingAudio, 'outgoing'),
           tryLoadAudio(incomingAudio, 'incoming')
-        ])
+        ]).then(() => {
+          setAudioInitialized(true)
+        }).catch(() => {
+          // Even if audio fails, mark as initialized so UI isn't blocked
+          setAudioInitialized(true)
+        })
 
         outgoingRingtoneRef.current = outgoingAudio
         incomingRingtoneRef.current = incomingAudio
-        setAudioInitialized(true)
       } catch (error) {
-        // Silent fail
+        // Silent fail - still set initialized to true so UI isn't blocked
+        setAudioInitialized(true)
       }
     }
 

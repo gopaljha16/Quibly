@@ -48,20 +48,24 @@ export default function UserProfileViewModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[95vh] bg-[#313338] border-none text-white p-0 overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#3f4147] bg-[#313338]">
-          <h2 className="text-xl font-bold">User Profile</h2>
+      <DialogContent 
+        className="max-w-[90vw] w-[90vw] max-h-[95vh] bg-[#313338] border border-[#1e1f22] text-white p-0 overflow-hidden rounded-xl shadow-2xl"
+        showCloseButton={false}
+      >
+        {/* Header with gradient */}
+        <div className="relative flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#2b2d31] to-[#1e1f22] border-b border-[#3f4147]">
+          <h2 className="text-xl font-bold text-white tracking-tight">User Profile</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-all duration-200 p-2 rounded-lg hover:bg-[#3f4147] hover:rotate-90"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(95vh-80px)] p-6">
+        {/* Content with custom scrollbar */}
+        <div className="overflow-y-auto max-h-[calc(90vh-72px)] bg-[#313338] scrollbar-thin scrollbar-thumb-[#1e1f22] scrollbar-track-transparent">
           <UserProfileView 
             user={user}
             isOwnProfile={true}

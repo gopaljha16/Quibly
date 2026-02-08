@@ -3,12 +3,13 @@
 import { QueryClient } from '@tanstack/react-query'
 import { Socket } from 'socket.io-client'
 import { Message } from '@/hooks/queries'
+import { useNotificationStore } from '@/lib/store/notificationStore'
 
 /**
  * Syncs socket events with TanStack Query cache
  * Call this once when socket connects
  */
-export function setupSocketQuerySync(socket: Socket, queryClient: QueryClient) {
+export function setupSocketQuerySync(socket: Socket, queryClient: QueryClient, currentUserId?: string, currentUsername?: string) {
   // Handle new messages
   socket.on('receive_message', (incoming: any) => {
     console.log('FRONTEND: receive_message event received:', incoming)
@@ -35,6 +36,32 @@ export function setupSocketQuerySync(socket: Socket, queryClient: QueryClient) {
       // Add new message
       return [...old, msg]
     })
+
+    // Handle notifications
+    if (currentUserId && msg.senderId !== currentUserId) {
+      const store = useNotificationStore.getState()
+      const serverId = msg.serverId || undefined
+      
+      // Check if message mentions current user
+      const isMention = currentUsername && store.checkMention(msg.content, currentUsername, channelId)
+      
+      if (isMention) {
+        // Increment mention count
+        store.incrementMention(channelId, serverId)
+        
+        // Show browser notification for mentions
+        const senderName = typeof msg.senderId === 'object' ? msg.senderId.username : 'Someone'
+        const senderAvatar = typeof msg.senderId === 'object' ? msg.senderId.avatar ?? undefined : undefined
+        store.showBrowserNotification(
+          `${senderName} mentioned you`,
+          msg.content.substring(0, 100),
+          senderAvatar
+        )
+      } else {
+        // Increment unread count
+        store.incrementUnread(channelId, serverId)
+      }
+    }
   })
   
   // Handle message deletion
