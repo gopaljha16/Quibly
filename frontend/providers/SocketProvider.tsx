@@ -60,7 +60,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setRenderKey(k => k + 1) // Force re-render
       
       // Setup query sync
-      cleanupRef.current = setupSocketQuerySync(newSocket, queryClient)
+      cleanupRef.current = setupSocketQuerySync(newSocket, queryClient, currentUser?._id, currentUser?.username)
     }
 
     const handleDisconnect = () => {

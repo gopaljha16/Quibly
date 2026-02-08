@@ -35,6 +35,7 @@ export interface Member {
 export interface Message {
     _id: string
     channelId: string
+    serverId?: string
     senderId: string | { username: string; avatar?: string }
     content: string
     createdAt: string

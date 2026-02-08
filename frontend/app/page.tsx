@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Download, Monitor, MessageSquare, Video, Shield, Zap, Radio, 
   ChevronRight, Globe, Lock, Cpu, Server, Mic, Headphones, 
@@ -34,7 +35,7 @@ const QuiblyApex = () => {
       <nav className={`fixed top-0 w-full z-[100] transition-all duration-500 ${scrollY > 20 ? 'py-4 bg-black/60 backdrop-blur-2xl border-b border-white/5' : 'py-8 bg-transparent'}`}>
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer">
-            <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">Q</div>
+            <Image src="/logo.png" alt="Quibly Logo" width={40} height={40} className="rounded-lg" />
             <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Quibly</span>
           </div>
           

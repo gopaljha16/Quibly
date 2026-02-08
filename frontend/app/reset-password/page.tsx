@@ -3,6 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Lock, Eye, EyeOff, Sparkles, LogIn, ArrowLeft, Shield, Check, Loader2
 } from 'lucide-react'
@@ -80,7 +81,7 @@ function ResetPasswordContent() {
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 py-6 px-10 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 cursor-pointer group">
-          <div className="w-10 h-10 bg-white text-black rounded-lg flex items-center justify-center font-black">Q</div>
+          <Image src="/logo.png" alt="Quibly Logo" width={40} height={40} className="rounded-lg" />
           <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Quibly</span>
         </Link>
         <Link href="/login" className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-all group">
