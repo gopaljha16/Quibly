@@ -68,9 +68,28 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setIsConnected(false)
       setRenderKey(k => k + 1) // Force re-render
     }
+    
+    // Global handler for voice:force-move (always listening)
+    const handleVoiceForceMove = (data: any) => {
+      console.log('🎯 [SocketProvider] Received voice:force-move event:', data);
+      
+      // Store in sessionStorage for any component to pick up
+      if (data.userId && data.targetChannelId) {
+        sessionStorage.setItem('voiceMove', JSON.stringify({
+          userId: data.userId,
+          targetChannelId: data.targetChannelId,
+          targetChannelName: data.targetChannelName,
+          serverId: data.serverId,
+          movedBy: data.movedBy,
+          timestamp: Date.now()
+        }));
+        console.log('💾 [SocketProvider] Stored voice move in sessionStorage');
+      }
+    };
 
     newSocket.on('connect', handleConnect)
     newSocket.on('disconnect', handleDisconnect)
+    newSocket.on('voice:force-move', handleVoiceForceMove)
 
     // Check if already connected
     if (newSocket.connected) {
@@ -84,6 +103,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     return () => {
       newSocket.off('connect', handleConnect)
       newSocket.off('disconnect', handleDisconnect)
+      newSocket.off('voice:force-move', handleVoiceForceMove)
       
       // Cleanup query sync
       if (cleanupRef.current) {

@@ -254,6 +254,16 @@ const redisWrapper = {
         }
     },
 
+    async sismember(key, member) {
+        if (!client || !isConnected) return false;
+        try {
+            return await client.sIsMember(key, member);
+        } catch (error) {
+            console.error('Redis SISMEMBER error:', error);
+            return false;
+        }
+    },
+
     async hset(key, field, value) {
         if (!client || !isConnected) return null;
         try {

@@ -25,4 +25,7 @@ router.get('/participants/:channelId', authenticate, voiceController.getVoicePar
 router.post('/track-join/:channelId', authenticate, voiceController.trackVoiceJoin);
 router.post('/track-leave', authenticate, voiceController.trackVoiceLeave);
 
+// Move user to voice channel (moderator/owner only)
+router.post('/move-user', authenticate, voiceController.moveUserToVoiceChannel);
+
 module.exports = router;

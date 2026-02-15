@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Volume2, Mic, MicOff, Headphones, Video } from 'lucide-react';
+import { Volume2, Mic, MicOff, Headphones, Video, Move } from 'lucide-react';
 import { useSocket } from '@/providers/SocketProvider';
+import { apiPost } from '@/lib/api';
 
 interface VoiceParticipant {
   userId: string;
@@ -30,6 +31,7 @@ interface VoiceChannelItemProps {
   onSelect: () => void;
   onSettings?: () => void;
   serverId: string;
+  canManageChannels?: boolean; // Permission to move members
 }
 
 export function VoiceChannelItem({
@@ -38,9 +40,11 @@ export function VoiceChannelItem({
   onSelect,
   onSettings,
   serverId,
+  canManageChannels = false,
 }: VoiceChannelItemProps) {
   const [participants, setParticipants] = useState<VoiceParticipant[]>([]);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isDragOver, setIsDragOver] = useState(false);
   const { socket } = useSocket();
 
   // Listen for voice channel updates
@@ -53,29 +57,49 @@ export function VoiceChannelItem({
         setParticipants(data.participants || []);
       }
     };
+    
+    const handleParticipantsUpdate = (data: any) => {
+      if (data.channelId === channel._id) {
+        console.log('🔄 Global participants update for channel:', channel.name, data.participants.length);
+        setParticipants(data.participants || []);
+      }
+    };
 
     const handleUserJoined = (data: any) => {
       if (data.channelId === channel._id) {
-        console.log('User joined voice channel:', data.participant);
-        setParticipants((prev) => {
-          // Check if user already exists
-          if (prev.some((p) => p.userId === data.userId)) {
-            return prev;
-          }
-          return [...prev, data.participant];
-        });
+        console.log('👋 User joined voice channel:', channel.name, data.participant);
+        console.log('Current participants before join:', participants.length);
+        
+        // Always use the participants array from the server if provided
+        if (data.participants) {
+          console.log('Setting participants from server:', data.participants.length);
+          setParticipants(data.participants);
+        } else {
+          // Fallback: add the user if not already present
+          setParticipants((prev) => {
+            if (prev.some((p) => p.userId === data.userId)) {
+              console.log('User already in list, skipping');
+              return prev;
+            }
+            console.log('Adding user to list');
+            return [...prev, data.participant];
+          });
+        }
       }
     };
 
     const handleUserLeft = (data: any) => {
       if (data.channelId === channel._id) {
-        console.log('👋 User left voice channel:', data.userId);
+        console.log('👋 User left voice channel:', channel.name, 'userId:', data.userId);
+        console.log('Current participants before leave:', participants.length);
         
         // Always use the participants array from the server if provided
         if (data.participants) {
+          console.log('Setting participants from server:', data.participants.length);
           setParticipants(data.participants);
         } else {
           // Fallback: filter out the user who left
+          console.log('Filtering out user from list');
           setParticipants((prev) =>
             prev.filter((p) => p.userId !== data.userId)
           );
@@ -101,12 +125,14 @@ export function VoiceChannelItem({
     }
 
     socket.on('voice:participants', handleVoiceUpdate);
+    socket.on('voice:participants-update', handleParticipantsUpdate);
     socket.on('voice:user-joined', handleUserJoined);
     socket.on('voice:user-left', handleUserLeft);
     socket.on('voice:state-changed', handleStateChanged);
 
     return () => {
       socket.off('voice:participants', handleVoiceUpdate);
+      socket.off('voice:participants-update', handleParticipantsUpdate);
       socket.off('voice:user-joined', handleUserJoined);
       socket.off('voice:user-left', handleUserLeft);
       socket.off('voice:state-changed', handleStateChanged);
@@ -115,16 +141,80 @@ export function VoiceChannelItem({
 
   const hasParticipants = participants.length > 0;
 
+  // Handle drag over
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!canManageChannels) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  // Handle drop - move user to this channel
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    if (!canManageChannels) {
+      console.error('❌ You do not have permission to move members');
+      alert('You do not have permission to move members');
+      return;
+    }
+
+    try {
+      const dragData = e.dataTransfer.getData('application/json');
+      if (!dragData) {
+        console.error('❌ No drag data found');
+        return;
+      }
+
+      const { userId, username, fromChannelId } = JSON.parse(dragData);
+
+      if (fromChannelId === channel._id) {
+        console.log('ℹ️ User is already in this channel, ignoring');
+        return;
+      }
+
+      console.log(`🔄 Moving ${username} from ${fromChannelId} to ${channel.name} (${channel._id})`);
+
+      const response = await apiPost('/voice/move-user', {
+        targetUserId: userId,
+        targetChannelId: channel._id,
+      });
+
+      console.log(`✅ Successfully moved ${username} to ${channel.name}`, response);
+      
+      // Show success message
+      alert(`✅ Moved ${username} to ${channel.name}`);
+    } catch (error: any) {
+      console.error('❌ Failed to move user:', error);
+      const errorMessage = error.response?.data?.error || 'Failed to move user';
+      const errorDetails = error.response?.data?.details || '';
+      alert(`❌ ${errorMessage}${errorDetails ? '\n' + errorDetails : ''}`);
+    }
+  };
+
   return (
     <div className="mb-[2px]">
       {/* Voice Channel Header */}
       <div
-        className={`group relative w-full text-left px-2 py-[6px] rounded-[4px] text-[15px] flex items-center gap-1.5 cursor-pointer ${
+        className={`group relative w-full text-left px-2 py-[6px] rounded-[4px] text-[15px] flex items-center gap-1.5 cursor-pointer transition-colors ${
           isSelected
             ? 'bg-[#404249] text-white font-medium'
+            : isDragOver
+            ? 'bg-[#5865f2]/20 border-2 border-[#5865f2] text-white'
             : 'hover:bg-[#35373c] text-[#949ba4] hover:text-[#dbdee1]'
         }`}
         onClick={onSelect}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <div className="relative flex-shrink-0">
           <Volume2 className="w-5 h-5 opacity-60" />
@@ -171,6 +261,8 @@ export function VoiceChannelItem({
             <VoiceParticipantRow
               key={participant.userId}
               participant={participant}
+              channelId={channel._id}
+              canDrag={canManageChannels}
             />
           ))}
         </div>
@@ -179,9 +271,52 @@ export function VoiceChannelItem({
   );
 }
 
-function VoiceParticipantRow({ participant }: { participant: VoiceParticipant }) {
+interface VoiceParticipantRowProps {
+  participant: VoiceParticipant;
+  channelId: string;
+  canDrag: boolean;
+}
+
+function VoiceParticipantRow({ participant, channelId, canDrag }: VoiceParticipantRowProps) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!canDrag) {
+      e.preventDefault();
+      return;
+    }
+
+    setIsDragging(true);
+    const dragData = {
+      userId: participant.userId,
+      username: participant.username,
+      fromChannelId: channelId,
+    };
+    e.dataTransfer.setData('application/json', JSON.stringify(dragData));
+    e.dataTransfer.effectAllowed = 'move';
+    
+    console.log(`🎯 Started dragging ${participant.username} from channel ${channelId}`);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    console.log(`✋ Stopped dragging ${participant.username}`);
+  };
+
   return (
-    <div className="group flex items-center gap-2 px-2 py-1 rounded hover:bg-[#35373c] transition-colors">
+    <div
+      className={`group flex items-center gap-2 px-2 py-1 rounded transition-all ${
+        isDragging ? 'opacity-50 scale-95' : ''
+      } ${
+        canDrag 
+          ? 'cursor-move hover:bg-[#35373c] hover:ring-1 hover:ring-[#5865f2]/30' 
+          : 'hover:bg-[#35373c]'
+      }`}
+      draggable={canDrag}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      title={canDrag ? `Drag ${participant.username} to move to another voice channel` : ''}
+    >
       {/* Avatar */}
       <div className="relative flex-shrink-0">
         <div className="w-6 h-6 rounded-full bg-[#5865f2] flex items-center justify-center text-white text-xs font-semibold overflow-hidden">
@@ -218,6 +353,11 @@ function VoiceParticipantRow({ participant }: { participant: VoiceParticipant })
 
       {/* Status Icons */}
       <div className="flex items-center gap-1 flex-shrink-0">
+        {/* Drag handle for moderators */}
+        {canDrag && (
+          <Move className="w-3.5 h-3.5 text-[#949ba4] opacity-0 group-hover:opacity-100 transition-opacity" />
+        )}
+
         {/* LIVE indicator for streaming */}
         {participant.streaming && (
           <div className="bg-[#ed4245] text-white text-[9px] font-bold px-1.5 py-0.5 rounded">

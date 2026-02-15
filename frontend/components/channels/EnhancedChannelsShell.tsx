@@ -212,6 +212,64 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   const { data: membersData } = useMembers(selectedServer?._id || null)
   const { data: rolesData = [] } = useRoles(selectedServer?._id || null)
   
+  // Calculate user permissions object
+  const userPermissions = useMemo(() => {
+    if (!selectedServer || !currentUser) {
+      return {
+        canManageChannels: false,
+        canManageServer: false,
+        canMoveMembers: false,
+      }
+    }
+    
+    const isOwner = selectedServer.ownerId === currentUser._id
+    if (isOwner) {
+      return {
+        canManageChannels: true,
+        canManageServer: true,
+        canMoveMembers: true,
+      }
+    }
+    
+    // Find current user's member data
+    const currentMember = membersData?.members?.find((m: any) => 
+      m.userId._id === currentUser._id || m.user._id === currentUser._id
+    )
+    
+    if (!currentMember) {
+      return {
+        canManageChannels: false,
+        canManageServer: false,
+        canMoveMembers: false,
+      }
+    }
+    
+    // Calculate user permissions bitfield
+    const permissionsBitfield = calculateUserPermissions(
+      rolesData,
+      currentMember.roleIds || [],
+      isOwner
+    )
+    
+    const PERMISSIONS = {
+      MANAGE_CHANNELS: 1 << 1,
+      MANAGE_SERVER: 1 << 2,
+      MOVE_MEMBERS: 1 << 23,
+      ADMINISTRATOR: 1 << 24,
+    }
+    
+    const hasPermission = (perm: number) => {
+      return (permissionsBitfield & PERMISSIONS.ADMINISTRATOR) === PERMISSIONS.ADMINISTRATOR ||
+             (permissionsBitfield & perm) === perm
+    }
+    
+    return {
+      canManageChannels: hasPermission(PERMISSIONS.MANAGE_CHANNELS),
+      canManageServer: hasPermission(PERMISSIONS.MANAGE_SERVER),
+      canMoveMembers: hasPermission(PERMISSIONS.MOVE_MEMBERS),
+    }
+  }, [selectedServer, currentUser, membersData, rolesData])
+  
   // Calculate if current user can access server settings
   const canAccessSettings = useMemo(() => {
     if (!selectedServer || !currentUser) return false
@@ -227,13 +285,13 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     if (!currentMember) return false
     
     // Calculate user permissions
-    const userPermissions = calculateUserPermissions(
+    const permissionsBitfield = calculateUserPermissions(
       rolesData,
       currentMember.roleIds || [],
       isOwner
     )
     
-    return canAccessServerSettings(userPermissions, isOwner)
+    return canAccessServerSettings(permissionsBitfield, isOwner)
   }, [selectedServer, currentUser, membersData, rolesData])
   
   // If profile fails to load, redirect to login ONCE
@@ -919,6 +977,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     setChannelMenuOpenId((prev) => (prev === c._id ? null : c._id));
                   }}
                   serverId={route.serverId || ''}
+                  canManageChannels={userPermissions.canManageChannels || userPermissions.canManageServer}
                 />
               ))}
 

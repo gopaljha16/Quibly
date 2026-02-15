@@ -245,3 +245,159 @@ exports.trackVoiceLeave = async (req, res) => {
     res.status(500).json({ success: false });
   }
 };
+
+// Move user to another voice channel (moderator/owner only)
+exports.moveUserToVoiceChannel = async (req, res) => {
+  try {
+    const { targetUserId, targetChannelId } = req.body;
+    const moderatorId = req.user.id;
+
+    console.log('🔄 Voice move requested:', { targetUserId, targetChannelId, moderatorId });
+
+    // Verify target channel exists and is a voice channel
+    const targetChannel = await prisma.channel.findUnique({
+      where: { id: targetChannelId },
+      include: {
+        server: {
+          include: {
+            members: {
+              where: { userId: moderatorId }
+            },
+            roles: true
+          }
+        }
+      }
+    });
+
+    if (!targetChannel) {
+      console.log('❌ Target channel not found');
+      return res.status(404).json({ error: 'Target channel not found' });
+    }
+
+    if (targetChannel.type !== 'VOICE') {
+      console.log('❌ Target channel is not a voice channel');
+      return res.status(400).json({ error: 'Target channel is not a voice channel' });
+    }
+
+    // Check if moderator has permission (owner or moderator role)
+    const moderatorMember = targetChannel.server.members[0];
+    if (!moderatorMember) {
+      console.log('❌ Moderator is not a member of this server');
+      return res.status(403).json({ error: 'You are not a member of this server' });
+    }
+
+    const isOwner = targetChannel.server.ownerId === moderatorId;
+    const MOVE_MEMBERS = 1 << 23; // 8388608
+    const ADMINISTRATOR = 1 << 24; // 16777216
+    
+    // Get moderator's highest role permissions
+    let rolePermissions = 0;
+    if (moderatorMember.roleIds && moderatorMember.roleIds.length > 0) {
+      const memberRoles = targetChannel.server.roles.filter(r => 
+        moderatorMember.roleIds.includes(r.id)
+      );
+      // Combine all role permissions with OR
+      rolePermissions = memberRoles.reduce((acc, role) => acc | role.permissions, 0);
+    }
+    
+    const hasPermission = isOwner || 
+                         (rolePermissions & ADMINISTRATOR) === ADMINISTRATOR ||
+                         (rolePermissions & MOVE_MEMBERS) === MOVE_MEMBERS;
+
+    if (!hasPermission) {
+      console.log('❌ Moderator does not have permission');
+      return res.status(403).json({ error: 'You do not have permission to move members' });
+    }
+
+    console.log('✅ Permission check passed');
+
+    // Verify target user is a member of the server
+    const targetMember = await prisma.serverMember.findFirst({
+      where: {
+        userId: targetUserId,
+        serverId: targetChannel.serverId
+      },
+      include: { user: true }
+    });
+
+    if (!targetMember) {
+      console.log('❌ Target user is not a member of this server');
+      return res.status(404).json({ error: 'Target user is not a member of this server' });
+    }
+
+    console.log('✅ Target user is a server member:', targetMember.user.username);
+
+    // Get socket.io instance to emit the move event
+    const io = global.io;
+    if (!io) {
+      console.error('❌ Socket.io instance not found');
+      return res.status(500).json({ 
+        error: 'Voice service unavailable',
+        details: 'Socket.io not initialized'
+      });
+    }
+
+    console.log('✅ Emitting voice:force-move event');
+    
+    // Find the target user's socket(s) and emit directly to them
+    const sockets = await io.fetchSockets();
+    let targetSocketFound = false;
+    
+    console.log(`🔍 Searching for target user ${targetUserId} among ${sockets.length} connected sockets`);
+    
+    for (const socket of sockets) {
+      const socketUserId = socket.userId || socket.user?.id || socket.data?.userId;
+      console.log(`  Checking socket: ${socket.id}, userId: ${socketUserId}`);
+      
+      // Check if this socket belongs to the target user
+      if (socketUserId === targetUserId) {
+        console.log('🎯 Found target user socket, emitting directly to socket:', socket.id);
+        socket.emit('voice:force-move', {
+          userId: targetUserId,
+          targetChannelId,
+          targetChannelName: targetChannel.name,
+          serverId: targetChannel.serverId,
+          movedBy: {
+            id: moderatorId,
+            username: req.user.username
+          }
+        });
+        targetSocketFound = true;
+      }
+    }
+    
+    if (!targetSocketFound) {
+      console.log('⚠️ Target user socket not found - user may be offline');
+      console.log('💡 User will be moved when they next connect to voice');
+      
+      // Still broadcast globally in case they connect soon
+      io.emit('voice:force-move', {
+        userId: targetUserId,
+        targetChannelId,
+        targetChannelName: targetChannel.name,
+        serverId: targetChannel.serverId,
+        movedBy: {
+          id: moderatorId,
+          username: req.user.username
+        }
+      });
+    }
+
+    console.log('📡 Successfully emitted voice:force-move event', { targetSocketFound });
+
+    res.json({ 
+      success: true,
+      message: `${targetSocketFound ? 'Moving' : 'Will move'} ${targetMember.user.username} to ${targetChannel.name}${targetSocketFound ? '' : ' when they connect'}`,
+      toChannelId: targetChannelId,
+      userOnline: targetSocketFound
+    });
+  } catch (error) {
+    console.error('❌ Error moving user to voice channel:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Failed to move user', 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};

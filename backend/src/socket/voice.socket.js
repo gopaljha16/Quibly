@@ -4,8 +4,42 @@ module.exports = (io, socket) => {
   // User joins voice channel
   socket.on('voice:join', async ({ channelId, userId, username, avatar }) => {
     try {
+      console.log(`📥 voice:join event received:`, { channelId, userId, username });
+      
       const participantsKey = `voice:${channelId}:participants`;
       const userDataKey = `voice:${channelId}:user:${userId}`;
+
+      // Check if user is already in this channel
+      const alreadyInChannel = await redis.sismember(participantsKey, userId);
+      if (alreadyInChannel) {
+        console.log(`⚠️ User ${username} already in channel ${channelId}, skipping duplicate join`);
+        
+        // Still send current participants to the socket
+        const participants = await redis.smembers(participantsKey);
+        const participantData = await Promise.all(
+          participants.map(async (id) => {
+            const data = await redis.hgetall(`voice:${channelId}:user:${id}`);
+            if (!data || !data.userId) return null;
+            return {
+              userId: data.userId,
+              username: data.username,
+              avatar: data.avatar,
+              muted: data.muted === 'true',
+              deafened: data.deafened === 'true',
+              video: data.video === 'true',
+              streaming: data.streaming === 'true',
+            };
+          })
+        );
+        const validParticipants = participantData.filter(p => p !== null);
+        
+        socket.emit('voice:participants', {
+          channelId,
+          participants: validParticipants,
+        });
+        
+        return;
+      }
 
       // Add user to participants set
       await redis.sadd(participantsKey, userId);
@@ -27,6 +61,7 @@ module.exports = (io, socket) => {
 
       // Join socket room
       socket.join(`voice:${channelId}`);
+      console.log(`✅ User ${username} joined socket room: voice:${channelId}`);
 
       // Get all participants
       const participants = await redis.smembers(participantsKey);
@@ -49,7 +84,12 @@ module.exports = (io, socket) => {
       // Filter out null values
       const validParticipants = participantData.filter(p => p !== null);
 
-      // Notify all users in the channel
+      console.log(`📡 Emitting voice:user-joined to room voice:${channelId}`, {
+        participantCount: validParticipants.length,
+        newUser: username
+      });
+
+      // Notify all users in the channel (using both room and global broadcast)
       io.to(`voice:${channelId}`).emit('voice:user-joined', {
         channelId,
         userId,
@@ -64,8 +104,14 @@ module.exports = (io, socket) => {
         },
         participants: validParticipants,
       });
+      
+      // Also emit globally to ensure all clients get the update
+      io.emit('voice:participants-update', {
+        channelId,
+        participants: validParticipants,
+      });
 
-      console.log(`✅ User ${username} joined voice channel ${channelId}`);
+      console.log(`✅ User ${username} joined voice channel ${channelId} (${validParticipants.length} total participants)`);
     } catch (error) {
       console.error('❌ Error joining voice channel:', error);
       socket.emit('voice:error', { message: 'Failed to join voice channel' });
@@ -162,6 +208,12 @@ module.exports = (io, socket) => {
       socket.emit('voice:user-left', {
         channelId,
         userId,
+        participants: validParticipants,
+      });
+      
+      // Global broadcast to ensure all clients get the update
+      io.emit('voice:participants-update', {
+        channelId,
         participants: validParticipants,
       });
 
@@ -262,6 +314,68 @@ module.exports = (io, socket) => {
       }
     } catch (error) {
       console.error('❌ Error handling voice disconnect:', error);
+    }
+  });
+
+  // Handle force move to another voice channel
+  socket.on('voice:accept-move', async ({ fromChannelId, toChannelId, userId }) => {
+    try {
+      console.log(`🔄 voice:accept-move received:`, { fromChannelId, toChannelId, userId });
+
+      // Leave current channel if specified
+      if (fromChannelId) {
+        const participantsKey = `voice:${fromChannelId}:participants`;
+        const userDataKey = `voice:${fromChannelId}:user:${userId}`;
+
+        // Get user data before removing
+        const userData = await redis.hgetall(userDataKey);
+        const username = userData?.username || 'Unknown';
+
+        console.log(`Removing ${username} from channel ${fromChannelId}`);
+
+        await redis.srem(participantsKey, userId);
+        await redis.del(userDataKey);
+
+        socket.leave(`voice:${fromChannelId}`);
+
+        // Get remaining participants in old channel
+        const remainingParticipants = await redis.smembers(participantsKey);
+        const participantData = await Promise.all(
+          remainingParticipants.map(async (id) => {
+            const data = await redis.hgetall(`voice:${fromChannelId}:user:${id}`);
+            if (!data || !data.userId) return null;
+            return {
+              userId: data.userId,
+              username: data.username,
+              avatar: data.avatar,
+              muted: data.muted === 'true',
+              deafened: data.deafened === 'true',
+              video: data.video === 'true',
+              streaming: data.streaming === 'true',
+            };
+          })
+        );
+
+        const validParticipants = participantData.filter(p => p !== null);
+
+        console.log(`📡 Emitting voice:user-left to room voice:${fromChannelId}`, {
+          remainingCount: validParticipants.length,
+          leftUser: username
+        });
+
+        // Notify everyone in the OLD channel that user left
+        io.to(`voice:${fromChannelId}`).emit('voice:user-left', {
+          channelId: fromChannelId,
+          userId,
+          participants: validParticipants,
+        });
+
+        console.log(`✅ User ${username} (${userId}) left voice channel ${fromChannelId} (${validParticipants.length} remaining)`);
+      }
+
+      console.log(`✅ User ${userId} move accepted, ready to join ${toChannelId}`);
+    } catch (error) {
+      console.error('❌ Error handling voice move:', error);
     }
   });
 };
