@@ -131,8 +131,8 @@ function SignupContent() {
       </nav>
 
       {/* --- MAIN CONTENT GRID --- */}
-      <div className="relative min-h-screen pt-20 md:pt-32 pb-20 px-4 md:px-6">
-        <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+      <div className="relative min-h-screen pt-20 md:pt-32 pb-20 px-4 md:px-6 flex items-center">
+        <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-10 lg:gap-20 items-center w-full">
           
           {/* --- LEFT: SIGNUP FORM --- */}
           <div className="relative z-10 max-w-md mx-auto lg:mx-0 w-full">
