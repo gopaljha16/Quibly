@@ -27,3 +27,8 @@ TEST_INSTRUCTIONS.md
 backend/KAFKA_FIX_SUMMARY.md
 backend/REDIS_CACHING_SUMMARY.md
 ARCHITECTURE_README.md
+
+# Kubernetes secrets - NEVER commit production credentials!
+k8s/secrets.yml
+**/secrets.yml
+backup-secrets.yml
