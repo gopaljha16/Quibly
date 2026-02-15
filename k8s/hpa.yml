@@ -8,8 +8,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: backend
-  minReplicas: 3
-  maxReplicas: 10
+  minReplicas: 2
+  maxReplicas: 4
   metrics:
   - type: Resource
     resource:
@@ -35,7 +35,7 @@ spec:
     kind: Deployment
     name: frontend
   minReplicas: 2
-  maxReplicas: 8
+  maxReplicas: 3
   metrics:
   - type: Resource
     resource:
