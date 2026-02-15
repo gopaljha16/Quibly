@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Docker Hub Configuration
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials')
-        DOCKER_HUB_USERNAME = 'your-dockerhub-username'  // CHANGE THIS to your Docker Hub username
+        DOCKER_HUB_USERNAME = 'gopal161'  // CHANGE THIS to your Docker Hub username
         
         // Docker Image Names
         BACKEND_IMAGE = "${DOCKER_HUB_USERNAME}/quibly-backend"
