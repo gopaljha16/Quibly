@@ -5,6 +5,7 @@ FROM base AS deps
 WORKDIR /app
 
 COPY package.json ./
+# Install ALL dependencies (including devDependencies for build)
 RUN bun install
 
 # Rebuild the source code only when needed
