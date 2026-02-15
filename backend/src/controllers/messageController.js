@@ -653,7 +653,12 @@ exports.getMessages = async (req, res) => {
                     _id: id,
                     ...rest,
                     parent: formattedParent,
-                    senderId: sendersMap[msg.senderId] || msg.senderId
+                    senderId: sendersMap[msg.senderId] || {
+                        _id: msg.senderId,
+                        username: 'Unknown User',
+                        discriminator: '0000',
+                        avatar: null
+                    }
                 };
             }
         });

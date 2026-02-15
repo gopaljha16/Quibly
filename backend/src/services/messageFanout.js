@@ -123,8 +123,12 @@ async function processMessage(messageData) {
             const broadcastData = {
                 _id: messageData.id,
                 content: messageData.content,
-                senderId: messageData.senderId,
-                sender: messageData.sender,
+                senderId: {
+                    _id: messageData.senderId,
+                    username: messageData.sender?.username,
+                    discriminator: messageData.sender?.discriminator,
+                    avatar: messageData.sender?.avatar
+                },
                 createdAt: messageData.createdAt,
                 channelId: messageData.channelId || null,
                 dmRoomId: messageData.dmRoomId || null,

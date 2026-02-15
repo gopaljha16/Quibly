@@ -138,8 +138,12 @@ module.exports = (io, socket) => {
           io.to(channelId).emit("receive_message", {
             _id: messageId,
             content: messageData.content,
-            senderId: userId,
-            sender: sender,
+            senderId: {
+              _id: userId,
+              username: sender.username,
+              discriminator: sender.discriminator,
+              avatar: sender.avatar
+            },
             createdAt: messageData.createdAt,
             channelId: messageData.channelId,
             serverId: messageData.serverId,
@@ -170,8 +174,12 @@ module.exports = (io, socket) => {
       io.to(channelId).emit("receive_message", {
         _id: message.id,
         content: message.content,
-        senderId: userId,
-        sender: sender,
+        senderId: {
+          _id: userId,
+          username: sender.username,
+          discriminator: sender.discriminator,
+          avatar: sender.avatar
+        },
         createdAt: message.createdAt,
         channelId: message.channelId,
         serverId: message.serverId

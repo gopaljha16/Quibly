@@ -184,11 +184,57 @@ require('./socket')(server);
 const { startBatchWriter } = require('./services/batchDBWriter');
 const redis = require('./config/redis');
 
-// Wait a bit for Redis to connect, then start batch writer
+// Wait a bit for Redis to connect, then start batch writer and presence cleanup
 setTimeout(() => {
     if (redis.isConnected()) {
         console.log('Starting batch DB writer service...');
         startBatchWriter(); // Runs every 30 seconds, processes 5 messages per batch
+        
+        // Start presence cleanup job
+        console.log('Starting presence cleanup job...');
+        setInterval(async () => {
+            try {
+                // Get all users marked as online in Redis
+                const onlineUserIds = await redis.getOnlineUsers();
+                
+                if (onlineUserIds.length === 0) return;
+                
+                console.log(`Checking ${onlineUserIds.length} online users for stale connections...`);
+                
+                // Check each user to see if they actually have active connections
+                for (const userId of onlineUserIds) {
+                    const isActuallyOnline = await redis.isUserOnline(userId);
+                    
+                    if (!isActuallyOnline) {
+                        // User is in Redis but has no active connection - clean up
+                        console.log(`Cleaning up stale user: ${userId}`);
+                        
+                        // Update database
+                        await db.user.update({
+                            where: { id: userId },
+                            data: {
+                                status: "offline",
+                                lastSeen: new Date()
+                            }
+                        }).catch(err => console.error(`Error updating user ${userId}:`, err));
+                        
+                        // Remove from Redis
+                        await redis.trackUserOffline(userId);
+                        
+                        // Broadcast offline status
+                        if (global.io) {
+                            global.io.emit("user_status_change", {
+                                userId,
+                                status: "offline",
+                                lastSeen: new Date().toISOString()
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error in presence cleanup job:", error);
+            }
+        }, 30000); // Run every 30 seconds
     } else {
         console.log('Batch writer not started (Redis not connected)');
     }

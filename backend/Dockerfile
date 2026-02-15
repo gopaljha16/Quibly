@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy prisma schema
 COPY prisma ./prisma/
@@ -26,4 +26,4 @@ COPY . .
 EXPOSE 5000
 
 # Start the application
-CMD ["npm", "run", "dev"]
+CMD ["node", "src/index.js"]
