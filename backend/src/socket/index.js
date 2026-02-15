@@ -42,13 +42,30 @@ module.exports = (httpServer) => {
     const subClient = redis.getSubClient();
 
     if (pubClient && subClient) {
-      io.adapter(createAdapter(pubClient, subClient));
-      console.log(`Socket.IO Redis adapter enabled (Server: ${redis.getServerId()})`);
+      const adapter = createAdapter(pubClient, subClient);
+      io.adapter(adapter);
+      console.log(`✅ Socket.IO Redis adapter enabled (Server: ${redis.getServerId()})`);
+      console.log(`   This enables cross-server communication for calls and messages`);
+      
+      // Log adapter events for debugging
+      io.of("/").adapter.on("create-room", (room) => {
+        console.log(`[Redis Adapter] Room created: ${room}`);
+      });
+      
+      io.of("/").adapter.on("join-room", (room, id) => {
+        console.log(`[Redis Adapter] Socket ${id} joined room: ${room}`);
+      });
+      
+      io.of("/").adapter.on("leave-room", (room, id) => {
+        console.log(`[Redis Adapter] Socket ${id} left room: ${room}`);
+      });
     } else {
       console.warn('⚠️  Redis Pub/Sub clients not available - running in single-server mode');
+      console.warn('   Calls between users on different servers will NOT work!');
     }
   } else {
     console.warn('⚠️  Redis not connected - Socket.IO running in single-server mode');
+    console.warn('   Calls between users on different servers will NOT work!');
   }
 
   // expose io so REST controllers can broadcast events
@@ -78,6 +95,8 @@ module.exports = (httpServer) => {
   io.on("connection", (socket) => {
     // Store userId on socket for voice disconnect handling
     socket.userId = socket.user.id;
+    
+    console.log(`[Socket.IO] User ${socket.userId} connected to server ${redis.getServerId()} (socket: ${socket.id})`);
 
     require("./message.socket")(io, socket);
     require("./presence.socket")(io, socket);
@@ -86,7 +105,7 @@ module.exports = (httpServer) => {
     require("./typing.socket")(io, socket);
 
     socket.on("disconnect", () => {
-      // Silent disconnect
+      console.log(`[Socket.IO] User ${socket.userId} disconnected from server ${redis.getServerId()}`);
     });
   });
 

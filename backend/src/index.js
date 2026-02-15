@@ -85,6 +85,11 @@ app.get('/health', async (req, res) => {
 
         // Check Socket.IO
         health.services.socketio = global.io ? true : false;
+        
+        // Add Socket.IO connection count
+        if (global.io) {
+            health.socketConnections = global.io.engine.clientsCount;
+        }
 
         // Check if batch writer is leader
         if (health.services.redis) {
@@ -103,6 +108,35 @@ app.get('/health', async (req, res) => {
             error: error.message,
             timestamp: new Date().toISOString()
         });
+    }
+});
+
+// Debug endpoint to see connected users (only in development)
+app.get('/debug/connections', async (req, res) => {
+    if (process.env.NODE_ENV !== 'development') {
+        return res.status(403).json({ error: 'Only available in development' });
+    }
+    
+    try {
+        const redis = require('./config/redis');
+        const serverId = redis.getServerId();
+        
+        // Get all connected sockets on this server
+        const sockets = await global.io?.fetchSockets() || [];
+        const connectedUsers = sockets.map(s => ({
+            userId: s.userId,
+            socketId: s.id,
+            rooms: Array.from(s.rooms)
+        }));
+        
+        res.json({
+            serverId,
+            connectionCount: sockets.length,
+            connectedUsers,
+            redisConnected: redis.isConnected()
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 });
 
