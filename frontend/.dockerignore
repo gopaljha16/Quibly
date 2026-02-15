@@ -1,40 +1,21 @@
-# Dependencies
 node_modules
-npm-debug.log
-yarn-error.log
-
-# Next.js
 .next
-out
-
-# Environment files
+npm-debug.log
 .env
-.env.local
-.env.*.local
-
-# Git
+.env.*
+!.env.example
 .git
 .gitignore
-
-# IDE
+README.md
+*.md
 .vscode
 .idea
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-logs
-*.log
-
-# Testing
 coverage
 .nyc_output
-
-# Docker
+dist
+build
+*.log
+.DS_Store
+Thumbs.db
 Dockerfile
-docker-compose*.yaml
 .dockerignore

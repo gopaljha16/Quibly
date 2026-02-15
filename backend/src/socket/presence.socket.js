@@ -51,6 +51,17 @@ module.exports = (io, socket) => {
   // User goes offline - DISTRIBUTED VERSION
   const handleUserOffline = async (userId) => {
     try {
+      // Check if user has any other active connections
+      if (redis.isConnected()) {
+        const isStillOnline = await redis.isUserOnline(userId);
+        
+        // If user still has other connections, don't mark as offline
+        if (isStillOnline) {
+          console.log(`User ${userId} still has other active connections`);
+          return;
+        }
+      }
+
       // Check if user exists before updating
       const userExists = await db.user.findUnique({
         where: { id: userId },
@@ -376,6 +387,21 @@ module.exports = (io, socket) => {
           } catch (redisError) {
             console.error("Redis error:", redisError);
           }
+        }
+
+        // Check if user is actually connected (has active socket)
+        const isConnected = redis.isConnected() 
+          ? await redis.isUserOnline(user.id)
+          : false;
+
+        // If user is not connected, mark as offline
+        if (!isConnected && status !== "offline") {
+          status = "offline";
+          // Update database to reflect actual status
+          await db.user.update({
+            where: { id: user.id },
+            data: { status: "offline" }
+          }).catch(err => console.error("Error updating offline status:", err));
         }
 
         onlineUsers.push({
