@@ -119,9 +119,5 @@ pipeline {
             echo 'Check the logs above for errors.'
             echo '========================================='
         }
-        always {
-            echo 'Cleaning workspace...'
-            cleanWs()
-        }
     }
 }
