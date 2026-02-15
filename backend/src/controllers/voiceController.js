@@ -217,26 +217,6 @@ exports.trackVoiceLeave = async (req, res) => {
         where: { id: userId },
         data: { voiceTimeMinutes: { increment: durationMinutes } }
       });
-
-      // Update daily heatmap (weighted activity)
-      await prisma.userDailyActivity.upsert({
-        where: {
-          userId_date: {
-            userId,
-            date: today
-          }
-        },
-        update: {
-          count: { increment: Math.ceil(durationMinutes / 10) }, // 1 activity count per 10 mins
-          voiceMinutes: { increment: durationMinutes }
-        },
-        create: {
-          userId: req.user.id,
-          date: today,
-          count: Math.ceil(durationMinutes / 10),
-          voiceMinutes: durationMinutes
-        }
-      });
     }
 
     res.status(200).json({ success: true });

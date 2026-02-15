@@ -15,7 +15,7 @@ Write-Host ""
 
 $serverCounts = @{}
 
-for ($i = 1; $i -le 10; $i++) {
+for ($i = 1; $i -le 40; $i++) {
     try {
         $response = Invoke-WebRequest -Uri "http://localhost:5000/api/health" -UseBasicParsing -TimeoutSec 5
         

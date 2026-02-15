@@ -365,26 +365,6 @@ exports.createMessage = async (req, res) => {
                         where: { id: req.user.id },
                         data: { messagesSent: { increment: 1 } }
                     });
-
-                    // 2. Update daily activity heatmap
-                    await db.userDailyActivity.upsert({
-                        where: {
-                            userId_date: {
-                                userId: req.user.id,
-                                date: today
-                            }
-                        },
-                        update: {
-                            count: { increment: 1 },
-                            messageCount: { increment: 1 }
-                        },
-                        create: {
-                            userId: req.user.id,
-                            date: today,
-                            count: 1,
-                            messageCount: 1
-                        }
-                    });
                 } catch (activityError) {
                     console.error('⚠️ Failed to track activity metrics (Kafka branch):', activityError);
                 }
@@ -422,26 +402,6 @@ exports.createMessage = async (req, res) => {
             await db.user.update({
                 where: { id: req.user.id },
                 data: { messagesSent: { increment: 1 } }
-            });
-
-            // 2. Update daily activity heatmap
-            await db.userDailyActivity.upsert({
-                where: {
-                    userId_date: {
-                        userId: req.user.id,
-                        date: today
-                    }
-                },
-                update: {
-                    count: { increment: 1 },
-                    messageCount: { increment: 1 }
-                },
-                create: {
-                    userId: req.user.id,
-                    date: today,
-                    count: 1,
-                    messageCount: 1
-                }
             });
         } catch (activityError) {
             console.error('⚠️ Failed to track activity metrics:', activityError);
