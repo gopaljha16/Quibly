@@ -6,8 +6,10 @@ metadata:
 data:
   NODE_ENV: "production"
   PORT: "5000"
-  FRONTEND_URL: "https://quibly.example.com"
-  CORS_ORIGIN: "https://quibly.example.com"
+  SERVER_ID: "k8s-backend"
+  # Using wildcard for testing with IP - Update with domain later
+  FRONTEND_URL: "*"
+  CORS_ORIGIN: "*"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -15,6 +17,11 @@ metadata:
   name: frontend-config
   namespace: quibly
 data:
-  NEXT_PUBLIC_API_URL: "https://api.quibly.example.com"
-  NEXT_PUBLIC_SOCKET_URL: "https://api.quibly.example.com"
+  # Update these with your Node IP after deployment
+  # Format: http://<NODE_IP>:30500/api
+  # Example: http://52.23.45.67:30500/api
+  NEXT_PUBLIC_API_URL: "http://NODE_IP:30500/api"
+  NEXT_PUBLIC_SOCKET_URL: "http://NODE_IP:30500"
+  NEXT_PUBLIC_LIVEKIT_WS_URL: "wss://discord-7uox6c1m.livekit.cloud"
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID: "463308873117-t8fmjs959c1d799d354cdts710tmic3h.apps.googleusercontent.com"
   NODE_ENV: "production"

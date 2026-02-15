@@ -17,7 +17,7 @@ spec:
       - name: dockerhub-secret
       containers:
       - name: frontend
-        image: your-dockerhub-username/quibly-frontend:latest
+        image: gopal161/quibly-frontend:latest
         ports:
         - containerPort: 80
         envFrom:
@@ -56,4 +56,5 @@ spec:
   ports:
   - port: 80
     targetPort: 80
-  type: ClusterIP
+    nodePort: 30080
+  type: NodePort
