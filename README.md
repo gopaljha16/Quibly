@@ -174,34 +174,7 @@ docker-compose down
 docker-compose down -v
 ```
 
-## 📁 Project Structure
 
-```
-quibly/
-├── backend/
-│   ├── src/
-│   │   ├── config/          # Configuration files
-│   │   ├── controllers/     # Route controllers
-│   │   ├── middleware/      # Express middleware
-│   │   ├── routes/          # API routes
-│   │   ├── services/        # Business logic
-│   │   ├── socket/          # Socket.IO handlers
-│   │   └── utils/           # Utility functions
-│   ├── prisma/
-│   │   ├── schema.prisma    # Database schema
-│   │   └── migrations/      # Database migrations
-│   └── docker-compose.yaml  # Infrastructure services
-│
-├── frontend/
-│   ├── app/                 # Next.js app directory
-│   ├── components/          # React components
-│   ├── hooks/               # Custom React hooks
-│   ├── lib/                 # Utility libraries
-│   ├── providers/           # Context providers
-│   └── services/            # API services
-│
-└── nginx.conf               # Load balancer configuration
-```
 
 ## 🔧 Configuration
 
@@ -340,21 +313,10 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 - [Next.js](https://nextjs.org) for the frontend framework
 - [Apache Kafka](https://kafka.apache.org) for event streaming
 
-## 📧 Support & Contact
-
-- 🐛 **Bug Reports:** [Open an issue](https://github.com/yourusername/quibly/issues)
-- 💡 **Feature Requests:** [Submit a request](https://github.com/yourusername/quibly/issues/new)
-- 📧 **Email:** support@quibly.com
-- 💬 **Community:** [Join our server](https://quibly.com/invite)
-- 📖 **Documentation:** [docs.quibly.com](https://docs.quibly.com)
 
 ## 🌟 Star History
 
 If you find Quibly useful, please consider giving it a star ⭐ on GitHub!
-
-## 🔒 Security
-
-For security vulnerabilities, please email security@quibly.com instead of using the issue tracker.
 
 ## 📈 Project Stats
 
