@@ -2,8 +2,6 @@ pipeline {
     agent any
     
     environment {
-        // Docker Hub Configuration
-        DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials')
         DOCKER_HUB_USERNAME = 'gopal161'  // CHANGE THIS to your Docker Hub username
         
         // Docker Image Names
