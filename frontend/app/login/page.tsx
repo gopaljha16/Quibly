@@ -138,8 +138,8 @@ function LoginContent() {
       </nav>
 
       {/* --- MAIN CONTENT GRID --- */}
-      <div className="relative min-h-screen pt-20 md:pt-32 pb-20 px-4 md:px-6">
-        <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-10 lg:gap-20 items-center">
+      <div className="relative min-h-screen pt-20 md:pt-32 pb-20 px-4 md:px-6 flex items-center">
+        <div className="max-w-[1400px] mx-auto grid lg:grid-cols-2 gap-10 lg:gap-20 items-center w-full">
           
           {/* --- LEFT: LOGIN FORM --- */}
           <div className="relative z-10 max-w-md mx-auto lg:mx-0 w-full">
@@ -432,9 +432,12 @@ function AnimatedVisualization() {
   ]
 
   // Pre-calculate positions to avoid hydration mismatch
+  const centerX = 300
+  const centerY = 300
+  const radius = 200
+  
   const positions = features.map((_, index) => {
-    const angle = (index / features.length) * 2 * Math.PI
-    const radius = 200
+    const angle = (index / features.length) * 2 * Math.PI - Math.PI / 2 // Start from top
     return {
       x: Math.round(Math.cos(angle) * radius * 100) / 100,
       y: Math.round(Math.sin(angle) * radius * 100) / 100,
@@ -486,7 +489,7 @@ function AnimatedVisualization() {
       })}
 
       {/* Connection Lines */}
-      <svg className="absolute inset-0 w-full h-full pointer-events-none">
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 600 600">
         {features.map((_, index) => {
           const { x, y } = positions[index]
           const isActive = index === activeIndex
@@ -494,10 +497,10 @@ function AnimatedVisualization() {
           return (
             <line
               key={index}
-              x1="300"
-              y1="300"
-              x2={x + 300}
-              y2={y + 300}
+              x1={centerX}
+              y1={centerY}
+              x2={centerX + x}
+              y2={centerY + y}
               stroke={isActive ? 'rgba(6, 182, 212, 0.3)' : 'rgba(255, 255, 255, 0.05)'}
               strokeWidth={isActive ? '2' : '1'}
               className="transition-all duration-500"
