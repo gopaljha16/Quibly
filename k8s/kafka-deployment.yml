@@ -1,16 +1,3 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kafka-pvc
-  namespace: quibly
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: gp3
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -28,36 +15,36 @@ spec:
     spec:
       containers:
       - name: kafka
-        image: bitnami/kafka:3.6
+        image: confluentinc/cp-kafka:7.6.0
         ports:
         - containerPort: 9092
         env:
-        - name: KAFKA_CFG_NODE_ID
-          value: "0"
-        - name: KAFKA_CFG_PROCESS_ROLES
-          value: "controller,broker"
-        - name: KAFKA_CFG_LISTENERS
+        - name: KAFKA_NODE_ID
+          value: "1"
+        - name: KAFKA_PROCESS_ROLES
+          value: "broker,controller"
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+          value: "1@kafka-service:9093"
+        - name: KAFKA_LISTENERS
           value: "PLAINTEXT://:9092,CONTROLLER://:9093"
-        - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
           value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
-        - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
-          value: "0@kafka-service:9093"
-        - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+        - name: KAFKA_CONTROLLER_LISTENER_NAMES
           value: "CONTROLLER"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://kafka-service:9092"
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "1"
+        - name: CLUSTER_ID
+          value: "MkU3OEVBNTcwNTJENDM2Qk"
         volumeMounts:
         - name: kafka-storage
-          mountPath: /bitnami/kafka
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"
+          mountPath: /var/lib/kafka/data
       volumes:
       - name: kafka-storage
         persistentVolumeClaim:
           claimName: kafka-pvc
+
 ---
 apiVersion: v1
 kind: Service
@@ -68,10 +55,22 @@ spec:
   selector:
     app: kafka
   ports:
-  - name: kafka
-    port: 9092
+  - port: 9092
     targetPort: 9092
-  - name: controller
-    port: 9093
+  - port: 9093
     targetPort: 9093
-  type: ClusterIP
+  type: ClusterIPi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc
+  namespace: quibly
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
