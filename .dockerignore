@@ -3,8 +3,6 @@ npm-debug.log
 .git
 .gitignore
 README.md
-.env
-.env.local
 .DS_Store
 *.log
 .next

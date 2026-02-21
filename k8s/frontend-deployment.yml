@@ -24,7 +24,7 @@ spec:
         - configMapRef:
             name: frontend-config
         - secretRef:
-            name: frontend-secrets
+            name: backend-secrets
         livenessProbe:
           httpGet:
             path: /
@@ -56,5 +56,4 @@ spec:
   ports:
   - port: 80
     targetPort: 80
-    nodePort: 30080
   type: ClusterIP

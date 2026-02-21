@@ -46,6 +46,7 @@ spec:
           claimName: kafka-pvc
 
 ---
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -55,11 +56,13 @@ spec:
   selector:
     app: kafka
   ports:
-  - port: 9092
+  - name: broker
+    port: 9092
     targetPort: 9092
-  - port: 9093
+  - name: controller
+    port: 9093
     targetPort: 9093
-  type: ClusterIPi
+  type: ClusterIP
 
 ---
 apiVersion: v1
