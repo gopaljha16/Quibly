@@ -65,7 +65,10 @@ function LoginContent() {
     setErrors({})
 
     try {
-      await apiPost<{ user: unknown; token: string }>('/auth/login', formData)
+      const response = await apiPost<{ user: unknown; token: string }>('/auth/login', formData)
+      if (response && response.token) {
+        document.cookie = `token=${response.token}; path=/; max-age=604800`;
+      }
       router.push(redirect)
       router.refresh()
     } catch (error) {
@@ -272,9 +275,12 @@ function LoginContent() {
                         if (credentialResponse.credential) {
                           setIsLoading(true)
                           try {
-                            await apiPost('/auth/google-login', { 
+                            const response = await apiPost<{ user: unknown; token: string }>('/auth/google-login', { 
                               googleToken: credentialResponse.credential 
                             })
+                            if (response && response.token) {
+                              document.cookie = `token=${response.token}; path=/; max-age=604800`;
+                            }
                             router.push(redirect)
                             router.refresh()
                           } catch (err) {

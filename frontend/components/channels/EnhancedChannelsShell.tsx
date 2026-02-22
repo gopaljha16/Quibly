@@ -604,6 +604,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     onClick={async () => {
                       try {
                         await apiPost('/auth/logout')
+                        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
                         router.push('/')
                       } catch (err) {
                         console.error('Logout failed:', err)

@@ -80,6 +80,10 @@ function SignupContent() {
     try {
       const response = await apiPost<any>('/auth/register', { ...formData, interests: selectedInterests })
 
+      if (response && response.token) {
+        document.cookie = `token=${response.token}; path=/; max-age=604800`;
+      }
+
       if (response.recommendedChannels?.length > 0) {
         setRecommendedChannels(response.recommendedChannels)
         setShowRecommendations(true)
@@ -335,9 +339,12 @@ function SignupContent() {
                         if (credentialResponse.credential) {
                           setIsLoading(true)
                           try {
-                            await apiPost('/auth/google-login', { 
+                            const response = await apiPost<any>('/auth/google-login', { 
                               googleToken: credentialResponse.credential 
                             })
+                            if (response && response.token) {
+                              document.cookie = `token=${response.token}; path=/; max-age=604800`;
+                            }
                             router.push(redirect)
                             router.refresh()
                           } catch (err) {
