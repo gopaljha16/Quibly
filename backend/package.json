@@ -8,10 +8,10 @@
   "author": "Quibly Team",
   "license": "MIT",
   "scripts": {
-    "dev": "npm run && bun run --hot src/index.js",
+    "dev": "npm run --hot src/index.js",
     "dev:only": "bun run --hot src/index.js",
     "build": "prisma generate",
-    "start": "node src/index.js"
+    "start": "npx prisma generate && node src/index.js"
   },
   "devDependencies": {
     "@types/bun": "latest"
