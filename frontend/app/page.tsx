@@ -1,283 +1,647 @@
-"use client"
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { 
-  Download, Video, Shield, Zap, Globe, Mic, Smartphone, Check, 
-  Activity, Star, Code, Hash, Bot, Sparkles, BrainCircuit
-} from 'lucide-react';
+"use client";
 
-const QuiblyApex = () => {
-  const [scrollY, setScrollY] = useState(0);
-  const [mobileMenu, setMobileMenu] = useState(false);
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Activity,
+  ArrowRight,
+  Bot,
+  Check,
+  FileUp,
+  LayoutTemplate,
+  MessageCircle,
+  Download,
+  Menu,
+  Mic,
+  Search,
+  Server,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  Video,
+  X,
+} from "lucide-react";
+
+const navItems = [
+  { label: "Features", href: "#features" },
+  { label: "Product", href: "#product" },
+  { label: "Moderation", href: "#moderation" },
+  { label: "Safety", href: "#safety" },
+  { label: "Discovery", href: "#discover" },
+  { label: "Pricing", href: "#pricing" },
+  { label: "Support", href: "#support" },
+];
+
+const features = [
+  {
+    title: "Organized Channels",
+    description:
+      "Keep conversations clear with text, voice, and announcement channels split by topic.",
+  },
+  {
+    title: "Always-On Voice",
+    description:
+      "Drop in and out instantly. Low-latency audio keeps calls smooth for teams and friends.",
+  },
+  {
+    title: "Smart AI Assist",
+    description:
+      "Summaries, moderation suggestions, and channel highlights help communities stay focused.",
+  },
+  {
+    title: "Role-Based Control",
+    description:
+      "Granular permissions and role presets make server management simple at any size.",
+  },
+];
+
+const stats = [
+  { value: "120K+", label: "Active communities" },
+  { value: "8.5M", label: "Messages delivered daily" },
+  { value: "99.9%", label: "Service uptime" },
+];
+
+const communicationFeatures = [
+  {
+    title: "Real-time messaging",
+    description: "Fast Socket.IO chat with channel streams and instant updates.",
+    icon: MessageCircle,
+  },
+  {
+    title: "Direct messages and friends",
+    description: "Private conversations, friend requests, and easy social workflows.",
+    icon: Users,
+  },
+  {
+    title: "Voice and video calls",
+    description: "LiveKit-powered channels for reliable voice rooms and video sessions.",
+    icon: Video,
+  },
+  {
+    title: "Presence and activity",
+    description: "Custom status, activity indicators, and online presence sync.",
+    icon: Activity,
+  },
+  {
+    title: "File uploads and previews",
+    description: "Cloud media uploads with rich link previews and message reactions.",
+    icon: FileUp,
+  },
+  {
+    title: "Server and channel controls",
+    description: "Role-based access and structured spaces for growing teams.",
+    icon: Server,
+  },
+];
+
+const moderationFeatures = [
+  "Auto moderation and anti-spam rules",
+  "Audit logs for server actions",
+  "Member screening and onboarding questions",
+  "Welcome screens for new users",
+  "Role permissions and access policies",
+  "Server analytics for growth and engagement",
+  "Server templates for quick setup",
+  "Interest-based discovery and search",
+];
+
+const plans = [
+  {
+    name: "Basic",
+    price: "$2.99",
+    period: "/month",
+    highlight: false,
+    perks: [
+      "Global emojis",
+      "300 MB file uploads",
+      "Custom profile styling",
+      "Priority support queue",
+    ],
+  },
+  {
+    name: "Ultra",
+    price: "$9.99",
+    period: "/month",
+    highlight: true,
+    perks: [
+      "4K stream quality",
+      "5 GB file uploads",
+      "AI assistant boost",
+      "2 server boosts included",
+      "Early access features",
+    ],
+  },
+];
+
+function SectionHeader({
+  eyebrow,
+  title,
+  description,
+  center = false,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  center?: boolean;
+}) {
+  return (
+    <div className={center ? "mb-10 text-center" : "mb-8"}>
+      <p className="text-xs uppercase tracking-[0.18em] text-violet-100/85">{eyebrow}</p>
+      <h2 className="mt-3 text-3xl font-semibold sm:text-4xl [font-family:var(--font-geist-sans)]">{title}</h2>
+      {description ? (
+        <p className={`${center ? "mx-auto" : ""} mt-4 max-w-3xl text-white/70`}>{description}</p>
+      ) : null}
+    </div>
+  );
+}
+
+export default function HomePage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 14);
+    onScroll();
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#020204] text-[#ececed] font-sans selection:bg-cyan-500/40 overflow-x-hidden">
-      
-      {/* --- BACKGROUND ENGINE --- */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#1e1e3a_0%,transparent_50%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:64px_64px]" />
-        {/* Subtle Moving Glow */}
-        <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] animate-pulse" />
+    <div className="relative min-h-screen overflow-x-hidden bg-[#0b0b11] text-white">
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(139,92,246,0.28),transparent_45%),radial-gradient(circle_at_85%_15%,rgba(148,163,184,0.18),transparent_40%),linear-gradient(180deg,#0b0b11_0%,#090913_65%,#06060d_100%)] animate-gradient-drift" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:52px_52px]" />
+        <div className="absolute left-[6%] top-24 h-40 w-40 rounded-full bg-violet-300/15 blur-3xl animate-float-soft" />
+        <div className="absolute bottom-20 right-[8%] h-44 w-44 rounded-full bg-slate-300/10 blur-3xl animate-float-soft [animation-delay:1.4s]" />
       </div>
 
-      {/* --- NAVIGATION --- */}
-      <nav className={`fixed top-0 w-full z-[100] transition-all duration-500 ${scrollY > 20 ? 'py-4 bg-black/60 backdrop-blur-2xl border-b border-white/5' : 'py-8 bg-transparent'}`}>
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 cursor-pointer">
-            <Image src="/logo.png" alt="Quibly Logo" width={40} height={40} className="rounded-lg" />
-            <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Quibly</span>
+      <header
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? "border-b border-white/10 bg-[#0d0d16]/85 py-3 backdrop-blur-xl"
+            : "bg-transparent py-5"
+        }`}
+      >
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/logo.png"
+              alt="Qubily logo"
+              width={36}
+              height={36}
+              className="rounded-md"
+            />
+            <span className="font-[700] tracking-wide text-white [font-family:var(--font-geist-sans)]">
+              Qubily
+            </span>
           </Link>
-          
-          {/* Desktop Links */}
-          <div className="hidden lg:flex gap-8 text-[10px] font-black uppercase tracking-widest text-gray-400">
-            {['Download', 'Nitro', 'Discover', 'Safety', 'AI Engine', 'Support'].map(item => (
-              <a key={item} href={`#${item.toLowerCase().replace(' ', '-')}`} className="hover:text-cyan-400 transition-all">{item}</a>
+
+          <nav className="hidden items-center gap-7 text-sm text-white/80 lg:flex">
+            {navItems.map((item) => (
+              <a
+                key={item.label}
+                href={item.href}
+                className="transition hover:text-violet-300"
+              >
+                {item.label}
+              </a>
             ))}
+          </nav>
+
+          <div className="hidden items-center gap-3 lg:flex">
+            <Link
+              href="/login"
+              className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 transition hover:border-violet-300/60 hover:text-violet-200"
+            >
+              Login
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded-full bg-violet-300 px-5 py-2 text-sm font-semibold text-[#1d1430] transition hover:bg-violet-200"
+            >
+              Get Started
+            </Link>
           </div>
 
-          <div className="flex gap-4 items-center">
-            <Link href="/login">
-              <button className="hidden sm:block bg-white/5 border border-white/10 px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white/10 hover:border-cyan-400/50 hover:text-cyan-400 transition-all">Login</button>
-            </Link>
-            <button className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition-all" onClick={() => setMobileMenu(!mobileMenu)}>
-              <div className={`w-6 h-0.5 bg-white mb-1.5 transition-transform ${mobileMenu ? 'rotate-45 translate-y-2' : ''}`} />
-              <div className={`w-6 h-0.5 bg-white transition-transform ${mobileMenu ? '-rotate-45' : ''}`} />
-            </button>
-          </div>
+          <button
+            aria-label="Toggle menu"
+            className="rounded-md border border-white/15 p-2 text-white lg:hidden"
+            onClick={() => setIsMenuOpen((value) => !value)}
+          >
+            {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenu && (
-          <div className="lg:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-2xl border-b border-white/5 py-8 px-6 animate-fade-in">
-            <div className="flex flex-col gap-6 text-sm font-black uppercase tracking-widest text-gray-400">
-              {['Download', 'Nitro', 'Discover', 'Safety', 'AI Engine', 'Support'].map(item => (
-                <a key={item} href={`#${item.toLowerCase().replace(' ', '-')}`} className="hover:text-cyan-400 transition-all py-2" onClick={() => setMobileMenu(false)}>{item}</a>
+        {isMenuOpen && (
+          <div className="border-t border-white/10 bg-[#0d0d16]/95 px-4 py-5 lg:hidden">
+            <nav className="mx-auto flex max-w-7xl flex-col gap-4">
+              {navItems.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="text-sm text-white/85 transition hover:text-violet-300"
+                >
+                  {item.label}
+                </a>
               ))}
-              <Link href="/login" onClick={() => setMobileMenu(false)}>
-                <button className="w-full bg-white/5 border border-white/10 px-6 py-3 rounded-full font-black text-xs uppercase tracking-widest hover:bg-white/10 hover:border-cyan-400/50 hover:text-cyan-400 transition-all mt-4">Login</button>
+              <div className="mt-2 flex gap-3">
+                <Link
+                  href="/login"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex-1 rounded-full border border-white/15 px-4 py-2 text-center text-sm text-white/90"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="flex-1 rounded-full bg-violet-300 px-4 py-2 text-center text-sm font-semibold text-[#1d1430]"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
+      </header>
+
+      <main>
+        <section className="mx-auto flex max-w-7xl flex-col items-center px-4 pb-20 pt-36 text-center sm:px-6 md:pb-28 md:pt-44">
+          <span className="reveal-up mb-6 inline-flex items-center gap-2 rounded-full border border-violet-300/35 bg-violet-300/10 px-4 py-1 text-xs uppercase tracking-[0.2em] text-violet-100">
+            <Sparkles size={14} /> Community-first communication
+          </span>
+          <h1 className="reveal-up max-w-4xl text-balance text-4xl font-semibold leading-tight text-white sm:text-6xl md:text-7xl [font-family:var(--font-geist-sans)] [animation-delay:80ms]">
+            Build your digital home with a landing experience that feels premium.
+          </h1>
+          <p className="reveal-up mt-6 max-w-2xl text-base leading-relaxed text-white/72 sm:text-lg [animation-delay:140ms]">
+            Qubily gives your server a faster, cleaner place to chat, stream, and collaborate with AI-powered tools built in.
+          </p>
+          <div className="reveal-up mt-10 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row [animation-delay:220ms]">
+            <Link
+              href="/signup"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-violet-300 px-7 py-3 font-semibold text-[#1d1430] transition hover:bg-violet-200 sm:w-auto"
+            >
+              Start Free <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-7 py-3 text-white/90 transition hover:border-white/35 hover:bg-white/10 sm:w-auto"
+            >
+              Open in Browser
+            </Link>
+          </div>
+
+          <div className="mt-14 grid w-full gap-4 sm:grid-cols-3">
+            {stats.map((item, idx) => (
+              <article
+                key={item.label}
+                className="reveal-up rounded-2xl border border-white/10 bg-white/5 p-5 text-left shadow-[0_12px_48px_rgba(0,0,0,0.25)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/45 hover:bg-white/10"
+                style={{ animationDelay: `${260 + idx * 70}ms` }}
+              >
+                <p className="text-2xl font-semibold text-violet-200">{item.value}</p>
+                <p className="mt-1 text-sm text-white/70">{item.label}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="features" className="border-y border-white/10 bg-white/[0.02]">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+            <SectionHeader
+              eyebrow="Core features"
+              title="Everything your Qubily community needs in one place"
+              description="The platform already supports messaging, calls, discovery, moderation, profiles, and rich collaboration flows."
+              center
+            />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {communicationFeatures.map((feature, idx) => {
+                const Icon = feature.icon;
+                return (
+                  <article
+                    key={feature.title}
+                    className="reveal-up rounded-2xl border border-white/10 bg-white/5 p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-200/45 hover:bg-white/10"
+                    style={{ animationDelay: `${idx * 80}ms` }}
+                  >
+                    <Icon size={18} className="text-violet-200" />
+                    <h3 className="mt-4 text-lg font-semibold text-white">{feature.title}</h3>
+                    <p className="mt-2 text-sm text-white/70">{feature.description}</p>
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section id="product" className="mx-auto max-w-7xl border-b border-white/10 px-4 py-16 sm:px-6 md:py-24">
+          <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
+            <div className="reveal-up rounded-3xl border border-white/10 bg-[#12121d]/90 p-5 shadow-2xl">
+              <div className="rounded-2xl border border-white/10 bg-[#181827] p-5">
+                <div className="mb-5 flex items-center justify-between text-xs text-white/60">
+                  <span># dev-room</span>
+                  <span>14 online</span>
+                </div>
+                <div className="space-y-3 text-sm">
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-violet-100">AI Summary</p>
+                    <p className="mt-1 text-white/70">8 new updates were posted since your last visit.</p>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-slate-200">Voice Quality</p>
+                    <p className="mt-1 text-white/70">Noise reduction active for all participants.</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 pt-1">
+                    <button className="rounded-lg border border-white/15 bg-white/5 py-2 text-xs text-white/85">
+                      <Mic size={14} className="mx-auto" />
+                    </button>
+                    <button className="rounded-lg border border-white/15 bg-white/5 py-2 text-xs text-white/85">
+                      <Video size={14} className="mx-auto" />
+                    </button>
+                    <button className="rounded-lg border border-red-300/50 bg-red-300/20 py-2 text-xs text-red-100">
+                      Leave
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="reveal-up [animation-delay:120ms]">
+              <SectionHeader
+                eyebrow="Product"
+                title="Clean interface. Fast interactions. Better community flow."
+                description="We simplified the landing experience and the in-app journey so new members understand the value in seconds."
+              />
+              <div className="mt-7 grid gap-4 sm:grid-cols-2">
+                {features.map((feature, idx) => (
+                  <article
+                    key={feature.title}
+                    className="reveal-up rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-violet-200/35 hover:bg-white/10"
+                    style={{ animationDelay: `${240 + idx * 60}ms` }}
+                  >
+                    <h3 className="font-medium text-white">{feature.title}</h3>
+                    <p className="mt-2 text-sm text-white/70">{feature.description}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="moderation" className="border-b border-white/10 bg-white/[0.015]">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+            <article className="reveal-up rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
+              <SectionHeader
+                eyebrow="Admin toolkit"
+                title="Built-in moderation and server operations"
+                description="Your backend already ships with strong community management features. This section makes that value visible on the landing page."
+              />
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {moderationFeatures.map((item, idx) => (
+                  <div key={item} className="reveal-up rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white/85" style={{ animationDelay: `${140 + idx * 50}ms` }}>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </article>
+            <article className="reveal-up rounded-3xl border border-white/10 bg-gradient-to-b from-violet-300/15 to-transparent p-6 md:p-8 [animation-delay:120ms]">
+              <p className="text-xs uppercase tracking-[0.18em] text-violet-100/85">Scale-ready stack</p>
+              <h3 className="mt-3 text-2xl font-semibold [font-family:var(--font-geist-sans)]">Production architecture</h3>
+              <ul className="mt-5 space-y-3 text-sm text-white/75">
+                <li className="flex items-start gap-2">
+                  <Check size={14} className="mt-1 shrink-0 text-violet-200" />
+                  Multi-server backend with Nginx load balancing
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={14} className="mt-1 shrink-0 text-violet-200" />
+                  Redis adapter + Kafka fanout for real-time reliability
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={14} className="mt-1 shrink-0 text-violet-200" />
+                  Prisma + PostgreSQL data model for communities
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={14} className="mt-1 shrink-0 text-violet-200" />
+                  Docker-ready deployment and service monitoring
+                </li>
+              </ul>
+            </article>
+          </div>
+          </div>
+        </section>
+
+        <section id="safety" className="mx-auto max-w-7xl border-b border-white/10 px-4 py-16 sm:px-6 md:py-24">
+          <div className="reveal-up rounded-3xl border border-violet-200/25 bg-gradient-to-r from-violet-300/12 via-violet-200/6 to-slate-300/10 p-7 md:p-10">
+            <div className="grid items-start gap-8 md:grid-cols-2">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-violet-100">Safety and moderation</p>
+                <h2 className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl [font-family:var(--font-geist-sans)]">
+                  Protection defaults that scale with your community.
+                </h2>
+                <p className="mt-4 text-white/75">
+                  Combine manual controls with automation for link filtering, member verification, and role-based moderation paths.
+                </p>
+              </div>
+              <ul className="space-y-3">
+                {[
+                  "Automated anti-spam checks",
+                  "Channel-level permission controls",
+                  "Audit logs for moderation actions",
+                  "Invite and onboarding protections",
+                ].map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/85"
+                  >
+                    <ShieldCheck size={16} className="mt-0.5 shrink-0 text-violet-200" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section id="discover" className="border-b border-white/10 bg-white/[0.015]">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+          <SectionHeader
+            eyebrow="Discover"
+            title="From private circles to public fandoms"
+            description="Curated categories and search-friendly communities help users find the right place faster."
+            center
+          />
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { name: "Gaming", members: "450K+ communities" },
+              { name: "Education", members: "120K+ communities" },
+              { name: "Creators", members: "290K+ communities" },
+            ].map((card, idx) => (
+              <article
+                key={card.name}
+                className="reveal-up rounded-2xl border border-white/10 bg-white/5 p-5 text-left transition duration-300 hover:-translate-y-1 hover:border-violet-200/45 hover:bg-white/10"
+                style={{ animationDelay: `${idx * 90}ms` }}
+              >
+                <p className="text-lg font-semibold">{card.name}</p>
+                <p className="mt-2 text-sm text-white/70">{card.members}</p>
+              </article>
+            ))}
+          </div>
+          </div>
+        </section>
+
+        <section id="pricing" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+          <SectionHeader
+            eyebrow="Pricing"
+            title="Simple plans for growing communities"
+            center
+          />
+
+          <div className="mt-8 grid gap-5 md:grid-cols-2">
+            {plans.map((plan, idx) => (
+              <article
+                key={plan.name}
+                style={{ animationDelay: `${idx * 100}ms` }}
+                className={`rounded-3xl border p-6 ${
+                  plan.highlight
+                    ? "border-violet-200/40 bg-violet-300/10"
+                    : "border-white/10 bg-white/5"
+                } reveal-up transition duration-300 hover:-translate-y-1`}
+              >
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-semibold">{plan.name}</h3>
+                  {plan.highlight ? (
+                    <span className="rounded-full bg-violet-300 px-3 py-1 text-xs font-semibold text-[#1d1430]">
+                      Most Popular
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-4 text-3xl font-semibold">
+                  {plan.price}
+                  <span className="text-base font-normal text-white/70"> {plan.period}</span>
+                </p>
+                <ul className="mt-5 space-y-2">
+                  {plan.perks.map((perk) => (
+                    <li key={perk} className="flex items-start gap-2 text-sm text-white/80">
+                      <Check size={14} className="mt-0.5 text-violet-200" />
+                      {perk}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  className={`mt-7 w-full rounded-full py-3 text-sm font-semibold transition ${
+                    plan.highlight
+                      ? "bg-violet-300 text-[#1d1430] hover:bg-violet-200"
+                      : "border border-white/20 text-white hover:bg-white/10"
+                  }`}
+                >
+                  Choose {plan.name}
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <footer id="support" className="border-t border-white/10 bg-black/35 px-4 pb-8 pt-14 sm:px-6">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-10 rounded-3xl border border-violet-200/20 bg-gradient-to-r from-violet-300/12 via-violet-300/8 to-slate-300/10 p-6 md:p-8">
+            <p className="text-xs uppercase tracking-[0.18em] text-violet-100/90">Ready to launch</p>
+            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl [font-family:var(--font-geist-sans)]">
+              Start building your Qubily community today
+            </h2>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 rounded-full bg-violet-300 px-5 py-2.5 text-sm font-semibold text-[#1d1430] hover:bg-violet-200"
+              >
+                Create Account <ArrowRight size={14} />
+              </Link>
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm text-white/90 hover:bg-white/10"
+              >
+                Open in Browser
               </Link>
             </div>
           </div>
-        )}
-      </nav>
 
-      {/* --- HERO SECTION --- */}
-      <section className="relative pt-40 md:pt-60 pb-20 md:pb-40 px-6 flex flex-col items-center text-center">
-        <div className="max-w-5xl z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-[10px] font-black tracking-[0.2em] text-cyan-400 mb-8 uppercase">
-             <Sparkles size={12} /> AI-Enhanced Communication
-          </div>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-[120px] font-black leading-[0.9] mb-10 tracking-tighter">
-            IMAGINE A <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">DIGITAL HOME.</span>
-          </h1>
-          <p className="text-lg md:text-2xl text-gray-500 max-w-3xl mx-auto font-medium leading-relaxed mb-12">
-            Whether you're a gaming squad, a study group, or a global community, Quibly provides the space to belong. Now powered by advanced AI protocols.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <button className="px-8 sm:px-10 py-4 sm:py-5 bg-white text-black font-black text-xs sm:text-sm uppercase tracking-widest hover:bg-cyan-400 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all flex items-center justify-center gap-3 rounded-full">
-              <Download size={18} /> Download for Windows
-            </button>
-            <Link href="/login">
-              <button className="w-full px-8 sm:px-10 py-4 sm:py-5 border border-white/10 bg-white/5 backdrop-blur-xl font-black text-xs sm:text-sm uppercase tracking-widest hover:bg-white/10 hover:border-cyan-400/50 transition-all rounded-full">
-                Open in Browser
-              </button>
-            </Link>
-          </div>
-        </div>
-      </section>
+          <div className="grid gap-8 border-b border-white/10 pb-10 md:grid-cols-5">
+            <div className="md:col-span-2">
+              <Link href="/" className="inline-flex items-center gap-3">
+                <Image src="/logo.png" alt="Qubily logo" width={32} height={32} className="rounded-md" />
+                <span className="text-lg font-semibold [font-family:var(--font-geist-sans)]">Qubily</span>
+              </Link>
+              <p className="mt-3 max-w-sm text-sm text-white/65">
+                Real-time communication platform with messaging, calls, server management, discovery, and moderation.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/85 hover:border-violet-200/60 hover:text-violet-100"
+                >
+                  <Download size={14} /> Download
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/85 hover:border-violet-200/60 hover:text-violet-100"
+                >
+                  Open App
+                </Link>
+              </div>
+            </div>
 
-      {/* --- AI NEURAL ENGINE SECTION --- */}
-      <section id="ai-engine" className="max-w-[1400px] mx-auto px-6 py-20 md:py-32 border-t border-white/5">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          <div className="relative order-2 lg:order-1">
-             <div className="absolute -inset-4 bg-cyan-500/20 blur-3xl opacity-20" />
-             <div className="relative bg-[#08080a] border border-white/10 rounded-[20px] md:rounded-[30px] p-1 font-mono text-[10px] sm:text-[12px] overflow-hidden">
-                <div className="bg-white/5 p-3 md:p-4 flex justify-between items-center border-b border-white/5">
-                   <div className="flex gap-2">
-                      <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-red-500/50" />
-                      <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-yellow-500/50" />
-                      <div className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-green-500/50" />
-                   </div>
-                   <span className="text-gray-500 text-[9px] sm:text-xs">quibly_ai_core.sh</span>
-                </div>
-                <div className="p-4 sm:p-6 md:p-8 space-y-3 md:space-y-4 text-cyan-400/80">
-                   <p>$ initializing_neural_protocols...</p>
-                   <p className="text-white">{'>'} AI Summary: 42 new messages in #dev-talk</p>
-                   <p className="text-purple-400">{'>'} Action: Auto-mod prevented 2 spam links</p>
-                   <p>{'>'} Voice: Noise suppression active (RNN-Noise)</p>
-                   <div className="h-3 md:h-4 w-0.5 md:w-1 bg-cyan-500 animate-pulse inline-block" />
-                </div>
-             </div>
-          </div>
-          <div className="order-1 lg:order-2">
-            <div className="w-12 md:w-16 h-1 bg-cyan-500 mb-6 md:mb-8" />
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6 md:mb-8 italic uppercase tracking-tighter">THE NEURAL <br /> <span className="text-cyan-400">EDGE.</span></h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-500 mb-8 md:mb-10 leading-relaxed font-medium">
-              We've integrated AI into the very core of Quibly. From automated server summaries and smart moderation to studio-quality AI noise cancellation.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-               <div className="flex gap-3 md:gap-4 p-3 md:p-4 bg-white/5 rounded-xl md:rounded-2xl border border-white/5 hover:border-cyan-400/30 transition-all">
-                  <BrainCircuit className="text-cyan-400 shrink-0" size={20} />
-                  <span className="text-[10px] sm:text-xs font-black uppercase self-center">Smart Summaries</span>
-               </div>
-               <div className="flex gap-3 md:gap-4 p-3 md:p-4 bg-white/5 rounded-xl md:rounded-2xl border border-white/5 hover:border-purple-400/30 transition-all">
-                  <Bot className="text-purple-400 shrink-0" size={20} />
-                  <span className="text-[10px] sm:text-xs font-black uppercase self-center">Autonomous Mod</span>
-               </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-violet-100/85">Product</p>
+              <div className="mt-3 space-y-2 text-sm text-white/75">
+                <a href="#features" className="block hover:text-violet-100">Features</a>
+                <a href="#product" className="block hover:text-violet-100">Channels and Calls</a>
+                <a href="#discover" className="block hover:text-violet-100">Discovery</a>
+                <a href="#pricing" className="block hover:text-violet-100">Pricing</a>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-violet-100/85">Platform</p>
+              <div className="mt-3 space-y-2 text-sm text-white/75">
+                <a href="#moderation" className="block hover:text-violet-100">Moderation</a>
+                <a href="#safety" className="block hover:text-violet-100">Safety</a>
+                <a href="#support" className="block hover:text-violet-100">Support</a>
+                <Link href="/me/profile" className="block hover:text-violet-100">Profile</Link>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-violet-100/85">Resources</p>
+              <div className="mt-3 space-y-2 text-sm text-white/75">
+                <Link href="/signup" className="block hover:text-violet-100">Create Account</Link>
+                <Link href="/login" className="block hover:text-violet-100">Sign In</Link>
+                <a href="#discover" className="block hover:text-violet-100">Find Communities</a>
+                <a href="#support" className="block hover:text-violet-100">Contact</a>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* --- CORE FEATURES --- */}
-      <section className="space-y-20 md:space-y-40 lg:space-y-60 max-w-7xl mx-auto px-6 py-20 md:py-40">
-        
-        {/* Feature 1 */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          <div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6 md:mb-8 italic uppercase tracking-tighter">Invite-only <br /> spaces.</h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-500 leading-relaxed mb-6 md:mb-8 font-medium">Quibly servers are organized into topic-based channels where you can collaborate, share, and just talk about your day.</p>
-            <ul className="space-y-3 md:space-y-4">
-              {['Topic-based channels', 'Custom member roles', 'Private node access'].map(i => (
-                <li key={i} className="flex items-center gap-3 text-[10px] sm:text-xs font-black uppercase tracking-widest text-cyan-400/70 hover:text-cyan-400 transition-colors">
-                  <Check size={14} className="shrink-0" /> {i}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="aspect-square bg-white/5 rounded-[30px] md:rounded-[40px] border border-white/10 flex items-center justify-center relative overflow-hidden group hover:border-cyan-400/30 transition-all">
-             <Hash size={60} className="sm:w-24 sm:h-24 md:w-28 md:h-28 text-white/5 group-hover:text-cyan-500/20 transition-all duration-700" />
-             <div className="absolute inset-6 sm:inset-8 md:inset-10 border-2 border-dashed border-white/5 rounded-[20px] md:rounded-[30px] group-hover:border-cyan-400/20 transition-all duration-700" />
-          </div>
-        </div>
-
-        {/* Feature 2 */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          <div className="order-2 lg:order-1 aspect-video bg-[#0c0c0e] rounded-[30px] md:rounded-[40px] border border-white/10 overflow-hidden relative shadow-2xl hover:border-white/20 transition-all">
-             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black flex items-center justify-center opacity-40">
-                <Video size={36} className="sm:w-12 sm:h-12 md:w-14 md:h-14 text-white/10" />
-             </div>
-             <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex gap-2 sm:gap-3 md:gap-4 p-2 sm:p-3 bg-black/80 backdrop-blur-xl rounded-full border border-white/10">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer"><Mic size={16} className="sm:w-[18px] sm:h-[18px]" /></div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer"><Video size={16} className="sm:w-[18px] sm:h-[18px]" /></div>
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-500 flex items-center justify-center hover:bg-red-600 transition-all cursor-pointer"><Smartphone size={16} className="sm:w-[18px] sm:h-[18px]" /></div>
-             </div>
-          </div>
-          <div className="order-1 lg:order-2">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-6 md:mb-8 italic uppercase tracking-tighter">Where hanging <br /> out is easy.</h2>
-            <p className="text-base sm:text-lg md:text-xl text-gray-500 mb-8 md:mb-10 leading-relaxed font-medium">Grab a seat in a voice channel when you're free. Friends in your server can see you're around and instantly pop in.</p>
-            <div className="p-4 sm:p-5 md:p-6 bg-cyan-500/5 border border-cyan-500/20 rounded-xl md:rounded-2xl italic text-xs sm:text-sm text-cyan-400 font-bold hover:bg-cyan-500/10 transition-all">
-               "The latency is so low, it feels like we're in the same room." — Quibly Beta User
+          <div className="flex flex-col gap-3 pt-6 text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between">
+            <p>Copyright 2026 Qubily. All rights reserved.</p>
+            <div className="flex gap-4">
+              <a href="#support" className="hover:text-violet-100">Privacy</a>
+              <a href="#support" className="hover:text-violet-100">Terms</a>
+              <a href="#support" className="inline-flex items-center gap-1 hover:text-violet-100">
+                <Bot size={13} /> Support
+              </a>
+              <a href="#discover" className="inline-flex items-center gap-1 hover:text-violet-100">
+                <Search size={13} /> Discover
+              </a>
+              <a href="#moderation" className="inline-flex items-center gap-1 hover:text-violet-100">
+                <LayoutTemplate size={13} /> Admin
+              </a>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- DISCOVER SECTION --- */}
-      <section id="discover" className="py-20 md:py-32 lg:py-40 px-6 bg-white/5">
-        <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-8 md:mb-10 italic uppercase tracking-tighter">FROM A FEW <br /> TO A FANDOM.</h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-500 max-w-3xl mb-12 md:mb-16 lg:mb-20 font-medium px-4">Get any community running with moderation tools and custom member access. Give members special powers, set up private channels, and more.</p>
-          <div className="w-full grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-             {[
-               { name: 'Gaming', count: '450k+', color: 'text-cyan-400', icon: <Activity size={24} /> },
-               { name: 'Education', count: '120k+', color: 'text-purple-400', icon: <Code size={24} /> },
-               { name: 'Creators', count: '290k+', color: 'text-emerald-400', icon: <Sparkles size={24} /> },
-             ].map(cat => (
-               <div key={cat.name} className="p-8 md:p-10 lg:p-12 bg-black border border-white/5 rounded-[30px] md:rounded-[40px] hover:border-white/20 hover:bg-white/5 transition-all group cursor-pointer">
-                  <div className={`mb-4 ${cat.color} opacity-50 group-hover:opacity-100 transition-opacity`}>{cat.icon}</div>
-                  <div className={`text-3xl md:text-4xl font-black mb-3 md:mb-4 ${cat.color}`}>{cat.count}</div>
-                  <div className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-gray-500 group-hover:text-gray-400 transition-colors">{cat.name} Communities</div>
-               </div>
-             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* --- NITRO & PRICING --- */}
-      <section id="nitro" className="py-20 md:py-32 lg:py-40 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12 md:mb-16 lg:mb-20">
-             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black italic uppercase tracking-tighter mb-4">Quibly Nitro</h2>
-             <p className="text-gray-500 font-bold uppercase text-[10px] tracking-[0.3em]">Support the protocol & get perks</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
-             <div className="p-8 md:p-10 bg-white/5 border border-white/10 rounded-[30px] md:rounded-[40px] flex flex-col hover:border-white/20 transition-all">
-                <h3 className="text-xl md:text-2xl font-black uppercase italic mb-6 md:mb-8">Basic</h3>
-                <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10 flex-1">
-                   {['Global Emojis', '300MB File Sharing', 'Nitro Badge', 'Custom Profile Card'].map(i => (
-                     <li key={i} className="flex gap-3 text-xs font-bold text-gray-400 italic"><Star size={14} className="text-cyan-400 shrink-0" /> {i}</li>
-                   ))}
-                </ul>
-                <div className="text-2xl md:text-3xl font-black mb-6 md:mb-8">$2.99<span className="text-sm font-normal">/mo</span></div>
-                <button className="w-full py-3 md:py-4 border border-white/10 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-black transition-all">Choose Basic</button>
-             </div>
-             <div className="p-8 md:p-10 bg-gradient-to-br from-purple-900/30 to-black border-2 border-purple-500 rounded-[30px] md:rounded-[40px] flex flex-col relative overflow-hidden hover:border-purple-400 transition-all">
-                <div className="absolute top-0 right-0 bg-purple-500 text-white px-4 md:px-6 py-1.5 md:py-2 text-[9px] md:text-[10px] font-black uppercase rounded-bl-2xl">Premium</div>
-                <h3 className="text-xl md:text-2xl font-black uppercase italic mb-6 md:mb-8 mt-2">Ultra</h3>
-                <ul className="space-y-3 md:space-y-4 mb-8 md:mb-10 flex-1">
-                   {['4K Streaming', '5GB File Sharing', 'AI-Personal Assistant', 'Server Boosting', 'Custom App Icons'].map(i => (
-                     <li key={i} className="flex gap-3 text-xs font-bold text-white italic"><Zap size={14} className="text-purple-400 shrink-0" /> {i}</li>
-                   ))}
-                </ul>
-                <div className="text-2xl md:text-3xl font-black mb-6 md:mb-8">$9.99<span className="text-sm font-normal">/mo</span></div>
-                <button className="w-full py-3 md:py-4 bg-purple-500 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-purple-400 transition-all shadow-xl shadow-purple-500/20">Go Ultra</button>
-             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- FINAL CTA & FOOTER --- */}
-      <footer className="pt-20 md:pt-32 lg:pt-40 pb-12 md:pb-16 lg:pb-20 px-6 border-t border-white/5 bg-black/40">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-20 md:mb-32 lg:mb-40">
-             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-8 md:mb-12 italic tracking-tighter uppercase">Ready to join?</h2>
-             <Link href="/login">
-               <button className="px-12 sm:px-14 md:px-16 py-5 md:py-6 bg-cyan-500 text-black font-black text-base sm:text-lg md:text-xl uppercase tracking-widest hover:shadow-[0_0_50px_rgba(6,182,212,0.4)] transition-all transform hover:scale-105 rounded-full">
-                  Launch Quibly Core
-               </button>
-             </Link>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-12 lg:gap-16 mb-16 md:mb-20 lg:mb-24">
-             <div className="col-span-2">
-                <div className="text-2xl md:text-3xl font-black italic tracking-tighter mb-6 md:mb-8">QUIBLY<span className="text-cyan-500">.</span></div>
-                <div className="flex gap-3 md:gap-4">
-                   <div className="w-9 h-9 md:w-10 md:h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer"><Globe size={16} className="md:w-[18px] md:h-[18px]" /></div>
-                   <div className="w-9 h-9 md:w-10 md:h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer"><Smartphone size={16} className="md:w-[18px] md:h-[18px]" /></div>
-                   <div className="w-9 h-9 md:w-10 md:h-10 bg-white/5 rounded-full flex items-center justify-center hover:bg-white/10 transition-all cursor-pointer"><Shield size={16} className="md:w-[18px] md:h-[18px]" /></div>
-                </div>
-             </div>
-             {['Product', 'Company', 'Support'].map(cat => (
-               <div key={cat}>
-                  <h4 className="text-cyan-400 font-black uppercase text-[10px] tracking-[0.3em] mb-6 md:mb-8">{cat}</h4>
-                  <ul className="space-y-3 md:space-y-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                     <li className="hover:text-white cursor-pointer transition-colors">Infrastructure</li>
-                     <li className="hover:text-white cursor-pointer transition-colors">Protocols</li>
-                     <li className="hover:text-white cursor-pointer transition-colors">Privacy</li>
-                  </ul>
-               </div>
-             ))}
-          </div>
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 text-[9px] font-black uppercase tracking-[4px] text-gray-800">
-             <span>© 2026 Quibly Systems Group</span>
-             <div className="flex gap-6 md:gap-8">
-                <span className="hover:text-gray-600 cursor-pointer transition-colors">Terms</span>
-                <span className="hover:text-gray-600 cursor-pointer transition-colors">Privacy</span>
-             </div>
           </div>
         </div>
       </footer>
     </div>
   );
-};
+}
 
-export default QuiblyApex;
+
