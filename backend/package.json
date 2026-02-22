@@ -8,14 +8,8 @@
   "author": "Quibly Team",
   "license": "MIT",
   "scripts": {
-    "dev": "npm run docker:up && bun run --hot src/index.js",
-    "dev:only": "bun run --hot src/index.js",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f",
-    "docker:restart": "docker-compose restart",
-    "docker:status": "docker-compose ps",
-    "docker:clean": "docker-compose down -v"
+    "dev": "npm run && bun run --hot src/index.js",
+    "dev:only": "bun run --hot src/index.js"
   },
   "devDependencies": {
     "@types/bun": "latest"

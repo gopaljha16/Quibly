@@ -9,11 +9,10 @@ let isConnected = false;
 // Generate unique server ID for this instance
 const SERVER_ID = process.env.SERVER_ID || `server_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
-// Check for cloud Redis (REDIS_STRING) or local Redis (REDIS_HOST)
-const hasCloudRedis = process.env.REDIS_STRING && process.env.REDIS_PASSWORD;
-const hasLocalRedis = process.env.REDIS_HOST || process.env.REDIS_PORT;
+// Check for any Redis configuration
+const hasRedisConfig = process.env.REDIS_HOST || process.env.REDIS_PORT || process.env.REDIS_STRING;
 
-if (hasCloudRedis || hasLocalRedis) {
+if (hasRedisConfig) {
     const redisConfig = {
         socket: {
             connectTimeout: 5000,
@@ -29,17 +28,22 @@ if (hasCloudRedis || hasLocalRedis) {
         }
     };
 
-    if (hasCloudRedis) {
-        console.log('Connecting to Cloud Redis...');
-        redisConfig.username = 'default';
+    if (process.env.REDIS_PASSWORD) {
+        console.log('Connecting to Redis with password authentication...');
         redisConfig.password = process.env.REDIS_PASSWORD;
-        redisConfig.socket.host = process.env.REDIS_STRING;
-        redisConfig.socket.port = parseInt(process.env.REDIS_PORT_NO);
+        // Some managed Redis instances (like Redis Labs) might require a default username,
+        // but often just the password is enough. We'll set it just in case, or if REDIS_USER is provided.
+        if (process.env.REDIS_USER) {
+            redisConfig.username = process.env.REDIS_USER;
+        } else if (process.env.REDIS_STRING) {
+            redisConfig.username = 'default';
+        }
     } else {
-        console.log('Connecting to Local Redis...');
-        redisConfig.socket.host = process.env.REDIS_HOST || 'localhost';
-        redisConfig.socket.port = parseInt(process.env.REDIS_PORT) || 6379;
+        console.log('Connecting to Redis without password...');
     }
+
+    redisConfig.socket.host = process.env.REDIS_HOST || process.env.REDIS_STRING || 'localhost';
+    redisConfig.socket.port = parseInt(process.env.REDIS_PORT || process.env.REDIS_PORT_NO) || 6379;
 
     // Main client for general operations
     client = createClient(redisConfig);

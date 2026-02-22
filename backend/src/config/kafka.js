@@ -6,13 +6,15 @@ let kafka = null;
 let producer = null;
 let isConnected = false;
 
-if (process.env.KAFKA_BROKERS) {
-    const brokers = process.env.KAFKA_BROKERS.split(",").map(b => b.trim());
+if (process.env.KAFKA_BROKERS || process.env.KAFKA_BROKER) {
+    const brokersStr = process.env.KAFKA_BROKERS || process.env.KAFKA_BROKER;
+    const brokers = brokersStr.split(",").map(b => b.trim());
     const useAuth = process.env.KAFKA_USERNAME && process.env.KAFKA_PASSWORD;
+    const useSsl = process.env.KAFKA_SSL === "true" || process.env.KAFKA_CA_CERT_BASE64;
 
     console.log("Kafka Configuration:");
     console.log("  Brokers:", brokers);
-    console.log("  Auth:", useAuth ? "SASL (Aiven)" : "None");
+    console.log("  Auth:", useAuth ? "SASL" : (useSsl ? "SSL/mTLS (Aiven)" : "None"));
 
     const kafkaConfig = {
         clientId: "discord-chat-app",
@@ -25,7 +27,7 @@ if (process.env.KAFKA_BROKERS) {
         },
     };
 
-    if (useAuth) {
+    if (useAuth || useSsl) {
         // Aiven Kafka SSL configuration
         const sslConfig = {
             rejectUnauthorized: true,
@@ -126,7 +128,7 @@ if (process.env.KAFKA_BROKERS) {
     kafka = new Kafka(kafkaConfig);
 
     producer = kafka.producer({
-        allowAutoTopicCreation: !useAuth, // Allow auto-creation for local, disable for Aiven
+        allowAutoTopicCreation: !(useAuth || useSsl), // Allow auto-creation for local, disable for Aiven
         idempotent: true, // Ensure exactly-once delivery
         maxInFlightRequests: 5,
         transactionalId: undefined,
@@ -135,7 +137,7 @@ if (process.env.KAFKA_BROKERS) {
     const connectProducer = async () => {
         try {
             // For local Kafka, wait a bit for it to be ready
-            if (!useAuth) {
+            if (!(useAuth || useSsl)) {
                 console.log("⏳ Waiting for Kafka to be ready...");
                 await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
             }
@@ -167,7 +169,7 @@ if (process.env.KAFKA_BROKERS) {
         }
     });
 } else {
-    console.log("KAFKA_BROKERS not set, running without Kafka");
+    console.log("KAFKA_BROKERS or KAFKA_BROKER not set, running without Kafka");
 }
 
 module.exports = {
