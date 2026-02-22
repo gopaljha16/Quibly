@@ -26,7 +26,7 @@ export default function DiscoverServersModal({ open, onOpenChange }: DiscoverSer
     // Get user profile for interests
     const { data: profileData } = useProfile();
     const userInterestIds = useMemo(() => {
-        return profileData?.user?.userInterests?.map((ui: any) => ui.interest.id) || [];
+        return (profileData as any)?.userInterests?.map((ui: any) => ui.interest.id) || [];
     }, [profileData]);
 
     // Discover servers
