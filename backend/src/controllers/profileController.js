@@ -168,32 +168,13 @@ exports.getUserStats = async (req, res) => {
             }
         });
 
-        // Fetch heatmap data (last 365 days)
-        const oneYearAgo = new Date();
-        oneYearAgo.setDate(oneYearAgo.getDate() - 365);
-        oneYearAgo.setHours(0, 0, 0, 0);
-
-        const activities = await db.userDailyActivity.findMany({
-            where: {
-                userId,
-                date: { gte: oneYearAgo }
-            },
-            orderBy: { date: 'asc' }
-        });
-
         const stats = {
             messagesSent: user.messagesSent || 0,
             voiceTimeMinutes: user.voiceTimeMinutes || 0,
             achievements: user.achievements || [],
             serversJoined: user._count.serverMembers + user._count.ownedServers,
             friendsCount: friendsCount,
-            accountAge: Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)), // days
-            heatmap: activities.map(a => ({
-                date: a.date,
-                count: a.count || 0,
-                messages: a.messageCount || 0,
-                voice: a.voiceMinutes || 0
-            }))
+            accountAge: Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24)) // days
         };
 
         res.status(200).json({
