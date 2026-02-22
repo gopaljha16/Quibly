@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { User, Heart, Users, Rocket, Terminal } from 'lucide-react'
@@ -43,7 +43,7 @@ export default function SignupVisualization() {
     return (
       <div className="relative w-full h-[600px] flex items-center justify-center">
         <div className="w-32 h-32 bg-white/5 rounded-full border-2 border-white/10 flex items-center justify-center backdrop-blur-xl">
-          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
             <Terminal className="w-10 h-10 text-white" />
           </div>
         </div>
@@ -56,8 +56,8 @@ export default function SignupVisualization() {
       <div className="absolute">
         <div className="relative w-32 h-32">
           <div className="absolute inset-0 rounded-full bg-purple-500/10 animate-pulse" style={{ animationDuration: '3s' }} />
-          <div className="absolute inset-2 rounded-full bg-cyan-500/10 animate-pulse" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
-          <div className="absolute inset-4 rounded-full bg-gradient-to-br from-purple-600 via-fuchsia-500 to-cyan-500 shadow-2xl flex items-center justify-center animate-pulse">
+          <div className="absolute inset-2 rounded-full bg-pink-500/10 animate-pulse" style={{ animationDuration: '2.5s', animationDelay: '0.5s' }} />
+          <div className="absolute inset-4 rounded-full bg-gradient-to-br from-purple-600 via-fuchsia-500 to-pink-500 shadow-2xl flex items-center justify-center animate-pulse">
             <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/20 to-transparent" />
             <div className="relative text-center z-10">
               <div className="text-4xl font-black text-white mb-1">{activeStep + 1}</div>
@@ -73,3 +73,4 @@ export default function SignupVisualization() {
     </div>
   )
 }
+

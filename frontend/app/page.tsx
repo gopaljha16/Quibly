@@ -6,151 +6,157 @@ import Link from "next/link";
 import {
   Activity,
   ArrowRight,
-  Bot,
+  BarChart3,
   Check,
-  FileUp,
-  LayoutTemplate,
-  MessageCircle,
-  Download,
+  Compass,
+  Globe,
   Menu,
+  MessageSquare,
   Mic,
+  Moon,
   Search,
-  Server,
   ShieldCheck,
   Sparkles,
-  Users,
+  Sun,
   Video,
   X,
 } from "lucide-react";
 
+type ThemeMode = "light" | "dark";
+
 const navItems = [
   { label: "Features", href: "#features" },
-  { label: "Product", href: "#product" },
-  { label: "Moderation", href: "#moderation" },
+  { label: "Workflow", href: "#workflow" },
   { label: "Safety", href: "#safety" },
-  { label: "Discovery", href: "#discover" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Support", href: "#support" },
+  { label: "FAQ", href: "#faq" },
 ];
 
-const features = [
-  {
-    title: "Organized Channels",
-    description:
-      "Keep conversations clear with text, voice, and announcement channels split by topic.",
-  },
-  {
-    title: "Always-On Voice",
-    description:
-      "Drop in and out instantly. Low-latency audio keeps calls smooth for teams and friends.",
-  },
-  {
-    title: "Smart AI Assist",
-    description:
-      "Summaries, moderation suggestions, and channel highlights help communities stay focused.",
-  },
-  {
-    title: "Role-Based Control",
-    description:
-      "Granular permissions and role presets make server management simple at any size.",
-  },
+const quickStats = [
+  { value: "24M+", label: "Messages every week", icon: MessageSquare },
+  { value: "190ms", label: "Median voice latency", icon: Mic },
+  { value: "99.95%", label: "Monthly uptime target", icon: ShieldCheck },
 ];
 
-const stats = [
-  { value: "120K+", label: "Active communities" },
-  { value: "8.5M", label: "Messages delivered daily" },
-  { value: "99.9%", label: "Service uptime" },
-];
-
-const communicationFeatures = [
+const coreFeatures = [
   {
-    title: "Real-time messaging",
-    description: "Fast Socket.IO chat with channel streams and instant updates.",
-    icon: MessageCircle,
+    title: "Conversation-first channels",
+    description: "Organize text, voice, and video into clean spaces people understand immediately.",
+    icon: MessageSquare,
   },
   {
-    title: "Direct messages and friends",
-    description: "Private conversations, friend requests, and easy social workflows.",
-    icon: Users,
-  },
-  {
-    title: "Voice and video calls",
-    description: "LiveKit-powered channels for reliable voice rooms and video sessions.",
+    title: "Reliable voice rooms",
+    description: "Crisp voice and screen sharing backed by your LiveKit infrastructure.",
     icon: Video,
   },
   {
+    title: "Role-aware moderation",
+    description: "Permissions, onboarding checks, and audit trails built for growing teams.",
+    icon: ShieldCheck,
+  },
+  {
+    title: "Smart discovery",
+    description: "Interest matching helps users find relevant communities and channels faster.",
+    icon: Compass,
+  },
+  {
     title: "Presence and activity",
-    description: "Custom status, activity indicators, and online presence sync.",
+    description: "Live status signals keep members aware of who is available and active.",
     icon: Activity,
   },
   {
-    title: "File uploads and previews",
-    description: "Cloud media uploads with rich link previews and message reactions.",
-    icon: FileUp,
-  },
-  {
-    title: "Server and channel controls",
-    description: "Role-based access and structured spaces for growing teams.",
-    icon: Server,
+    title: "Actionable analytics",
+    description: "Track engagement, growth, and health with practical weekly reporting.",
+    icon: BarChart3,
   },
 ];
 
-const moderationFeatures = [
-  "Auto moderation and anti-spam rules",
-  "Audit logs for server actions",
-  "Member screening and onboarding questions",
-  "Welcome screens for new users",
-  "Role permissions and access policies",
-  "Server analytics for growth and engagement",
-  "Server templates for quick setup",
-  "Interest-based discovery and search",
+const workflowSteps = [
+  {
+    title: "Launch a server in minutes",
+    description: "Use templates and starter roles so your structure is ready on day one.",
+  },
+  {
+    title: "Onboard members safely",
+    description: "Enable screening rules and automod before inviting large audiences.",
+  },
+  {
+    title: "Scale with confidence",
+    description: "Use analytics, discovery, and moderation insights to improve retention.",
+  },
+];
+
+const moderationItems = [
+  "Automod filters for spam, abuse, and invite flooding",
+  "Action logs for kicks, bans, and role updates",
+  "Member screening with approval flows",
+  "Channel-level and role-level access controls",
+  "Server health insights and trend monitoring",
+  "Template-based governance for new communities",
 ];
 
 const plans = [
   {
-    name: "Basic",
-    price: "$2.99",
+    name: "Starter",
+    price: "$0",
     period: "/month",
     highlight: false,
-    perks: [
-      "Global emojis",
-      "300 MB file uploads",
-      "Custom profile styling",
-      "Priority support queue",
-    ],
+    perks: ["Core chat + voice", "Basic moderation", "Community templates", "Email support"],
   },
   {
-    name: "Ultra",
-    price: "$9.99",
+    name: "Growth",
+    price: "$8",
     period: "/month",
     highlight: true,
-    perks: [
-      "4K stream quality",
-      "5 GB file uploads",
-      "AI assistant boost",
-      "2 server boosts included",
-      "Early access features",
-    ],
+    perks: ["HD streaming", "Advanced moderation", "AI summaries", "Priority support"],
+  },
+  {
+    name: "Scale",
+    price: "$19",
+    period: "/month",
+    highlight: false,
+    perks: ["Large upload limits", "Analytics exports", "Team admin roles", "Early feature access"],
   },
 ];
 
-function SectionHeader({
+const faqs = [
+  {
+    q: "Does Qubily work fully in the browser?",
+    a: "Yes. Members can join servers, chat, and use voice/video directly from the web client.",
+  },
+  {
+    q: "Can this handle large communities?",
+    a: "Yes. The platform includes moderation controls, role permissions, analytics, and scalable backend services.",
+  },
+  {
+    q: "How quickly can I launch?",
+    a: "Most teams can launch a production-ready community setup in less than an hour using templates.",
+  },
+  {
+    q: "What tools are available for moderators?",
+    a: "You get automod rules, audit logs, member screening, and channel-level control by role.",
+  },
+];
+
+function SectionHeading({
   eyebrow,
   title,
-  description,
+  subtitle,
   center = false,
 }: {
   eyebrow: string;
   title: string;
-  description?: string;
+  subtitle?: string;
   center?: boolean;
 }) {
   return (
-    <div className={center ? "mb-10 text-center" : "mb-8"}>
-      <p className="text-xs uppercase tracking-[0.18em] text-violet-100/85">{eyebrow}</p>
-      <h2 className="mt-3 text-3xl font-semibold sm:text-4xl [font-family:var(--font-geist-sans)]">{title}</h2>
-      {description ? (
-        <p className={`${center ? "mx-auto" : ""} mt-4 max-w-3xl text-white/70`}>{description}</p>
+    <div className={center ? "mb-12 text-center" : "mb-10"}>
+      <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">{eyebrow}</p>
+      <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl [font-family:var(--font-geist-sans)]">
+        {title}
+      </h2>
+      {subtitle ? (
+        <p className={`${center ? "mx-auto" : ""} mt-4 max-w-3xl text-[var(--text-soft)]`}>{subtitle}</p>
       ) : null}
     </div>
   );
@@ -159,66 +165,99 @@ function SectionHeader({
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>("dark");
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 14);
+    const onScroll = () => setIsScrolled(window.scrollY > 12);
     onScroll();
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const isLight = theme === "light";
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#0b0b11] text-white">
-      <div className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_20%,rgba(139,92,246,0.28),transparent_45%),radial-gradient(circle_at_85%_15%,rgba(148,163,184,0.18),transparent_40%),linear-gradient(180deg,#0b0b11_0%,#090913_65%,#06060d_100%)] animate-gradient-drift" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:52px_52px]" />
-        <div className="absolute left-[6%] top-24 h-40 w-40 rounded-full bg-violet-300/15 blur-3xl animate-float-soft" />
-        <div className="absolute bottom-20 right-[8%] h-44 w-44 rounded-full bg-slate-300/10 blur-3xl animate-float-soft [animation-delay:1.4s]" />
+    <div
+      className="min-h-screen overflow-x-clip transition-colors duration-300 [font-family:var(--font-geist-sans)]"
+      style={
+        {
+          background: isLight
+            ? "linear-gradient(180deg,#f8f7fa 0%,#f0edf4 40%,#faf9fc 100%)"
+            : "linear-gradient(180deg,#0a0a0c 0%,#111114 40%,#0a0a0c 100%)",
+          color: isLight ? "#1a1820" : "#eceaf2",
+          ["--card" as string]: isLight ? "rgba(255,255,255,0.88)" : "rgba(24,24,28,0.72)",
+          ["--card-border" as string]: isLight ? "rgba(147,112,219,0.18)" : "rgba(147,112,219,0.28)",
+          ["--text-soft" as string]: isLight ? "#4a465a" : "rgba(224,222,240,0.82)",
+          ["--muted" as string]: isLight ? "#7a6b97" : "#a291de",
+          ["--pill" as string]: isLight ? "rgba(147,112,219,0.1)" : "rgba(147,112,219,0.16)",
+          ["--accent" as string]: isLight ? "#9333ea" : "#a855f7",
+          ["--accent-2" as string]: isLight ? "#a855f7" : "#c084fc",
+          ["--accent-soft" as string]: isLight ? "rgba(147,112,219,0.26)" : "rgba(168,85,247,0.34)",
+          ["--accent-strong" as string]: isLight ? "#7e22ce" : "#9333ea",
+          ["--warm" as string]: isLight ? "#db2777" : "#f472b6",
+          ["--cta-grad" as string]: isLight
+            ? "linear-gradient(135deg,#7e22ce 0%,#a855f7 100%)"
+            : "linear-gradient(135deg,#9333ea 0%,#c084fc 100%)",
+          ["--header-bg" as string]: isLight ? "rgba(245,243,248,0.85)" : "rgba(17,17,20,0.82)",
+          ["--header-border" as string]: isLight ? "rgba(147,112,219,0.18)" : "rgba(147,112,219,0.25)",
+          ["--header-shadow" as string]: isLight ? "0 10px 28px rgba(30,20,50,0.08)" : "0 10px 30px rgba(7,7,10,0.45)",
+          ["--danger" as string]: isLight ? "#dc2626" : "#ef4444",
+        } as React.CSSProperties
+      }
+    >
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute left-[-8%] top-20 h-80 w-80 rounded-full bg-purple-500/20 blur-3xl animate-float-soft" />
+        <div className="absolute right-[-5%] top-16 h-72 w-72 rounded-full bg-fuchsia-500/16 blur-3xl animate-float-soft [animation-delay:0.9s]" />
+        <div className="absolute bottom-[-18%] left-1/3 h-[26rem] w-[26rem] rounded-full bg-pink-500/10 blur-[100px] animate-gradient-drift" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,rgba(255,255,255,0.22),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(168,85,247,0.2),transparent_32%)]" />
       </div>
 
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-          isScrolled
-            ? "border-b border-white/10 bg-[#0d0d16]/85 py-3 backdrop-blur-xl"
-            : "bg-transparent py-5"
+          isScrolled ? "border-b py-3 backdrop-blur-xl" : "py-5"
         }`}
+        style={
+          isScrolled
+            ? {
+                background: "var(--header-bg)",
+                borderColor: "var(--header-border)",
+                boxShadow: "var(--header-shadow)",
+              }
+            : undefined
+        }
       >
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/logo.png"
-              alt="Qubily logo"
-              width={36}
-              height={36}
-              className="rounded-md"
-            />
-            <span className="font-[700] tracking-wide text-white [font-family:var(--font-geist-sans)]">
-              Qubily
-            </span>
+            <Image src="/logo.png" alt="Qubily logo" width={36} height={36} className="rounded-md" />
+            <span className="text-lg font-semibold tracking-tight [font-family:var(--font-geist-sans)]">Qubily</span>
           </Link>
 
-          <nav className="hidden items-center gap-7 text-sm text-white/80 lg:flex">
+          <nav className="hidden items-center gap-7 text-sm lg:flex">
             {navItems.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className="transition hover:text-violet-300"
-              >
+              <a key={item.label} href={item.href} className="text-[var(--text-soft)] transition hover:text-[var(--accent)]">
                 {item.label}
               </a>
             ))}
           </nav>
 
           <div className="hidden items-center gap-3 lg:flex">
+            <button
+              type="button"
+              onClick={() => setTheme((v) => (v === "light" ? "dark" : "light"))}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--text-soft)] transition hover:border-[var(--accent-soft)]"
+            >
+              {isLight ? <Moon size={14} /> : <Sun size={14} />} {isLight ? "Dark" : "Light"}
+            </button>
             <Link
               href="/login"
-              className="rounded-full border border-white/15 px-4 py-2 text-sm text-white/90 transition hover:border-violet-300/60 hover:text-violet-200"
+              className="rounded-full border border-[var(--card-border)] px-4 py-2 text-sm text-[var(--text-soft)] transition hover:border-[var(--accent-soft)] hover:text-[var(--accent)]"
             >
               Login
             </Link>
             <Link
               href="/signup"
-              className="rounded-full bg-violet-300 px-5 py-2 text-sm font-semibold text-[#1d1430] transition hover:bg-violet-200"
+              className="rounded-full px-5 py-2 text-sm font-semibold text-white shadow-md transition hover:brightness-105"
+              style={{ background: "var(--cta-grad)" }}
             >
               Get Started
             </Link>
@@ -226,7 +265,7 @@ export default function HomePage() {
 
           <button
             aria-label="Toggle menu"
-            className="rounded-md border border-white/15 p-2 text-white lg:hidden"
+            className="rounded-md border border-[var(--card-border)] bg-[var(--card)] p-2 lg:hidden"
             onClick={() => setIsMenuOpen((value) => !value)}
           >
             {isMenuOpen ? <X size={18} /> : <Menu size={18} />}
@@ -234,306 +273,304 @@ export default function HomePage() {
         </div>
 
         {isMenuOpen && (
-          <div className="border-t border-white/10 bg-[#0d0d16]/95 px-4 py-5 lg:hidden">
-            <nav className="mx-auto flex max-w-7xl flex-col gap-4">
+          <div className="border-t border-[var(--card-border)] bg-[var(--card)] px-4 py-5 lg:hidden">
+            <div className="mx-auto flex max-w-7xl flex-col gap-4">
               {navItems.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="text-sm text-white/85 transition hover:text-violet-300"
+                  className="text-sm text-[var(--text-soft)] transition hover:text-[var(--accent)]"
                 >
                   {item.label}
                 </a>
               ))}
-              <div className="mt-2 flex gap-3">
+              <div className="mt-2 grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTheme((v) => (v === "light" ? "dark" : "light"))}
+                  className="rounded-full border border-[var(--card-border)] px-3 py-2 text-sm text-[var(--text-soft)]"
+                >
+                  {isLight ? "Dark Theme" : "Light Theme"}
+                </button>
                 <Link
                   href="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex-1 rounded-full border border-white/15 px-4 py-2 text-center text-sm text-white/90"
+                  className="rounded-full border border-[var(--card-border)] px-3 py-2 text-center text-sm text-[var(--text-soft)]"
                 >
                   Login
                 </Link>
-                <Link
-                  href="/signup"
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex-1 rounded-full bg-violet-300 px-4 py-2 text-center text-sm font-semibold text-[#1d1430]"
-                >
-                  Get Started
-                </Link>
               </div>
-            </nav>
+              <Link
+                href="/signup"
+                onClick={() => setIsMenuOpen(false)}
+                className="mt-1 rounded-full py-2.5 text-center text-sm font-semibold text-white"
+                style={{ background: "var(--cta-grad)" }}
+              >
+                Start Free
+              </Link>
+            </div>
           </div>
         )}
       </header>
 
       <main>
-        <section className="mx-auto flex max-w-7xl flex-col items-center px-4 pb-20 pt-36 text-center sm:px-6 md:pb-28 md:pt-44">
-          <span className="reveal-up mb-6 inline-flex items-center gap-2 rounded-full border border-violet-300/35 bg-violet-300/10 px-4 py-1 text-xs uppercase tracking-[0.2em] text-violet-100">
-            <Sparkles size={14} /> Community-first communication
-          </span>
-          <h1 className="reveal-up max-w-4xl text-balance text-4xl font-semibold leading-tight text-white sm:text-6xl md:text-7xl [font-family:var(--font-geist-sans)] [animation-delay:80ms]">
-            Build your digital home with a landing experience that feels premium.
-          </h1>
-          <p className="reveal-up mt-6 max-w-2xl text-base leading-relaxed text-white/72 sm:text-lg [animation-delay:140ms]">
-            Qubily gives your server a faster, cleaner place to chat, stream, and collaborate with AI-powered tools built in.
-          </p>
-          <div className="reveal-up mt-10 flex w-full flex-col items-center justify-center gap-4 sm:w-auto sm:flex-row [animation-delay:220ms]">
-            <Link
-              href="/signup"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-violet-300 px-7 py-3 font-semibold text-[#1d1430] transition hover:bg-violet-200 sm:w-auto"
-            >
-              Start Free <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/15 bg-white/5 px-7 py-3 text-white/90 transition hover:border-white/35 hover:bg-white/10 sm:w-auto"
-            >
-              Open in Browser
-            </Link>
+        <section className="mx-auto max-w-7xl px-4 pb-16 pt-36 sm:px-6 md:pt-44 md:pb-20">
+          <div className="grid items-center gap-10 lg:grid-cols-[1.02fr_0.98fr]">
+            <div>
+              <span className="reveal-up inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--pill)] px-4 py-1 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
+                <Sparkles size={13} /> Built for high-retention communities
+              </span>
+
+              <h1 className="reveal-up mt-6 text-4xl font-semibold leading-[1.04] tracking-tight sm:text-6xl [animation-delay:80ms] [font-family:var(--font-geist-sans)]">
+                A cleaner way to chat, collaborate, and grow your community.
+              </h1>
+
+              <p className="reveal-up mt-5 max-w-xl text-base leading-relaxed text-[var(--text-soft)] sm:text-lg [animation-delay:160ms]">
+                Qubily combines channel messaging, voice rooms, moderation, and discovery into one product teams can manage without complexity.
+              </p>
+
+              <div className="reveal-up mt-8 flex flex-col gap-3 sm:flex-row [animation-delay:230ms]">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-105"
+                  style={{ background: "var(--cta-grad)" }}
+                >
+                  Start Free <ArrowRight size={15} />
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-full border border-[var(--card-border)] bg-[var(--card)] px-6 py-3 text-[var(--text-soft)] transition hover:-translate-y-0.5 hover:border-[var(--accent-soft)] hover:text-[var(--accent)]"
+                >
+                  Open in Browser
+                </Link>
+              </div>
+
+              <div className="reveal-up mt-7 flex flex-wrap items-center gap-3 text-xs text-[var(--text-soft)] [animation-delay:290ms]">
+                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">No installation needed</span>
+                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">LiveKit voice + video</span>
+                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">Redis + Kafka infrastructure</span>
+              </div>
+            </div>
+
+            <div className="reveal-up relative [animation-delay:180ms]">
+              <div className="absolute -left-4 top-10 h-16 w-16 rounded-2xl bg-purple-500/40 blur-sm" />
+              <div className="absolute -right-5 bottom-8 h-12 w-12 rounded-full border-4 border-[var(--accent-soft)]" />
+
+              <article className="rounded-[1.75rem] border border-[var(--card-border)] bg-[var(--card)] p-4 shadow-2xl backdrop-blur-sm">
+                <div className="grid grid-cols-[0.34fr_0.66fr] gap-3">
+                  <aside className="rounded-2xl border border-[var(--card-border)] bg-[var(--pill)] p-3">
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">Channels</p>
+                    <div className="mt-3 space-y-2 text-xs text-[var(--text-soft)]">
+                      <p className="rounded-md bg-[var(--card)] px-2 py-1 text-[var(--accent)]"># announcements</p>
+                      <p># product-launch</p>
+                      <p># support</p>
+                      <p># events</p>
+                    </div>
+                  </aside>
+
+                  <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-3">
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-[var(--accent)]"># product-launch</p>
+                      <span className="rounded-full bg-[var(--pill)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">42 online</span>
+                    </div>
+                    <div className="space-y-2 text-xs text-[var(--text-soft)]">
+                      <p className="rounded-lg bg-[var(--pill)] p-2">Weekly update is live. Check rollout notes.</p>
+                      <p className="rounded-lg bg-[var(--pill)] p-2">Voice room opens in 10 minutes for Q&A.</p>
+                      <div className="rounded-lg bg-gradient-to-r from-pink-500/20 via-fuchsia-400/10 to-transparent p-2 ring-1 ring-pink-400/30">
+                        <p className="font-semibold text-[var(--warm)]">Moderator insight</p>
+                        <p className="mt-1">Spam pattern detected and auto-filtered.</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-[10px]">
+                      <button className="rounded-md border border-[var(--card-border)] bg-[var(--card)] py-2 transition hover:-translate-y-0.5">
+                        <Mic size={13} className="mx-auto" />
+                      </button>
+                      <button className="rounded-md border border-[var(--card-border)] bg-[var(--card)] py-2 transition hover:-translate-y-0.5">
+                        <Video size={13} className="mx-auto" />
+                      </button>
+                      <button className="rounded-md py-2 text-white transition hover:-translate-y-0.5" style={{ backgroundColor: "var(--danger)" }}>
+                        Leave
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
           </div>
 
-          <div className="mt-14 grid w-full gap-4 sm:grid-cols-3">
-            {stats.map((item, idx) => (
+          <div className="mt-12 grid gap-4 sm:grid-cols-3">
+            {quickStats.map((item, idx) => (
               <article
                 key={item.label}
-                className="reveal-up rounded-2xl border border-white/10 bg-white/5 p-5 text-left shadow-[0_12px_48px_rgba(0,0,0,0.25)] transition duration-300 hover:-translate-y-1 hover:border-violet-200/45 hover:bg-white/10"
-                style={{ animationDelay: `${260 + idx * 70}ms` }}
+                className="reveal-up flex items-center gap-3 rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5 transition duration-300 hover:-translate-y-1 hover:border-[var(--accent-soft)] hover:shadow-lg"
+                style={{ animationDelay: `${320 + idx * 80}ms` }}
               >
-                <p className="text-2xl font-semibold text-violet-200">{item.value}</p>
-                <p className="mt-1 text-sm text-white/70">{item.label}</p>
+                <item.icon size={20} className="text-[var(--accent)]" />
+                <div>
+                  <p className="text-2xl font-semibold text-[var(--accent)]">{item.value}</p>
+                  <p className="mt-1 text-sm text-[var(--text-soft)]">{item.label}</p>
+                </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section id="features" className="border-y border-white/10 bg-white/[0.02]">
+        <section id="features" className="scroll-mt-28 border-y border-[var(--card-border)] bg-[var(--pill)]/45">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
-            <SectionHeader
-              eyebrow="Core features"
-              title="Everything your Qubily community needs in one place"
-              description="The platform already supports messaging, calls, discovery, moderation, profiles, and rich collaboration flows."
+            <SectionHeading
+              eyebrow="Features"
+              title="Focused tools that keep communities active"
+              subtitle="Everything is organized around clarity, speed, and maintainable moderation workflows."
               center
             />
+
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {communicationFeatures.map((feature, idx) => {
-                const Icon = feature.icon;
-                return (
-                  <article
-                    key={feature.title}
-                    className="reveal-up rounded-2xl border border-white/10 bg-white/5 p-5 transition duration-300 hover:-translate-y-1 hover:border-violet-200/45 hover:bg-white/10"
-                    style={{ animationDelay: `${idx * 80}ms` }}
-                  >
-                    <Icon size={18} className="text-violet-200" />
-                    <h3 className="mt-4 text-lg font-semibold text-white">{feature.title}</h3>
-                    <p className="mt-2 text-sm text-white/70">{feature.description}</p>
-                  </article>
-                );
-              })}
+              {coreFeatures.map((feature, idx) => (
+                <article
+                  key={feature.title}
+                  className="reveal-up rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5 transition duration-300 hover:-translate-y-1 hover:border-[var(--accent-soft)] hover:shadow-lg"
+                  style={{ animationDelay: `${idx * 90}ms` }}
+                >
+                  <div className="inline-flex rounded-xl bg-gradient-to-br from-purple-500/20 to-fuchsia-500/15 p-2 ring-1 ring-white/20">
+                    <feature.icon size={18} className="text-[var(--accent)]" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold">{feature.title}</h3>
+                  <p className="mt-2 text-sm text-[var(--text-soft)]">{feature.description}</p>
+                </article>
+              ))}
             </div>
           </div>
         </section>
 
-        <section id="product" className="mx-auto max-w-7xl border-b border-white/10 px-4 py-16 sm:px-6 md:py-24">
-          <div className="grid items-center gap-8 md:grid-cols-2 md:gap-14">
-            <div className="reveal-up rounded-3xl border border-white/10 bg-[#12121d]/90 p-5 shadow-2xl">
-              <div className="rounded-2xl border border-white/10 bg-[#181827] p-5">
-                <div className="mb-5 flex items-center justify-between text-xs text-white/60">
-                  <span># dev-room</span>
-                  <span>14 online</span>
-                </div>
-                <div className="space-y-3 text-sm">
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-violet-100">AI Summary</p>
-                    <p className="mt-1 text-white/70">8 new updates were posted since your last visit.</p>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                    <p className="text-slate-200">Voice Quality</p>
-                    <p className="mt-1 text-white/70">Noise reduction active for all participants.</p>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 pt-1">
-                    <button className="rounded-lg border border-white/15 bg-white/5 py-2 text-xs text-white/85">
-                      <Mic size={14} className="mx-auto" />
-                    </button>
-                    <button className="rounded-lg border border-white/15 bg-white/5 py-2 text-xs text-white/85">
-                      <Video size={14} className="mx-auto" />
-                    </button>
-                    <button className="rounded-lg border border-red-300/50 bg-red-300/20 py-2 text-xs text-red-100">
-                      Leave
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="reveal-up [animation-delay:120ms]">
-              <SectionHeader
-                eyebrow="Product"
-                title="Clean interface. Fast interactions. Better community flow."
-                description="We simplified the landing experience and the in-app journey so new members understand the value in seconds."
-              />
-              <div className="mt-7 grid gap-4 sm:grid-cols-2">
-                {features.map((feature, idx) => (
-                  <article
-                    key={feature.title}
-                    className="reveal-up rounded-2xl border border-white/10 bg-white/5 p-4 transition hover:border-violet-200/35 hover:bg-white/10"
-                    style={{ animationDelay: `${240 + idx * 60}ms` }}
-                  >
-                    <h3 className="font-medium text-white">{feature.title}</h3>
-                    <p className="mt-2 text-sm text-white/70">{feature.description}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="moderation" className="border-b border-white/10 bg-white/[0.015]">
+        <section id="workflow" className="scroll-mt-28 border-b border-[var(--card-border)]">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
-          <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-            <article className="reveal-up rounded-3xl border border-white/10 bg-white/5 p-6 md:p-8">
-              <SectionHeader
-                eyebrow="Admin toolkit"
-                title="Built-in moderation and server operations"
-                description="Your backend already ships with strong community management features. This section makes that value visible on the landing page."
-              />
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                {moderationFeatures.map((item, idx) => (
-                  <div key={item} className="reveal-up rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white/85" style={{ animationDelay: `${140 + idx * 50}ms` }}>
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </article>
-            <article className="reveal-up rounded-3xl border border-white/10 bg-gradient-to-b from-violet-300/15 to-transparent p-6 md:p-8 [animation-delay:120ms]">
-              <p className="text-xs uppercase tracking-[0.18em] text-violet-100/85">Scale-ready stack</p>
-              <h3 className="mt-3 text-2xl font-semibold [font-family:var(--font-geist-sans)]">Production architecture</h3>
-              <ul className="mt-5 space-y-3 text-sm text-white/75">
-                <li className="flex items-start gap-2">
-                  <Check size={14} className="mt-1 shrink-0 text-violet-200" />
-                  Multi-server backend with Nginx load balancing
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check size={14} className="mt-1 shrink-0 text-violet-200" />
-                  Redis adapter + Kafka fanout for real-time reliability
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check size={14} className="mt-1 shrink-0 text-violet-200" />
-                  Prisma + PostgreSQL data model for communities
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check size={14} className="mt-1 shrink-0 text-violet-200" />
-                  Docker-ready deployment and service monitoring
-                </li>
-              </ul>
-            </article>
-          </div>
+            <SectionHeading
+              eyebrow="Workflow"
+              title="A launch path your team can follow"
+              subtitle="Move from setup to scale with a clear operating model."
+            />
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {workflowSteps.map((step, idx) => (
+                <article
+                  key={step.title}
+                  className="reveal-up rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--pill)] text-sm font-semibold text-[var(--accent)]">
+                    {idx + 1}
+                  </span>
+                  <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
+                  <p className="mt-2 text-sm text-[var(--text-soft)]">{step.description}</p>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section id="safety" className="mx-auto max-w-7xl border-b border-white/10 px-4 py-16 sm:px-6 md:py-24">
-          <div className="reveal-up rounded-3xl border border-violet-200/25 bg-gradient-to-r from-violet-300/12 via-violet-200/6 to-slate-300/10 p-7 md:p-10">
-            <div className="grid items-start gap-8 md:grid-cols-2">
-              <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-violet-100">Safety and moderation</p>
-                <h2 className="mt-3 text-3xl font-semibold leading-tight sm:text-4xl [font-family:var(--font-geist-sans)]">
-                  Protection defaults that scale with your community.
-                </h2>
-                <p className="mt-4 text-white/75">
-                  Combine manual controls with automation for link filtering, member verification, and role-based moderation paths.
-                </p>
-              </div>
-              <ul className="space-y-3">
-                {[
-                  "Automated anti-spam checks",
-                  "Channel-level permission controls",
-                  "Audit logs for moderation actions",
-                  "Invite and onboarding protections",
-                ].map((item) => (
-                  <li
+        <section id="safety" className="scroll-mt-28 border-b border-[var(--card-border)] bg-[var(--pill)]/45">
+          <div className="mx-auto grid max-w-7xl gap-6 px-4 py-16 sm:px-6 md:grid-cols-[1.1fr_0.9fr] md:py-24">
+            <article className="reveal-up rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-6 md:p-8">
+              <SectionHeading
+                eyebrow="Safety"
+                title="Moderation designed for real operations"
+                subtitle="Prevent chaos early with controls your moderator team can trust."
+              />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                {moderationItems.map((item, idx) => (
+                  <div
                     key={item}
-                    className="flex items-start gap-3 rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white/85"
+                    className="reveal-up rounded-xl border border-[var(--card-border)] bg-[var(--pill)] px-3 py-2 text-sm text-[var(--text-soft)]"
+                    style={{ animationDelay: `${120 + idx * 60}ms` }}
                   >
-                    <ShieldCheck size={16} className="mt-0.5 shrink-0 text-violet-200" />
                     {item}
-                  </li>
+                  </div>
                 ))}
+              </div>
+            </article>
+
+            <article className="reveal-up rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-6 md:p-8 [animation-delay:120ms]">
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Discovery</p>
+              <h3 className="mt-3 text-2xl font-semibold [font-family:var(--font-geist-sans)]">Help users find the right place faster</h3>
+
+              <ul className="mt-6 space-y-3 text-sm text-[var(--text-soft)]">
+                <li className="flex items-start gap-2">
+                  <Check size={14} className="mt-1 text-[var(--accent)]" />
+                  Interest-first recommendations for better first-session retention
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={14} className="mt-1 text-[var(--accent)]" />
+                  Smarter search ranking with activity and profile signals
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={14} className="mt-1 text-[var(--accent)]" />
+                  Curated discovery cards for events, creators, and learning communities
+                </li>
               </ul>
-            </div>
+
+              <div className="mt-7 grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-[var(--card-border)] bg-[var(--pill)] p-3">
+                  <p className="text-xs text-[var(--muted)]">Join conversion</p>
+                  <p className="mt-1 text-xl font-semibold text-[var(--accent)]">+31%</p>
+                </div>
+                <div className="rounded-xl border border-[var(--card-border)] bg-[var(--pill)] p-3">
+                  <p className="text-xs text-[var(--muted)]">Week-1 retention</p>
+                  <p className="mt-1 text-xl font-semibold text-[var(--accent)]">+18%</p>
+                </div>
+              </div>
+            </article>
           </div>
         </section>
 
-        <section id="discover" className="border-b border-white/10 bg-white/[0.015]">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
-          <SectionHeader
-            eyebrow="Discover"
-            title="From private circles to public fandoms"
-            description="Curated categories and search-friendly communities help users find the right place faster."
-            center
-          />
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { name: "Gaming", members: "450K+ communities" },
-              { name: "Education", members: "120K+ communities" },
-              { name: "Creators", members: "290K+ communities" },
-            ].map((card, idx) => (
-              <article
-                key={card.name}
-                className="reveal-up rounded-2xl border border-white/10 bg-white/5 p-5 text-left transition duration-300 hover:-translate-y-1 hover:border-violet-200/45 hover:bg-white/10"
-                style={{ animationDelay: `${idx * 90}ms` }}
-              >
-                <p className="text-lg font-semibold">{card.name}</p>
-                <p className="mt-2 text-sm text-white/70">{card.members}</p>
-              </article>
-            ))}
-          </div>
-          </div>
-        </section>
-
-        <section id="pricing" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
-          <SectionHeader
+        <section id="pricing" className="scroll-mt-28 mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+          <SectionHeading
             eyebrow="Pricing"
-            title="Simple plans for growing communities"
+            title="Simple plans that scale with your server"
+            subtitle="Start free, upgrade only when your workflows need more depth."
             center
           />
 
-          <div className="mt-8 grid gap-5 md:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-3">
             {plans.map((plan, idx) => (
               <article
                 key={plan.name}
-                style={{ animationDelay: `${idx * 100}ms` }}
-                className={`rounded-3xl border p-6 ${
+                className={`reveal-up rounded-3xl border p-6 transition duration-300 hover:-translate-y-1 ${
                   plan.highlight
-                    ? "border-violet-200/40 bg-violet-300/10"
-                    : "border-white/10 bg-white/5"
-                } reveal-up transition duration-300 hover:-translate-y-1`}
+                    ? "border-[var(--accent-soft)] bg-[var(--pill)] shadow-lg shadow-purple-500/10"
+                    : "border-[var(--card-border)] bg-[var(--card)]"
+                }`}
+                style={{ animationDelay: `${idx * 90}ms` }}
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-semibold">{plan.name}</h3>
                   {plan.highlight ? (
-                    <span className="rounded-full bg-violet-300 px-3 py-1 text-xs font-semibold text-[#1d1430]">
-                      Most Popular
+                    <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ backgroundColor: "var(--accent-strong)" }}>
+                      Best Value
                     </span>
                   ) : null}
                 </div>
+
                 <p className="mt-4 text-3xl font-semibold">
                   {plan.price}
-                  <span className="text-base font-normal text-white/70"> {plan.period}</span>
+                  <span className="text-base font-normal text-[var(--text-soft)]"> {plan.period}</span>
                 </p>
+
                 <ul className="mt-5 space-y-2">
                   {plan.perks.map((perk) => (
-                    <li key={perk} className="flex items-start gap-2 text-sm text-white/80">
-                      <Check size={14} className="mt-0.5 text-violet-200" />
+                    <li key={perk} className="flex items-start gap-2 text-sm text-[var(--text-soft)]">
+                      <Check size={14} className="mt-1 text-[var(--accent)]" />
                       {perk}
                     </li>
                   ))}
                 </ul>
+
                 <button
-                  className={`mt-7 w-full rounded-full py-3 text-sm font-semibold transition ${
-                    plan.highlight
-                      ? "bg-violet-300 text-[#1d1430] hover:bg-violet-200"
-                      : "border border-white/20 text-white hover:bg-white/10"
+                  className={`mt-7 w-full rounded-full py-3 text-sm font-semibold transition hover:brightness-105 ${
+                    plan.highlight ? "text-white" : "border border-[var(--card-border)]"
                   }`}
+                  style={plan.highlight ? { background: "var(--cta-grad)" } : undefined}
                 >
                   Choose {plan.name}
                 </button>
@@ -541,101 +578,105 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+
+        <section id="faq" className="scroll-mt-28 border-y border-[var(--card-border)] bg-[var(--pill)]/45">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+            <SectionHeading
+              eyebrow="FAQ"
+              title="Common questions before launch"
+              subtitle="Short answers for teams evaluating Qubily."
+            />
+
+            <div className="space-y-3">
+              {faqs.map((item, idx) => (
+                <details
+                  key={item.q}
+                  className="reveal-up rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-5"
+                  style={{ animationDelay: `${idx * 80}ms` }}
+                >
+                  <summary className="cursor-pointer list-none text-sm font-semibold">
+                    {item.q}
+                  </summary>
+                  <p className="mt-3 text-sm leading-relaxed text-[var(--text-soft)]">{item.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
       </main>
 
-      <footer id="support" className="border-t border-white/10 bg-black/35 px-4 pb-8 pt-14 sm:px-6">
+      <footer id="support" className="border-t border-[var(--card-border)] bg-[var(--card)]/70 px-4 pb-8 pt-14 sm:px-6">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 rounded-3xl border border-violet-200/20 bg-gradient-to-r from-violet-300/12 via-violet-300/8 to-slate-300/10 p-6 md:p-8">
-            <p className="text-xs uppercase tracking-[0.18em] text-violet-100/90">Ready to launch</p>
+          <div className="mb-10 rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-6 md:p-8">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Ready to launch</p>
             <h2 className="mt-3 text-3xl font-semibold sm:text-4xl [font-family:var(--font-geist-sans)]">
-              Start building your Qubily community today
+              Build a community your members actually return to
             </h2>
+            <p className="mt-4 max-w-2xl text-[var(--text-soft)]">
+              Move from setup to daily engagement with cleaner channels, stronger moderation, and better discovery.
+            </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 rounded-full bg-violet-300 px-5 py-2.5 text-sm font-semibold text-[#1d1430] hover:bg-violet-200"
+                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white"
+                style={{ background: "var(--cta-grad)" }}
               >
                 Create Account <ArrowRight size={14} />
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm text-white/90 hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] px-5 py-2.5 text-sm text-[var(--text-soft)]"
               >
-                Open in Browser
+                Open App
               </Link>
             </div>
           </div>
 
-          <div className="grid gap-8 border-b border-white/10 pb-10 md:grid-cols-5">
-            <div className="md:col-span-2">
+          <div className="grid gap-8 border-b border-[var(--card-border)] pb-10 md:grid-cols-4">
+            <div>
               <Link href="/" className="inline-flex items-center gap-3">
                 <Image src="/logo.png" alt="Qubily logo" width={32} height={32} className="rounded-md" />
                 <span className="text-lg font-semibold [font-family:var(--font-geist-sans)]">Qubily</span>
               </Link>
-              <p className="mt-3 max-w-sm text-sm text-white/65">
-                Real-time communication platform with messaging, calls, server management, discovery, and moderation.
+              <p className="mt-3 max-w-sm text-sm text-[var(--text-soft)]">
+                Community infrastructure for teams that care about quality conversations.
               </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                <Link
-                  href="/signup"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/85 hover:border-violet-200/60 hover:text-violet-100"
-                >
-                  <Download size={14} /> Download
-                </Link>
-                <Link
-                  href="/login"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/85 hover:border-violet-200/60 hover:text-violet-100"
-                >
-                  Open App
-                </Link>
+            </div>
+
+            <div>
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Product</p>
+              <div className="mt-3 space-y-2 text-sm text-[var(--text-soft)]">
+                <a href="#features" className="block hover:text-[var(--accent)]">Features</a>
+                <a href="#pricing" className="block hover:text-[var(--accent)]">Pricing</a>
+                <a href="#faq" className="block hover:text-[var(--accent)]">FAQ</a>
               </div>
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-violet-100/85">Product</p>
-              <div className="mt-3 space-y-2 text-sm text-white/75">
-                <a href="#features" className="block hover:text-violet-100">Features</a>
-                <a href="#product" className="block hover:text-violet-100">Channels and Calls</a>
-                <a href="#discover" className="block hover:text-violet-100">Discovery</a>
-                <a href="#pricing" className="block hover:text-violet-100">Pricing</a>
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Explore</p>
+              <div className="mt-3 space-y-2 text-sm text-[var(--text-soft)]">
+                <a href="#workflow" className="inline-flex items-center gap-1 hover:text-[var(--accent)]"><Search size={13} /> Workflow</a>
+                <a href="#safety" className="inline-flex items-center gap-1 hover:text-[var(--accent)]"><ShieldCheck size={13} /> Safety</a>
+                <a href="#features" className="inline-flex items-center gap-1 hover:text-[var(--accent)]"><Globe size={13} /> Discovery</a>
               </div>
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-violet-100/85">Platform</p>
-              <div className="mt-3 space-y-2 text-sm text-white/75">
-                <a href="#moderation" className="block hover:text-violet-100">Moderation</a>
-                <a href="#safety" className="block hover:text-violet-100">Safety</a>
-                <a href="#support" className="block hover:text-violet-100">Support</a>
-                <Link href="/me/profile" className="block hover:text-violet-100">Profile</Link>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-violet-100/85">Resources</p>
-              <div className="mt-3 space-y-2 text-sm text-white/75">
-                <Link href="/signup" className="block hover:text-violet-100">Create Account</Link>
-                <Link href="/login" className="block hover:text-violet-100">Sign In</Link>
-                <a href="#discover" className="block hover:text-violet-100">Find Communities</a>
-                <a href="#support" className="block hover:text-violet-100">Contact</a>
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Account</p>
+              <div className="mt-3 space-y-2 text-sm text-[var(--text-soft)]">
+                <Link href="/signup" className="block hover:text-[var(--accent)]">Create Account</Link>
+                <Link href="/login" className="block hover:text-[var(--accent)]">Sign In</Link>
+                <Link href="/me/profile" className="block hover:text-[var(--accent)]">Profile</Link>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 pt-6 text-xs text-white/55 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 pt-6 text-xs text-[var(--text-soft)] sm:flex-row sm:items-center sm:justify-between">
             <p>Copyright 2026 Qubily. All rights reserved.</p>
-            <div className="flex gap-4">
-              <a href="#support" className="hover:text-violet-100">Privacy</a>
-              <a href="#support" className="hover:text-violet-100">Terms</a>
-              <a href="#support" className="inline-flex items-center gap-1 hover:text-violet-100">
-                <Bot size={13} /> Support
-              </a>
-              <a href="#discover" className="inline-flex items-center gap-1 hover:text-violet-100">
-                <Search size={13} /> Discover
-              </a>
-              <a href="#moderation" className="inline-flex items-center gap-1 hover:text-violet-100">
-                <LayoutTemplate size={13} /> Admin
-              </a>
+            <div className="flex flex-wrap gap-4">
+              <a href="#support" className="hover:text-[var(--accent)]">Privacy</a>
+              <a href="#support" className="hover:text-[var(--accent)]">Terms</a>
+              <a href="#support" className="hover:text-[var(--accent)]">Support</a>
             </div>
           </div>
         </div>
@@ -643,5 +684,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-

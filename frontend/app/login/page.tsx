@@ -112,14 +112,14 @@ function LoginContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020204] text-[#ececed] font-sans selection:bg-cyan-500/40 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] text-[#eceaf2] font-sans selection:bg-purple-500/40 overflow-hidden">
       
       {/* --- BACKGROUND ENGINE --- */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#1e1e3a_0%,transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#221133_0%,transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:64px_64px]" />
-        <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[10%] right-[15%] w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[10%] right-[15%] w-[400px] h-[400px] bg-fuchsia-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }} />
       </div>
 
       {/* --- NAVIGATION --- */}
@@ -130,7 +130,7 @@ function LoginContent() {
             <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Quibly</span>
           </Link>
           
-          <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-all group">
+          <Link href="/" className="flex items-center gap-2 text-gray-400 hover:text-purple-400 transition-all group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-widest">Back Home</span>
           </Link>
@@ -144,13 +144,13 @@ function LoginContent() {
           {/* --- LEFT: LOGIN FORM --- */}
           <div className="relative z-10 max-w-md mx-auto lg:mx-0 w-full">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-[10px] font-black tracking-[0.2em] text-cyan-400 mb-6 uppercase">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/20 bg-purple-500/5 text-[10px] font-black tracking-[0.2em] text-purple-400 mb-6 uppercase">
               <Sparkles size={12} /> Secure Access
             </div>
 
             {/* Title */}
             <h1 className="text-5xl md:text-6xl font-black leading-[0.9] mb-4 tracking-tighter">
-              WELCOME <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">BACK.</span>
+              WELCOME <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-400">BACK.</span>
             </h1>
             <p className="text-lg text-gray-500 mb-10 font-medium">
               Sign in to continue your journey with Quibly.
@@ -159,15 +159,15 @@ function LoginContent() {
             {/* Form Card */}
             <div className="relative group">
               {/* Glow Effect */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-[30px] blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-fuchsia-500/20 rounded-[30px] blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
               
               {/* Form Container */}
-              <div className="relative bg-[#08080a] border border-white/10 rounded-[30px] p-8 backdrop-blur-xl">
+              <div className="relative bg-[#18181c] border border-white/10 rounded-[30px] p-8 backdrop-blur-xl">
                 {!showForgotPassword ? (
                   <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Email */}
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                    <Label htmlFor="email" className="text-purple-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
                       <Mail className="w-3 h-3" />
                       Email Address
                     </Label>
@@ -177,7 +177,7 @@ function LoginContent() {
                       type="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`bg-white/5 border-white/10 text-white h-12 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
+                      className={`bg-white/5 border-white/10 text-white h-12 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 placeholder:text-gray-600 ${
                         errors.email ? 'border-red-500 ring-2 ring-red-500/20' : ''
                       }`}
                       placeholder="your.email@quibly.com"
@@ -193,7 +193,7 @@ function LoginContent() {
 
                   {/* Password */}
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                    <Label htmlFor="password" className="text-purple-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
                       <Lock className="w-3 h-3" />
                       Password
                     </Label>
@@ -204,7 +204,7 @@ function LoginContent() {
                         type={showPassword ? 'text' : 'password'}
                         value={formData.password}
                         onChange={handleChange}
-                        className={`bg-white/5 border-white/10 text-white h-12 pr-10 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
+                        className={`bg-white/5 border-white/10 text-white h-12 pr-10 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 placeholder:text-gray-600 ${
                           errors.password ? 'border-red-500 ring-2 ring-red-500/20' : ''
                         }`}
                         placeholder="Enter your password"
@@ -212,7 +212,7 @@ function LoginContent() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-400 transition-colors"
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
@@ -231,16 +231,16 @@ function LoginContent() {
                       <input
                         id="remember"
                         type="checkbox"
-                        className="h-3.5 w-3.5 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500 cursor-pointer"
+                        className="h-3.5 w-3.5 rounded border-white/20 bg-white/5 text-purple-500 focus:ring-purple-500 cursor-pointer"
                       />
-                      <label htmlFor="remember" className="text-xs text-gray-400 cursor-pointer hover:text-cyan-400 transition-colors font-medium">
+                      <label htmlFor="remember" className="text-xs text-gray-400 cursor-pointer hover:text-purple-400 transition-colors font-medium">
                         Remember me
                       </label>
                     </div>
                     <button 
                       type="button"
                       onClick={() => setShowForgotPassword(true)}
-                      className="text-xs text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider hover:underline transition-colors"
+                      className="text-xs text-purple-400 hover:text-purple-300 font-bold uppercase tracking-wider hover:underline transition-colors"
                     >
                       Forgot?
                     </button>
@@ -250,7 +250,7 @@ function LoginContent() {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl shadow-white/10 hover:shadow-cyan-400/30 mt-8 relative overflow-hidden group"
+                    className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-purple-400 transition-all shadow-xl shadow-white/10 hover:shadow-purple-400/30 mt-8 relative overflow-hidden group"
                   >
                     <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700"></span>
                     {isLoading ? (
@@ -311,7 +311,7 @@ function LoginContent() {
                             setForgotSuccess(false)
                             setForgotEmail('')
                           }}
-                          className="w-full h-12 bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl"
+                          className="w-full h-12 bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-purple-400 transition-all shadow-xl"
                         >
                           Back to Login
                         </Button>
@@ -323,7 +323,7 @@ function LoginContent() {
                             <button
                               type="button"
                               onClick={() => setShowForgotPassword(false)}
-                              className="text-gray-500 hover:text-cyan-400 flex items-center gap-2 transition-all group"
+                              className="text-gray-500 hover:text-purple-400 flex items-center gap-2 transition-all group"
                             >
                               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                               <span className="text-[10px] font-black uppercase tracking-widest">Return</span>
@@ -334,7 +334,7 @@ function LoginContent() {
                             Enter your email to receive a secure recovery link.
                           </p>
                           
-                          <Label htmlFor="forgotEmail" className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                          <Label htmlFor="forgotEmail" className="text-purple-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
                             <Mail className="w-3 h-3" />
                             Email Address
                           </Label>
@@ -343,7 +343,7 @@ function LoginContent() {
                             type="email"
                             value={forgotEmail}
                             onChange={(e) => setForgotEmail(e.target.value)}
-                            className={`bg-white/5 border-white/10 text-white h-12 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
+                            className={`bg-white/5 border-white/10 text-white h-12 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 placeholder:text-gray-600 ${
                               errors.forgot ? 'border-red-500 ring-2 ring-red-500/20' : ''
                             }`}
                             placeholder="your.email@quibly.com"
@@ -360,7 +360,7 @@ function LoginContent() {
                         <Button
                           type="submit"
                           disabled={isLoading}
-                          className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl shadow-white/10 mt-4 relative overflow-hidden group"
+                          className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-purple-400 transition-all shadow-xl shadow-white/10 mt-4 relative overflow-hidden group"
                         >
                           {isLoading ? (
                             <div className="h-5 w-5 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -379,7 +379,7 @@ function LoginContent() {
                     <div className="w-full border-t border-white/5"></div>
                   </div>
                   <div className="relative flex justify-center text-[10px]">
-                    <span className="px-4 bg-[#08080a] text-gray-600 font-black uppercase tracking-widest">New User?</span>
+                    <span className="px-4 bg-[#18181c] text-gray-600 font-black uppercase tracking-widest">New User?</span>
                   </div>
                 </div>
 
@@ -423,8 +423,8 @@ function AnimatedVisualization() {
   }, [])
 
   const features = [
-    { icon: MessageSquare, label: 'Real-time Chat', color: 'text-cyan-400' },
-    { icon: Users, label: 'Communities', color: 'text-purple-400' },
+    { icon: MessageSquare, label: 'Real-time Chat', color: 'text-purple-400' },
+    { icon: Users, label: 'Communities', color: 'text-fuchsia-400' },
     { icon: Hash, label: 'Channels', color: 'text-emerald-400' },
     { icon: Zap, label: 'Lightning Fast', color: 'text-yellow-400' },
     { icon: Radio, label: 'Voice Rooms', color: 'text-pink-400' },
@@ -448,7 +448,7 @@ function AnimatedVisualization() {
     return (
       <div className="relative w-full h-[600px]">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white/5 rounded-full border-2 border-white/10 flex items-center justify-center backdrop-blur-xl">
-          <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full flex items-center justify-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center">
             <Terminal className="w-10 h-10 text-white" />
           </div>
         </div>
@@ -460,7 +460,7 @@ function AnimatedVisualization() {
     <div className="relative w-full h-[600px]">
       {/* Central Hub */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-white/5 rounded-full border-2 border-white/10 flex items-center justify-center backdrop-blur-xl">
-        <div className="w-20 h-20 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full flex items-center justify-center animate-pulse">
+        <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-fuchsia-500 rounded-full flex items-center justify-center animate-pulse">
           <Terminal className="w-10 h-10 text-white" />
         </div>
       </div>
@@ -478,7 +478,7 @@ function AnimatedVisualization() {
               transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${isActive ? 1.2 : 1})`,
             }}
           >
-            <div className={`w-20 h-20 rounded-2xl border ${isActive ? 'border-white/30 bg-white/10' : 'border-white/10 bg-white/5'} backdrop-blur-xl flex flex-col items-center justify-center gap-2 transition-all duration-500 ${isActive ? 'shadow-2xl shadow-cyan-500/20' : ''}`}>
+            <div className={`w-20 h-20 rounded-2xl border ${isActive ? 'border-white/30 bg-white/10' : 'border-white/10 bg-white/5'} backdrop-blur-xl flex flex-col items-center justify-center gap-2 transition-all duration-500 ${isActive ? 'shadow-2xl shadow-purple-500/20' : ''}`}>
               <feature.icon className={`w-8 h-8 ${isActive ? feature.color : 'text-gray-500'} transition-colors duration-500`} />
               <span className={`text-[8px] font-black uppercase tracking-wider ${isActive ? 'text-white' : 'text-gray-600'} transition-colors duration-500`}>
                 {feature.label.split(' ')[0]}
@@ -510,19 +510,19 @@ function AnimatedVisualization() {
       </svg>
 
       {/* Floating Code Snippets */}
-      <div className="absolute top-10 right-10 p-4 bg-black/60 border border-white/10 rounded-2xl backdrop-blur-xl font-mono text-xs text-cyan-400/80 animate-pulse">
+      <div className="absolute top-10 right-10 p-4 bg-black/60 border border-white/10 rounded-2xl backdrop-blur-xl font-mono text-xs text-purple-400/80 animate-pulse">
         <p>$ quibly.connect()</p>
         <p className="text-white">{'>'} Status: Online</p>
       </div>
 
-      <div className="absolute bottom-10 left-10 p-4 bg-black/60 border border-white/10 rounded-2xl backdrop-blur-xl font-mono text-xs text-purple-400/80 animate-pulse" style={{ animationDelay: '1s' }}>
+      <div className="absolute bottom-10 left-10 p-4 bg-black/60 border border-white/10 rounded-2xl backdrop-blur-xl font-mono text-xs text-fuchsia-400/80 animate-pulse" style={{ animationDelay: '1s' }}>
         <p>$ users.active</p>
         <p className="text-white">{'>'} 42,000+</p>
       </div>
 
       {/* Decorative Elements */}
-      <div className="absolute top-20 left-20 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />
-      <div className="absolute bottom-32 right-32 w-2 h-2 bg-purple-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
+      <div className="absolute top-20 left-20 w-2 h-2 bg-purple-400 rounded-full animate-ping" />
+      <div className="absolute bottom-32 right-32 w-2 h-2 bg-fuchsia-400 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
       <div className="absolute top-40 right-20 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '1s' }} />
     </div>
   )
@@ -531,11 +531,12 @@ function AnimatedVisualization() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#020204] flex items-center justify-center">
-        <div className="h-8 w-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     }>
       <LoginContent />
     </Suspense>
   )
 }
+

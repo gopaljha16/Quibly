@@ -70,12 +70,12 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020204] text-[#ececed] font-sans selection:bg-cyan-500/40 overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] text-[#eceaf2] font-sans selection:bg-purple-500/40 overflow-hidden">
       {/* Background Engine */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#1e1e3a_0%,transparent_50%)]" />
-        <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-[10%] left-[15%] w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,#221133_0%,transparent_50%)]" />
+        <div className="absolute top-[20%] right-[10%] w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[10%] left-[15%] w-[400px] h-[400px] bg-fuchsia-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1.5s' }} />
       </div>
 
       {/* Navigation */}
@@ -84,7 +84,7 @@ function ResetPasswordContent() {
           <Image src="/logo.png" alt="Quibly Logo" width={40} height={40} className="rounded-lg" />
           <span className="text-xl font-black tracking-widest uppercase italic hidden sm:block">Quibly</span>
         </Link>
-        <Link href="/login" className="flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-all group">
+        <Link href="/login" className="flex items-center gap-2 text-gray-400 hover:text-purple-400 transition-all group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-[10px] font-black uppercase tracking-widest">Back to Login</span>
         </Link>
@@ -93,18 +93,18 @@ function ResetPasswordContent() {
       <div className="relative min-h-screen flex items-center justify-center px-6">
         <div className="max-w-md w-full relative z-10">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-[10px] font-black tracking-[0.2em] text-cyan-400 mb-6 uppercase">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/20 bg-purple-500/5 text-[10px] font-black tracking-[0.2em] text-purple-400 mb-6 uppercase">
               <Shield size={12} /> Security Protocol
             </div>
             <h1 className="text-5xl font-black leading-[0.9] mb-4 tracking-tighter italic uppercase text-white">
-              RESET <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400 font-black">PASSWORD.</span>
+              RESET <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-fuchsia-400 font-black">PASSWORD.</span>
             </h1>
           </div>
 
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-[30px] blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-fuchsia-500/20 rounded-[30px] blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
             
-            <div className="relative bg-[#08080a] border border-white/10 rounded-[30px] p-8 backdrop-blur-xl">
+            <div className="relative bg-[#18181c] border border-white/10 rounded-[30px] p-8 backdrop-blur-xl">
               {isSuccess ? (
                 <div className="text-center py-6">
                   <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -141,7 +141,7 @@ function ResetPasswordContent() {
                     <>
                       {/* Password */}
                       <div className="space-y-2">
-                        <Label className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                        <Label className="text-purple-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
                           <Lock className="w-3 h-3" />
                           New Password
                         </Label>
@@ -150,7 +150,7 @@ function ResetPasswordContent() {
                             type={showPassword ? 'text' : 'password'}
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            className={`bg-white/5 border-white/10 text-white h-12 pr-10 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
+                            className={`bg-white/5 border-white/10 text-white h-12 pr-10 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 placeholder:text-gray-600 ${
                               errors.password ? 'border-red-500 ring-2 ring-red-500/20' : ''
                             }`}
                             placeholder="Min 6 characters"
@@ -159,7 +159,7 @@ function ResetPasswordContent() {
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-400 transition-colors"
                           >
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
@@ -171,7 +171,7 @@ function ResetPasswordContent() {
 
                       {/* Confirm Password */}
                       <div className="space-y-2">
-                        <Label className="text-cyan-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
+                        <Label className="text-purple-400 flex items-center gap-2 font-black text-[10px] uppercase tracking-widest">
                           <Shield className="w-3 h-3" />
                           Confirm New Password
                         </Label>
@@ -180,7 +180,7 @@ function ResetPasswordContent() {
                             type={showConfirmPassword ? 'text' : 'password'}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            className={`bg-white/5 border-white/10 text-white h-12 pr-10 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 placeholder:text-gray-600 ${
+                            className={`bg-white/5 border-white/10 text-white h-12 pr-10 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 placeholder:text-gray-600 ${
                               errors.confirmPassword ? 'border-red-500 ring-2 ring-red-500/20' : ''
                             }`}
                             placeholder="Re-type password"
@@ -188,7 +188,7 @@ function ResetPasswordContent() {
                           <button
                             type="button"
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-cyan-400 transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-400 transition-colors"
                           >
                             {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                           </button>
@@ -202,7 +202,7 @@ function ResetPasswordContent() {
                       <Button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl shadow-white/10 mt-6 relative overflow-hidden group"
+                        className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-purple-400 transition-all shadow-xl shadow-white/10 mt-6 relative overflow-hidden group"
                       >
                         {isLoading ? (
                           <Loader2 className="h-5 w-5 animate-spin mx-auto" />
@@ -225,11 +225,12 @@ function ResetPasswordContent() {
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#020204] flex items-center justify-center">
-        <div className="h-8 w-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     }>
       <ResetPasswordContent />
     </Suspense>
   )
 }
+

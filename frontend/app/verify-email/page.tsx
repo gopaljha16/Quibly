@@ -42,22 +42,22 @@ function VerifyEmailContent() {
   }, [token, userId])
 
   return (
-    <div className="min-h-screen bg-[#020204] text-[#ececed] font-sans flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] text-[#eceaf2] font-sans flex flex-col items-center justify-center px-6 relative overflow-hidden">
       {/* Background engine */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#1e1e3a_0%,transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#221133_0%,transparent_50%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:64px_64px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
         <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-[30px] blur-xl opacity-50 transition-opacity" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-fuchsia-500/20 rounded-[30px] blur-xl opacity-50 transition-opacity" />
           
-          <div className="relative bg-[#08080a] border border-white/10 rounded-[30px] p-10 backdrop-blur-xl text-center">
+          <div className="relative bg-[#18181c] border border-white/10 rounded-[30px] p-10 backdrop-blur-xl text-center">
             <div className="flex justify-center mb-8">
               {status === 'loading' && (
-                <div className="w-20 h-20 bg-cyan-500/10 rounded-full flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
+                <div className="w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center">
+                  <Loader2 className="w-10 h-10 text-purple-400 animate-spin" />
                 </div>
               )}
               {status === 'success' && (
@@ -83,7 +83,7 @@ function VerifyEmailContent() {
             {status === 'success' && (
               <Button
                 onClick={() => router.push('/login')}
-                className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl shadow-white/10 relative overflow-hidden group"
+                className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-purple-400 transition-all shadow-xl shadow-white/10 relative overflow-hidden group"
               >
                 Continue to Quibly
               </Button>
@@ -93,7 +93,7 @@ function VerifyEmailContent() {
               <div className="space-y-4">
                 <Button
                   onClick={() => router.push('/login')}
-                  className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-xl shadow-white/10 relative overflow-hidden group"
+                  className="w-full h-14 bg-white text-black font-black text-sm uppercase tracking-widest hover:bg-purple-400 transition-all shadow-xl shadow-white/10 relative overflow-hidden group"
                 >
                   Back to Login
                 </Button>
@@ -106,7 +106,7 @@ function VerifyEmailContent() {
         </div>
         
         <div className="mt-8 text-center">
-          <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-cyan-400 transition-all group">
+          <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-purple-400 transition-all group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-[10px] font-black uppercase tracking-widest">Return Home</span>
           </Link>
@@ -119,11 +119,12 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#020204] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-cyan-500 animate-spin" />
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
       </div>
     }>
       <VerifyEmailContent />
     </Suspense>
   )
 }
+
