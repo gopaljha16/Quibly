@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { AuthModel } from '@/models/auth/authModel'
 import { AuthApiService } from '@/services/api/authService'
 import { ApiError } from '@/lib/api'
+import { useAuthStore } from '@/lib/store/authStore'
 import type { SignupFormData, SignupErrors } from '@/models/auth/types'
 
 /**
@@ -11,6 +12,8 @@ import type { SignupFormData, SignupErrors } from '@/models/auth/types'
  */
 export function useSignupController() {
     const router = useRouter()
+    const { login: setAuthUser, setLoading, setError: setAuthError } = useAuthStore()
+    
     const [formData, setFormData] = useState<SignupFormData>({
         username: '',
         email: '',
@@ -19,7 +22,6 @@ export function useSignupController() {
     })
     const [selectedInterests, setSelectedInterests] = useState<string[]>([])
     const [errors, setErrors] = useState<SignupErrors>({})
-    const [isLoading, setIsLoading] = useState(false)
     const [recommendedChannels, setRecommendedChannels] = useState<any[]>([])
     const [showRecommendations, setShowRecommendations] = useState(false)
 
@@ -51,8 +53,9 @@ export function useSignupController() {
             return
         }
 
-        setIsLoading(true)
+        setLoading(true)
         setErrors({})
+        setAuthError(null)
 
         try {
             // Skip interests for now - backend doesn't have matching IDs
@@ -60,7 +63,12 @@ export function useSignupController() {
                 ...formData,
                 interests: [], // TODO: Fix interest ID mismatch between frontend and backend
             })
-            // Backend sets httpOnly cookie automatically - don't override it
+            
+            // Backend sets httpOnly cookie automatically
+            // Update Zustand store with user data
+            if (response?.user) {
+                setAuthUser(response.user)
+            }
 
             // Show recommendations if available
             if (response.recommendedChannels && response.recommendedChannels.length > 0) {
@@ -73,11 +81,14 @@ export function useSignupController() {
         } catch (error) {
             if (error instanceof ApiError) {
                 setErrors({ email: error.message })
+                setAuthError(error.message)
             } else {
-                setErrors({ email: 'An error occurred. Please try again.' })
+                const errorMsg = 'An error occurred. Please try again.'
+                setErrors({ email: errorMsg })
+                setAuthError(errorMsg)
             }
         } finally {
-            setIsLoading(false)
+            setLoading(false)
         }
     }
 
@@ -92,7 +103,7 @@ export function useSignupController() {
         formData,
         selectedInterests,
         errors,
-        isLoading,
+        isLoading: useAuthStore(state => state.isLoading),
         recommendedChannels,
         showRecommendations,
         // Actions

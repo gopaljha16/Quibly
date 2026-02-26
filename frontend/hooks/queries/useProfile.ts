@@ -2,9 +2,11 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { apiGet } from '@/lib/api'
+import { useAuthStore, User } from '@/lib/store/authStore'
 
 export type UserProfile = {
   _id: string
+  id?: string
   username: string
   email: string
   discriminator: string
@@ -25,10 +27,13 @@ type ProfileResponse = {
   banner?: string
   bio?: string
   _id?: string
+  id?: string
   isVerified?: boolean
 }
 
 export function useProfile() {
+  const { setUser } = useAuthStore()
+  
   // For httpOnly cookies, we can't check document.cookie
   // Instead, we always try to fetch if we're not on auth pages
   const isAuthPage = typeof window !== 'undefined' && (
@@ -50,12 +55,12 @@ export function useProfile() {
         if (response.user) {
           user = {
             ...response.user,
-            _id: response.user._id || (response.user as any).id || ''
+            _id: response.user._id || response.user.id || ''
           } as UserProfile
-        } else if (response._id || (response as any).id) {
+        } else if (response._id || response.id) {
           // Fallback for flat response
           user = {
-            _id: response._id || (response as any).id || '',
+            _id: response._id || response.id || '',
             username: response.username || '',
             email: response.email || '',
             discriminator: '0000',
@@ -67,11 +72,30 @@ export function useProfile() {
         }
 
         console.log('Parsed user:', user)
+        
+        // Sync with auth store
+        if (user) {
+          const authUser: User = {
+            id: user._id || user.id || '',
+            username: user.username,
+            email: user.email,
+            discriminator: user.discriminator,
+            avatar: user.avatar || null,
+            banner: user.banner || null,
+            bio: user.bio || null,
+            status: user.status || 'offline',
+            customStatus: user.customStatus || null,
+            isVerified: user.isVerified || false
+          }
+          setUser(authUser)
+        }
+        
         return user
         
       } catch (error: any) {
         console.error('❌ Profile fetch error:', error)
-        // Don't clear anything - just throw the error
+        // Clear auth store on error
+        setUser(null)
         throw error
       }
     },

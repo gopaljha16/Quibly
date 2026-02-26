@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import "@livekit/components-styles";
 import { QueryProvider } from "@/providers/QueryProvider";
+import { AuthProvider } from "@/providers/AuthProvider";
 import { SocketProvider } from "@/providers/SocketProvider";
 import { GoogleAuthProvider } from "@/providers/GoogleAuthProvider";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -61,14 +62,16 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <QueryProvider>
-          <SocketProvider>
-            <GoogleAuthProvider>
-              <AuthGuard>
-                <NotificationManager />
-                {children}
-              </AuthGuard>
-            </GoogleAuthProvider>
-          </SocketProvider>
+          <AuthProvider>
+            <SocketProvider>
+              <GoogleAuthProvider>
+                <AuthGuard>
+                  <NotificationManager />
+                  {children}
+                </AuthGuard>
+              </GoogleAuthProvider>
+            </SocketProvider>
+          </AuthProvider>
         </QueryProvider>
         <Toaster position="bottom-right" theme="dark" />
       </body>
