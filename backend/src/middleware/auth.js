@@ -4,9 +4,16 @@ const db = require('../config/db');
 // Authenticate user middleware
 exports.authenticate = async (req, res, next) => {
     try {
-        // Get token from cookie or header
+        // Get token from cookie or Authorization header
+        let token = req.cookies.token;
 
-        const token = req.cookies.token;
+        // Fall back to Authorization header if cookie is not present
+        if (!token) {
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7);
+            }
+        }
 
         if (!token) {
             return res.status(401).json({
