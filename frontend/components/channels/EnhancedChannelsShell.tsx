@@ -7,7 +7,7 @@ import { useChannelsData } from '@/hooks/useChannelsData'
 import { useProfile, useDMConversations, useMembers, useRoles } from '@/hooks/queries'
 
 import { usePresenceContext } from '@/components/PresenceProvider'
-import { apiPost } from '@/lib/api'
+import { ApiError, apiPost } from '@/lib/api'
 import CreateServerModal from './CreateServerModal'
 import MemberProfileModal from './MemberProfileModal'
 import CreateChannelModal from './CreateChannelModal'
@@ -139,6 +139,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   const [discoverOpen, setDiscoverOpen] = useState(false)
   const [memberListVisible, setMemberListVisible] = useState(true)
   const [memberSearchQuery, setMemberSearchQuery] = useState('')
+  const [verificationBannerDismissed, setVerificationBannerDismissed] = useState(false)
+  const [resendingVerification, setResendingVerification] = useState(false)
+  const [verificationMessage, setVerificationMessage] = useState<string | null>(null)
   
   // ALL useRef calls
   const serverMenuRef = useRef<HTMLDivElement | null>(null)
@@ -354,6 +357,27 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
     return null
   }
 
+  const shouldShowVerificationBanner =
+    !verificationBannerDismissed && !!currentUser.email && currentUser.isVerified === false
+
+  const handleResendVerification = async () => {
+    if (!currentUser?.email || resendingVerification) return
+    setResendingVerification(true)
+    setVerificationMessage(null)
+    try {
+      await apiPost('/auth/resend-verification', { email: currentUser.email })
+      setVerificationMessage('Verification email sent. Please check your inbox.')
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setVerificationMessage(error.message)
+      } else {
+        setVerificationMessage('Could not send verification email right now.')
+      }
+    } finally {
+      setResendingVerification(false)
+    }
+  }
+
   // Logout handler
 
   // Direct call initiation function (don't use useCall hook here to avoid duplicate listeners)
@@ -401,6 +425,34 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
   return (
     <div className="h-screen w-screen bg-[#313338] text-white flex overflow-hidden font-sans relative">
+      {shouldShowVerificationBanner && (
+        <div className="fixed top-0 left-0 right-0 z-[80] bg-[#f59e0b] text-[#111827] border-b border-[#d97706] px-4 py-2">
+          <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-3">
+            <div className="text-xs sm:text-sm font-semibold">
+              Your email is not verified yet. You can keep using the app and verify anytime.
+              {verificationMessage && <span className="ml-2 font-medium">{verificationMessage}</span>}
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendingVerification}
+                className="px-3 py-1 rounded bg-[#111827] text-white text-xs font-semibold hover:bg-black disabled:opacity-60"
+              >
+                {resendingVerification ? 'Sending...' : 'Resend verification'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setVerificationBannerDismissed(true)}
+                className="px-3 py-1 rounded bg-white/70 text-[#111827] text-xs font-semibold hover:bg-white"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Overlay */}
       {(mobileSidebarOpen || mobileChannelsOpen || mobileMembersOpen) && (
         <div 

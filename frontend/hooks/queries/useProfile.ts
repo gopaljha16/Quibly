@@ -13,6 +13,7 @@ export type UserProfile = {
   bio?: string
   status?: 'online' | 'idle' | 'dnd' | 'offline'
   customStatus?: string
+  isVerified?: boolean
 }
 
 type ProfileResponse = {
@@ -24,6 +25,7 @@ type ProfileResponse = {
   banner?: string
   bio?: string
   _id?: string
+  isVerified?: boolean
 }
 
 export function useProfile() {
@@ -59,7 +61,8 @@ export function useProfile() {
             discriminator: '0000',
             avatar: response.avatar,
             banner: response.banner,
-            bio: response.bio
+            bio: response.bio,
+            isVerified: response.isVerified
           } as UserProfile
         }
 

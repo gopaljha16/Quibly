@@ -89,8 +89,10 @@ exports.register = async (req, res) => {
         // Store verification token in Redis (expires in 24 hours)
         await redis.set(`verify:${verificationToken}`, user.id, 86400);
 
-        // Send verification email
-        await sendVerificationEmail(user.email, verificationToken, user.id);
+        // Send verification email in background so registration is not blocked by SMTP latency
+        sendVerificationEmail(user.email, verificationToken, user.id).catch((emailError) => {
+            console.error('Background verification email error:', emailError);
+        });
 
         // Generate JWT
         const token = generateToken(user.id);
