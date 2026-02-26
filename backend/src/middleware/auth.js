@@ -6,31 +6,15 @@ exports.authenticate = async (req, res, next) => {
     try {
         // Get token from cookie or header
 
-        let token;
-
-        // Check for token in Authorization header
-        if (
-            req.headers.authorization &&
-            req.headers.authorization.startsWith("Bearer")
-        ) {
-            token = req.headers.authorization.split(" ")[1];
-        }
-
-        console.log("token :- " , token)
-
-        // Log for debugging
-        if (!token) {
-            console.log(`[Auth] No token - Cookie: ${!!req.cookies.token}, Header: ${!!req.headers.authorization}, Path: ${req.path}`);
-        } else {
-            console.log(`[Auth] Token found via ${tokenSource} for ${req.path}`);
-        }
+        const token = req.cookies.token;
 
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'No token provided'
+                message: "Not authorized"
             });
         }
+        console.log("token :- ", token)
 
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
