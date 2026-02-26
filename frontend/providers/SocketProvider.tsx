@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client'
 import { connectSocket, disconnectSocket } from '@/lib/socket'
 import { setupSocketQuerySync } from '@/lib/socketQuerySync'
 import { queryClient } from '@/lib/queryClient'
-import { useProfile } from '@/hooks/queries/useProfile'
+import { useAuthStore } from '@/lib/store/authStore'
 
 type SocketContextValue = {
   socket: Socket | null
@@ -23,14 +23,14 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   const cleanupRef = useRef<(() => void) | null>(null)
   const [renderKey, setRenderKey] = useState(0)
   
-  // Use profile to determine if user is authenticated
-  const { data: currentUser } = useProfile()
-  const hasUser = !!currentUser
+  // Use auth store to determine if user is authenticated
+  const user = useAuthStore(state => state.user)
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
 
   useEffect(() => {
     // Only connect if user is authenticated
-    if (!hasUser) {
-      console.log('No user found, skipping socket connection')
+    if (!isAuthenticated || !user) {
+      console.log('No authenticated user, skipping socket connection')
       
       // Disconnect if previously connected
       if (socket) {
@@ -60,7 +60,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setRenderKey(k => k + 1) // Force re-render
       
       // Setup query sync
-      cleanupRef.current = setupSocketQuerySync(newSocket, queryClient, currentUser?._id, currentUser?.username)
+      cleanupRef.current = setupSocketQuerySync(newSocket, queryClient, user.id, user.username)
     }
 
     const handleDisconnect = () => {
@@ -90,7 +90,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         cleanupRef.current()
       }
     }
-  }, [hasUser])
+  }, [isAuthenticated, user])
 
   console.log('SocketProvider render - socket:', !!socket, 'connected:', isConnected, 'key:', renderKey)
 

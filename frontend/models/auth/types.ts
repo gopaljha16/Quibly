@@ -1,3 +1,5 @@
+import { User } from '@/lib/store/authStore'
+
 // Auth Type Definitions
 export interface LoginFormData {
     email: string
@@ -25,15 +27,16 @@ export interface SignupErrors {
 }
 
 export interface LoginResponse {
-    user: unknown
+    user: User
     token: string
     message?: string
+    success?: boolean
 }
 
 export interface SignupResponse {
     success: boolean
     message?: string
-    user?: unknown
+    user?: User
     token?: string
     recommendedChannels?: any[]
 }

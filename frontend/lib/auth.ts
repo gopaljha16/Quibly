@@ -1,4 +1,5 @@
 import { apiPost } from './api'
+import { useAuthStore } from './store/authStore'
 
 /**
  * Utility function to logout user
@@ -11,6 +12,9 @@ export async function logout() {
     } catch (error) {
         console.error('Logout error:', error)
     } finally {
+        // Clear Zustand auth store
+        useAuthStore.getState().logout()
+        
         // Clear any client-side cookies (in case they exist)
         if (typeof document !== 'undefined') {
             document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
