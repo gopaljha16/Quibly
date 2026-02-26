@@ -67,14 +67,6 @@ export async function apiRequest<T>(
     const payload = await parseErrorPayload(res)
     const message = payload?.message || `Request failed with status ${res.status}`
 
-    // Handle authentication errors - clear token but DON'T redirect (let middleware handle it)
-    if (res.status === 401) {
-      // Clear authentication cookie immediately
-      if (typeof document !== 'undefined') {
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-      }
-    }
-
     throw new ApiError(res.status, message, payload)
   }
 

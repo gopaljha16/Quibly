@@ -51,6 +51,12 @@ function SignupContent() {
     checkAuth()
   }, [router, redirect])
 
+  const setAuthTokenCookie = (token: string) => {
+    if (typeof document === 'undefined') return
+    const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : ''
+    document.cookie = `token=${encodeURIComponent(token)}; path=/; max-age=604800; samesite=lax${secure}`
+  }
+
   const validateForm = () => {
     const newErrors: any = {}
 
@@ -80,9 +86,9 @@ function SignupContent() {
     try {
       const response = await apiPost<any>('/auth/register', { ...formData, interests: selectedInterests })
 
-      if (response && response.token) {
-        document.cookie = `token=${response.token}; path=/; max-age=604800`;
-      }
+      if (!response?.token) throw new Error('Token missing in signup response')
+      setAuthTokenCookie(response.token)
+      await apiGet('/auth/profile')
 
       if (response.recommendedChannels?.length > 0) {
         setRecommendedChannels(response.recommendedChannels)
@@ -342,9 +348,9 @@ function SignupContent() {
                             const response = await apiPost<any>('/auth/google-login', { 
                               googleToken: credentialResponse.credential 
                             })
-                            if (response && response.token) {
-                              document.cookie = `token=${response.token}; path=/; max-age=604800`;
-                            }
+                            if (!response?.token) throw new Error('Token missing in Google signup response')
+                            setAuthTokenCookie(response.token)
+                            await apiGet('/auth/profile')
                             router.push(redirect)
                             router.refresh()
                           } catch (err) {
@@ -421,6 +427,5 @@ export default function SignupPage() {
     </Suspense>
   )
 }
-
 
 

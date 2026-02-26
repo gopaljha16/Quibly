@@ -43,7 +43,10 @@ export function useLoginController() {
         setErrors({})
 
         try {
-            await AuthApiService.login(formData)
+            const response = await AuthApiService.login(formData)
+            if (response?.token) {
+                document.cookie = `token=${response.token}; path=/; max-age=604800`
+            }
             router.push('/channels/@me')
             router.refresh()
         } catch (error) {

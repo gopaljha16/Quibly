@@ -60,6 +60,9 @@ export function useSignupController() {
                 ...formData,
                 interests: [], // TODO: Fix interest ID mismatch between frontend and backend
             })
+            if (response?.token) {
+                document.cookie = `token=${response.token}; path=/; max-age=604800`
+            }
 
             // Show recommendations if available
             if (response.recommendedChannels && response.recommendedChannels.length > 0) {
