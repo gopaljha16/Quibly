@@ -2,8 +2,14 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { useAuthStore } from '@/lib/store/authStore'
+import { useAuthStore, User } from '@/lib/store/authStore'
 import { userService } from '@/services/api/userService'
+
+// API Response type
+interface UserResponse {
+  success?: boolean
+  user: User
+}
 
 /**
  * AuthProvider - Initializes auth state on app load
@@ -30,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setLoading(true)
       try {
-        const response = await userService.getCurrentUser()
+        const response = await userService.getCurrentUser() as UserResponse
         if (response?.user) {
           setUser(response.user)
         }
