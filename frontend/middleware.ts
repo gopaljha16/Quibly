@@ -5,18 +5,14 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')
   const { pathname } = request.nextUrl
 
-  // If user is logged in and tries to access login/signup, redirect to channels
+  // Only redirect if we're SURE there's no auth (cookie exists and user tries auth pages)
+  // For protected routes, let client-side handle it since token might be in localStorage
   if (token && (pathname === '/login' || pathname === '/signup')) {
-    const response = NextResponse.redirect(new URL('/channels/@me', request.url))
-    return response
+    return NextResponse.redirect(new URL('/channels/@me', request.url))
   }
 
-  // If user is not logged in and tries to access protected routes, redirect to login
-  if (!token && pathname.startsWith('/channels')) {
-    const response = NextResponse.redirect(new URL('/login', request.url))
-    return response
-  }
-
+  // Don't redirect on protected routes - let AuthGuard handle it client-side
+  // This allows localStorage tokens to work in production
   return NextResponse.next()
 }
 
