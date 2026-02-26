@@ -394,3 +394,6 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
     gracefulShutdown('UNHANDLED_REJECTION');
 });
+
+
+console.log("node env" , process.env.NODE_ENV)
