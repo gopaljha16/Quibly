@@ -57,6 +57,15 @@ export async function apiRequest<T>(
     headers['Content-Type'] = 'application/json'
   }
 
+  // Add Authorization header as fallback when cookie isn't available
+  // This handles cases where SameSite cookies aren't sent (e.g., cross-site scenarios)
+  if (typeof window !== 'undefined' && !headers['Authorization']) {
+    const localToken = localStorage.getItem('token')
+    if (localToken) {
+      headers['Authorization'] = `Bearer ${localToken}`
+    }
+  }
+
   const res = await fetch(url, {
     ...options,
     headers,

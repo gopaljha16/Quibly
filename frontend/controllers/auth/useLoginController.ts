@@ -48,10 +48,15 @@ export function useLoginController() {
         try {
             const response = await AuthApiService.login(formData)
             
-            // Backend sets httpOnly cookie automatically
-            // Update Zustand store with user data
-            if (response?.user) {
-                setAuthUser(response?.user)
+            console.log('=== LOGIN DEBUG ===')
+            console.log('Full response:', JSON.stringify(response, null, 2))
+            
+            // Use the store's login method which handles both user and token
+            if (response?.user && response?.token) {
+                setAuthUser(response.user, response.token)
+                console.log('✓ User and token set in store')
+            } else {
+                console.error('✗ Missing user or token in response!')
             }
             
             // Navigate to app
