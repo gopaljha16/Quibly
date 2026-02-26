@@ -4,15 +4,17 @@ const db = require('../config/db');
 // Authenticate user middleware
 exports.authenticate = async (req, res, next) => {
     try {
-        // Get token from cookie or Authorization header
-        let token = req.cookies.token;
+        let token = null;
 
-        // Fall back to Authorization header if cookie is not present
+        // 1. Prioritize Authorization header (sent by our frontend API client)
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.substring(7);
+        }
+
+        // 2. Fall back to cookie if Authorization header is missing
         if (!token) {
-            const authHeader = req.headers.authorization;
-            if (authHeader && authHeader.startsWith('Bearer ')) {
-                token = authHeader.substring(7);
-            }
+            token = req.cookies.token;
         }
 
         if (!token) {
@@ -93,15 +95,17 @@ exports.authenticate = async (req, res, next) => {
 // Optional auth - doesn't fail if no token
 exports.optionalAuth = async (req, res, next) => {
     try {
-        // Get token from cookie or header
-        let token = req.cookies.token; // Check cookie first
+        let token = null;
 
+        // 1. Prioritize Authorization header
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.substring(7);
+        }
+
+        // 2. Fall back to cookie
         if (!token) {
-            // Fall back to Authorization header
-            const authHeader = req.headers.authorization;
-            if (authHeader && authHeader.startsWith('Bearer ')) {
-                token = authHeader.substring(7);
-            }
+            token = req.cookies.token;
         }
 
         if (!token) {
