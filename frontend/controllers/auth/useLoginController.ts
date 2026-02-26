@@ -44,9 +44,8 @@ export function useLoginController() {
 
         try {
             const response = await AuthApiService.login(formData)
-            if (response?.token) {
-                document.cookie = `token=${response.token}; path=/; max-age=604800`
-            }
+            // Backend sets httpOnly cookie automatically - don't override it
+            // Just navigate to the app
             router.push('/channels/@me')
             router.refresh()
         } catch (error) {

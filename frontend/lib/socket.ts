@@ -76,6 +76,11 @@ export const getSocket = (): Socket => {
 export const connectSocket = () => {
   const s = getSocket()
   if (!s.connected) {
+    // Refresh token in auth before connecting
+    const token = getTokenFromCookies()
+    if (token && typeof s.auth === 'object') {
+      (s.auth as Record<string, any>).token = token
+    }
     s.connect()
   }
   return s
