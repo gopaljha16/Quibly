@@ -39,6 +39,11 @@ function SignupContent() {
   // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
+      const hasToken =
+        typeof document !== 'undefined' &&
+        document.cookie.split(';').some((cookie) => cookie.trim().startsWith('token='))
+      if (!hasToken) return
+
       try {
         // Try to fetch user profile to check if logged in
         await apiGet('/auth/profile')
@@ -427,5 +432,4 @@ export default function SignupPage() {
     </Suspense>
   )
 }
-
 
