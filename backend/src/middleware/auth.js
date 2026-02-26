@@ -6,14 +6,16 @@ exports.authenticate = async (req, res, next) => {
     try {
         // Get token from cookie or header
         let token = req.cookies.token; // Check cookie first
-
+        console.log("token" , token)
         if (!token) {
             // Fall back to Authorization header
             const authHeader = req.headers.authorization;
+            console.log("auth header", authHeader);
             if (authHeader && authHeader.startsWith('Bearer ')) {
                 token = authHeader.substring(7); // Remove 'Bearer ' prefix
             }
         }
+
 
         if (!token) {
             return res.status(401).json({
