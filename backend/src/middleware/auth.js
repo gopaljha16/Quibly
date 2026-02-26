@@ -6,16 +6,25 @@ exports.authenticate = async (req, res, next) => {
     try {
         // Get token from cookie or header
         let token = req.cookies.token; // Check cookie first
-        console.log("token" , token)
-        if (!token) {
+        let tokenSource = 'none';
+
+        if (token) {
+            tokenSource = 'cookie';
+        } else {
             // Fall back to Authorization header
             const authHeader = req.headers.authorization;
-            console.log("auth header", authHeader);
             if (authHeader && authHeader.startsWith('Bearer ')) {
                 token = authHeader.substring(7); // Remove 'Bearer ' prefix
+                tokenSource = 'header';
             }
         }
 
+        // Log for debugging
+        if (!token) {
+            console.log(`[Auth] No token - Cookie: ${!!req.cookies.token}, Header: ${!!req.headers.authorization}, Path: ${req.path}`);
+        } else {
+            console.log(`[Auth] Token found via ${tokenSource} for ${req.path}`);
+        }
 
         if (!token) {
             return res.status(401).json({
