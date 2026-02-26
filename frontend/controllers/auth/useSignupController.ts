@@ -64,10 +64,15 @@ export function useSignupController() {
                 interests: [], // TODO: Fix interest ID mismatch between frontend and backend
             })
             
-            // Backend sets httpOnly cookie automatically
-            // Update Zustand store with user data
-            if (response?.user) {
-                setAuthUser(response.user)
+            console.log('=== SIGNUP DEBUG ===')
+            console.log('Full response:', JSON.stringify(response, null, 2))
+            
+            // Use the store's login method which handles both user and token
+            if (response?.user && response?.token) {
+                setAuthUser(response.user, response.token)
+                console.log('✓ User and token set in store')
+            } else {
+                console.error('✗ Missing user or token in response!')
             }
 
             // Show recommendations if available

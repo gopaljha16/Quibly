@@ -47,8 +47,8 @@ exports.authenticate = async (req, res, next) => {
             // Clear the invalid token with the same options used when setting it
             res.clearCookie('token', {
                 httpOnly: true,
-                secure: false,
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
                 path: '/'
             });
             return res.status(401).json({
