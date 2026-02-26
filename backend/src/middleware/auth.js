@@ -5,19 +5,18 @@ const db = require('../config/db');
 exports.authenticate = async (req, res, next) => {
     try {
         // Get token from cookie or header
-        let token = req.cookies.token; // Check cookie first
-        let tokenSource = 'none';
 
-        if (token) {
-            tokenSource = 'cookie';
-        } else {
-            // Fall back to Authorization header
-            const authHeader = req.headers.authorization;
-            if (authHeader && authHeader.startsWith('Bearer ')) {
-                token = authHeader.substring(7); // Remove 'Bearer ' prefix
-                tokenSource = 'header';
-            }
+        let token;
+
+        // Check for token in Authorization header
+        if (
+            req.headers.authorization &&
+            req.headers.authorization.startsWith("Bearer")
+        ) {
+            token = req.headers.authorization.split(" ")[1];
         }
+
+        console.log("token :- " , token)
 
         // Log for debugging
         if (!token) {
