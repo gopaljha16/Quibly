@@ -1,16 +1,29 @@
 import { io, Socket } from 'socket.io-client'
 
-// Helper function to get token from cookies
-const getTokenFromCookies = (): string | null => {
-  if (typeof document === 'undefined') return null
+// Helper function to get token from cookies or localStorage
+const getToken = (): string | null => {
+  if (typeof window === 'undefined') return null
 
-  const cookies = document.cookie.split(';')
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=')
-    if (name === 'token') {
-      return value
+  // Try localStorage first (more reliable in production)
+  const localToken = localStorage.getItem('token')
+  if (localToken) {
+    console.log('[Socket] Using token from localStorage')
+    return localToken
+  }
+
+  // Fall back to cookies
+  if (typeof document !== 'undefined') {
+    const cookies = document.cookie.split(';')
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split('=')
+      if (name === 'token') {
+        console.log('[Socket] Using token from cookie')
+        return value
+      }
     }
   }
+
+  console.log('[Socket] No token found')
   return null
 }
 
@@ -20,7 +33,7 @@ let socket: Socket | null = null
 export const getSocket = (): Socket => {
   if (!socket) {
     const SOCKET_URL = (process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000').replace(/\/$/, '')
-    const token = getTokenFromCookies()
+    const token = getToken()
 
     socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'], // Add polling fallback for load balancer compatibility
@@ -77,9 +90,10 @@ export const connectSocket = () => {
   const s = getSocket()
   if (!s.connected) {
     // Refresh token in auth before connecting
-    const token = getTokenFromCookies()
+    const token = getToken()
     if (token && typeof s.auth === 'object') {
       (s.auth as Record<string, any>).token = token
+      console.log('[Socket] Updated auth token before connecting')
     }
     s.connect()
   }
