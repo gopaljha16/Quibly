@@ -70,14 +70,17 @@ export const getSocket = (): Socket => {
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname
         if (!currentPath.includes('/login') && !currentPath.includes('/signup')) {
-          // Clear authentication cookie
+          // Clear all authentication state
           if (typeof document !== 'undefined') {
             document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-            // Disconnect socket
-            socketInstance.disconnect()
-            // Redirect to login page
-            window.location.href = '/login'
           }
+          // Clear localStorage tokens
+          localStorage.removeItem('token')
+          localStorage.removeItem('auth-storage')
+          // Disconnect socket
+          socketInstance.disconnect()
+          // Redirect to login page
+          window.location.href = '/login'
         }
       }
     })

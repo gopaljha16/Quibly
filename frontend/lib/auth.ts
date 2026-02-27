@@ -10,10 +10,10 @@ export function storeAuthToken(token: string): boolean {
             console.warn('Cannot store token: window is undefined (SSR)')
             return false
         }
-        
+
         console.log('Storing token:', token.substring(0, 20) + '...')
         window.localStorage.setItem('token', token)
-        
+
         // Verify it was stored
         const stored = window.localStorage.getItem('token')
         if (stored === token) {
@@ -53,17 +53,26 @@ export async function logout() {
     } catch (error) {
         console.error('Logout error:', error)
     } finally {
-        // Clear Zustand auth store
+        // Disconnect socket before clearing state
+        try {
+            const { disconnectSocket } = await import('./socket')
+            disconnectSocket()
+        } catch (e) {
+            // Socket may not be initialized
+        }
+
+        // Clear Zustand auth store (also removes 'token' from localStorage)
         useAuthStore.getState().logout()
-        
+
         // Clear any client-side cookies (in case they exist)
         if (typeof document !== 'undefined') {
             document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
         }
 
-        // Clear localStorage token
+        // Clear ALL auth-related localStorage keys
         if (typeof window !== 'undefined') {
             localStorage.removeItem('token')
+            localStorage.removeItem('auth-storage') // zustand persist key
         }
 
         // Redirect to login page
