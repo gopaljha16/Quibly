@@ -29,6 +29,8 @@ export function storeAuthToken(token: string): boolean {
     }
 }
 
+
+
 /**
  * Retrieve authentication token from localStorage
  */
