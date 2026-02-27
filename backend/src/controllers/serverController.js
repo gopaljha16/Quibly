@@ -1028,10 +1028,10 @@ exports.unbanMember = async (req, res) => {
 exports.discoverServers = async (req, res) => {
     try {
         const { interests, search, limit = 20, offset = 0 } = req.query;
-        
+
         // Parse interests if provided (comma-separated interest IDs)
         const interestIds = interests ? interests.split(',').filter(Boolean) : [];
-        
+
         // Build where clause
         const whereClause = {
             isPublic: true
@@ -1046,12 +1046,26 @@ exports.discoverServers = async (req, res) => {
         }
 
         // If interests are provided, filter servers that have those interests
+        // Support both cuid IDs and name-based IDs from the frontend
         if (interestIds.length > 0) {
-            whereClause.serverInterests = {
-                some: {
-                    interestId: { in: interestIds }
-                }
-            };
+            // Check if these look like cuid IDs or names
+            const looksLikeCuid = interestIds[0] && interestIds[0].length > 20;
+            if (looksLikeCuid) {
+                whereClause.serverInterests = {
+                    some: {
+                        interestId: { in: interestIds }
+                    }
+                };
+            } else {
+                // Frontend sends names like 'gaming', 'music' etc.
+                whereClause.serverInterests = {
+                    some: {
+                        interest: {
+                            name: { in: interestIds }
+                        }
+                    }
+                };
+            }
         }
 
         // Get servers with their interests
@@ -1104,8 +1118,10 @@ exports.discoverServers = async (req, res) => {
                 ...rest,
                 interests: serverInterests.map(si => si.interest),
                 isMember: memberServerIds.has(id),
-                matchCount: interestIds.length > 0 
-                    ? serverInterests.filter(si => interestIds.includes(si.interestId)).length 
+                matchCount: interestIds.length > 0
+                    ? serverInterests.filter(si =>
+                        interestIds.includes(si.interestId) || interestIds.includes(si.interest?.name)
+                    ).length
                     : 0
             };
         });
@@ -1205,22 +1221,25 @@ exports.addServerInterests = async (req, res) => {
             });
         }
 
-        // Verify all interests exist
+        // Look up interests by name (frontend sends names like 'gaming') OR by id (cuid)
+        const looksLikeCuid = interestIds[0] && interestIds[0].length > 20;
         const interests = await db.interest.findMany({
-            where: { id: { in: interestIds } }
+            where: looksLikeCuid
+                ? { id: { in: interestIds } }
+                : { name: { in: interestIds } }
         });
 
-        if (interests.length !== interestIds.length) {
+        if (interests.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: 'One or more interest IDs are invalid'
+                message: 'No valid interests found. Make sure interests are seeded in the database.'
             });
         }
 
-        // Add interests (skip duplicates)
-        const createData = interestIds.map(interestId => ({
+        // Add interests (skip duplicates) — use actual DB IDs from the lookup
+        const createData = interests.map(interest => ({
             serverId,
-            interestId
+            interestId: interest.id
         }));
 
         await db.serverInterest.createMany({
@@ -1280,11 +1299,20 @@ exports.removeServerInterest = async (req, res) => {
             });
         }
 
-        // Remove the interest
+        // Remove the interest — support both cuid ID and name
+        const looksLikeCuid = interestId && interestId.length > 20;
+        let actualInterestId = interestId;
+
+        if (!looksLikeCuid) {
+            // Frontend might pass name instead of cuid
+            const interest = await db.interest.findUnique({ where: { name: interestId } });
+            if (interest) actualInterestId = interest.id;
+        }
+
         await db.serverInterest.deleteMany({
             where: {
                 serverId,
-                interestId
+                interestId: actualInterestId
             }
         });
 

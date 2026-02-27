@@ -101,7 +101,17 @@ function SignupContent() {
       setAuthTokenCookie(response.token)
 
       if (response.recommendedChannels?.length > 0) {
-        setRecommendedChannels(response.recommendedChannels)
+        // Map backend server data to the format RecommendedChannelsModal expects
+        const mapped = response.recommendedChannels.map((s: any) => ({
+          id: s._id,
+          serverId: s._id,
+          name: s.name,
+          serverName: s.name,
+          serverIcon: s.icon || null,
+          membersCount: s.membersCount || 0,
+          matchCount: 0
+        }))
+        setRecommendedChannels(mapped)
         setShowRecommendations(true)
       } else {
         window.location.href = redirect
@@ -419,7 +429,7 @@ function SignupContent() {
           channels={recommendedChannels}
           onClose={() => {
             setShowRecommendations(false)
-            router.push(redirect)
+            window.location.href = redirect
           }}
         />
       )}

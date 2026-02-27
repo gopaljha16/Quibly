@@ -14,46 +14,36 @@ export const useCall = () => {
 
         const fetchTokenAndJoin = async (dmRoomId: string) => {
             try {
-                console.log('🎫 Fetching call token for room:', dmRoomId)
                 const response = await apiGet<{ token: string, wsUrl: string, success?: boolean }>(`/dm/token/${dmRoomId}`)
-                console.log('✅ Token received:', { 
-                    hasToken: !!(response as any).token, 
-                    wsUrl: (response as any).wsUrl 
-                })
                 setInCall((response as any).token, (response as any).wsUrl)
             } catch (error) {
-                console.error('❌ Failed to get call token:', error)
+                console.error('Failed to get call token:', error)
                 resetCall()
             }
         }
 
         const handleIncomingCall = (data: { fromUserId: string, fromUser: any, dmRoomId: string, hasVideo: boolean }) => {
-            console.log('📞 Incoming call received:', data)
             if (useCallStore.getState().callStep === 'idle') {
                 setIncoming(data.fromUser, data.dmRoomId, data.hasVideo)
             } else {
-                console.log('⚠️ Already in a call, sending busy signal')
+                const socket = connectSocket()
                 socket.emit('call:busy', { fromUserId: data.fromUserId, dmRoomId: data.dmRoomId })
             }
         }
 
         const handleCallAccepted = (data: { toUserId: string, dmRoomId: string }) => {
-            console.log('✅ Call accepted:', data)
             fetchTokenAndJoin(data.dmRoomId)
         }
 
         const handleCallRejected = (data: { toUserId: string, dmRoomId: string }) => {
-            console.log('❌ Call rejected:', data)
             resetCall()
         }
 
         const handleCallEnded = (data: { fromUserId: string, dmRoomId: string }) => {
-            console.log('🔴 Call ended:', data)
             resetCall()
         }
 
         const handleCallBusy = (data: { toUserId: string, dmRoomId: string }) => {
-            console.log('⚠️ Call busy:', data)
             resetCall()
         }
 
@@ -95,17 +85,18 @@ export const useCall = () => {
     }, [setIncoming, setInCall, resetCall])
 
     const initiateCall = useCallback((targetUser: any, dmRoomId: string, video: boolean) => {
-        console.log('🔵 useCall.initiateCall:', { targetUser, dmRoomId, video })
         const socket = connectSocket()
         setCalling(targetUser, dmRoomId, video)
-        
+
         const callData = {
-            toUserId: targetUser.id,
+            toUserId: targetUser.id || targetUser._id,
             dmRoomId,
             hasVideo: video,
-            fromUser: profile
+            fromUser: {
+                ...profile,
+                id: profile?._id || profile?.id
+            }
         }
-        console.log('📤 Emitting call:initiate from useCall:', callData)
         socket.emit('call:initiate', callData)
     }, [profile, setCalling])
 
@@ -113,28 +104,22 @@ export const useCall = () => {
         const currentOtherUser = useCallStore.getState().otherUser
         const currentDmRoomId = useCallStore.getState().dmRoomId
 
-        console.log('✅ Accepting call:', { currentOtherUser, currentDmRoomId })
-
         if (!currentOtherUser || !currentDmRoomId) {
-            console.error('❌ Cannot accept call: Missing user or room ID')
             return
         }
 
         const socket = connectSocket()
         const acceptData = {
-            fromUserId: currentOtherUser.id,
+            fromUserId: currentOtherUser.id || currentOtherUser._id,
             dmRoomId: currentDmRoomId
         }
-        console.log('📤 Emitting call:accept:', acceptData)
         socket.emit('call:accept', acceptData)
 
         try {
-            console.log('🎫 Fetching token for accepted call...')
             const response = await apiGet<{ token: string, wsUrl: string, success?: boolean }>(`/dm/token/${currentDmRoomId}`)
-            console.log('✅ Token received for accepted call')
             setInCall((response as any).token, (response as any).wsUrl)
         } catch (error) {
-            console.error('❌ Failed to get call token on accept:', error)
+            console.error('Failed to get call token on accept:', error)
             resetCall()
         }
     }, [setInCall, resetCall])
@@ -143,20 +128,14 @@ export const useCall = () => {
         const currentOtherUser = useCallStore.getState().otherUser
         const currentDmRoomId = useCallStore.getState().dmRoomId
 
-        console.log('❌ Rejecting call:', { currentOtherUser, currentDmRoomId })
-
-        if (!currentOtherUser || !currentDmRoomId) {
-            console.error('❌ Cannot reject call: Missing user or room ID')
-            return
+        if (currentOtherUser && currentDmRoomId) {
+            const socket = connectSocket()
+            const rejectData = {
+                fromUserId: currentOtherUser.id || currentOtherUser._id,
+                dmRoomId: currentDmRoomId
+            }
+            socket.emit('call:reject', rejectData)
         }
-
-        const socket = connectSocket()
-        const rejectData = {
-            fromUserId: currentOtherUser.id,
-            dmRoomId: currentDmRoomId
-        }
-        console.log('📤 Emitting call:reject:', rejectData)
-        socket.emit('call:reject', rejectData)
         resetCall()
     }, [resetCall])
 
@@ -164,21 +143,14 @@ export const useCall = () => {
         const currentOtherUser = useCallStore.getState().otherUser
         const currentDmRoomId = useCallStore.getState().dmRoomId
 
-        console.log('🔴 Ending call:', { currentOtherUser, currentDmRoomId })
-
-        if (!currentOtherUser || !currentDmRoomId) {
-            console.log('⚠️ No active call to end, just resetting state')
-            resetCall()
-            return
+        if (currentOtherUser && currentDmRoomId) {
+            const socket = connectSocket()
+            const endData = {
+                targetUserId: currentOtherUser.id || currentOtherUser._id,
+                dmRoomId: currentDmRoomId
+            }
+            socket.emit('call:end', endData)
         }
-
-        const socket = connectSocket()
-        const endData = {
-            targetUserId: currentOtherUser.id,
-            dmRoomId: currentDmRoomId
-        }
-        console.log('📤 Emitting call:end:', endData)
-        socket.emit('call:end', endData)
         resetCall()
     }, [resetCall])
 

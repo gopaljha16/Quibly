@@ -63,7 +63,7 @@ export default function InterestAutocomplete({
 
                 <Input
                     type="text"
-                    placeholder="Search from 96 interests..."
+                    placeholder={`Search from ${interests.length} interests...`}
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value)

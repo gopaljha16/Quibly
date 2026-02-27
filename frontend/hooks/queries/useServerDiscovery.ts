@@ -16,3 +16,11 @@ export const useServerInterests = (serverId: string) => {
         enabled: !!serverId,
     });
 };
+
+export const useAllInterests = () => {
+    return useQuery({
+        queryKey: ['interests', 'all'],
+        queryFn: () => serverDiscoveryService.getAllInterests(),
+        staleTime: 1000 * 60 * 60, // 1 hour
+    });
+};
