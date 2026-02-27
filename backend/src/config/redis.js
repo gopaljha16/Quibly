@@ -308,12 +308,16 @@ const redisWrapper = {
         try {
             await Promise.all([
                 client.sAdd('online:users', userId),
+                client.zAdd('online:heartbeats', {
+                    score: Date.now(),
+                    value: userId
+                }),
                 client.hSet(`user:${userId}:connection`, {
                     serverId: SERVER_ID,
                     socketId: socketId,
                     connectedAt: Date.now().toString()
                 }),
-                client.expire(`user:${userId}:connection`, 3600) // 1 hour TTL
+                client.expire(`user:${userId}:connection`, 300) // 5 minute TTL
             ]);
             return true;
         } catch (error) {
@@ -327,6 +331,7 @@ const redisWrapper = {
         try {
             await Promise.all([
                 client.sRem('online:users', userId),
+                client.zRem('online:heartbeats', userId),
                 client.del(`user:${userId}:connection`)
             ]);
             return true;
@@ -352,6 +357,65 @@ const redisWrapper = {
             return await client.sIsMember('online:users', userId);
         } catch (error) {
             console.error('Redis isUserOnline error:', error);
+            return false;
+        }
+    },
+
+    async isActuallyConnected(userId) {
+        if (!client || !isConnected) return false;
+        try {
+            // Check if the individual connection key still exists (hasn't expired)
+            const exists = await client.exists(`user:${userId}:connection`);
+            return exists === 1;
+        } catch (error) {
+            console.error('Redis isActuallyConnected error:', error);
+            return false;
+        }
+    },
+
+    async refreshConnection(userId) {
+        if (!client || !isConnected) return false;
+        try {
+            await Promise.all([
+                client.expire(`user:${userId}:connection`, 300),
+                client.zAdd('online:heartbeats', {
+                    score: Date.now(),
+                    value: userId
+                })
+            ]);
+            return true;
+        } catch (error) {
+            console.error('Redis refreshConnection error:', error);
+            return false;
+        }
+    },
+
+    async getStaleUsers(maxTimestamp, limit = 100) {
+        if (!client || !isConnected) return [];
+        try {
+            // Find users who haven't updated their heartbeat since maxTimestamp
+            // Modern node-redis v4 syntax for ZRANGEBYSCORE
+            return await client.zRange('online:heartbeats', '-inf', maxTimestamp, {
+                BY: 'SCORE',
+                LIMIT: { offset: 0, count: limit }
+            });
+        } catch (error) {
+            console.error('Redis getStaleUsers error:', error);
+            return [];
+        }
+    },
+
+    async removeFromOnline(userId) {
+        if (!client || !isConnected) return false;
+        try {
+            await Promise.all([
+                client.sRem('online:users', userId),
+                client.zRem('online:heartbeats', userId),
+                client.del(`user:${userId}:connection`)
+            ]);
+            return true;
+        } catch (error) {
+            console.error('Redis removeFromOnline error:', error);
             return false;
         }
     },

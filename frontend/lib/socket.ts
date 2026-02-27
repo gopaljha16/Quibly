@@ -27,8 +27,9 @@ const getToken = (): string | null => {
   return null
 }
 
-// Singleton socket instance
+// Singleton socket instance and heartbeat interval
 let socket: Socket | null = null
+let heartbeatInterval: NodeJS.Timeout | null = null
 
 export const getSocket = (): Socket => {
   if (!socket) {
@@ -52,6 +53,14 @@ export const getSocket = (): Socket => {
 
     socket.on('connect', () => {
       console.log('Socket connected:', socketInstance?.id)
+
+      // Start heartbeat
+      if (heartbeatInterval) clearInterval(heartbeatInterval)
+      heartbeatInterval = setInterval(() => {
+        if (socketInstance.connected) {
+          socketInstance.emit('presence:heartbeat')
+        }
+      }, 120000) // Every 2 minutes
     })
 
     socket.on('connect_error', (err) => {
@@ -62,6 +71,12 @@ export const getSocket = (): Socket => {
 
     socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason)
+
+      // Stop heartbeat
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval)
+        heartbeatInterval = null
+      }
     })
 
     socket.on('auth_error', (data) => {
@@ -105,6 +120,11 @@ export const connectSocket = () => {
 
 export const disconnectSocket = () => {
   if (socket) {
+    // Stop heartbeat
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval)
+      heartbeatInterval = null
+    }
     socket.disconnect()
     socket = null
   }

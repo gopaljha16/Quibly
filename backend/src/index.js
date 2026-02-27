@@ -18,15 +18,15 @@ app.use((req, res, next) => {
 });
 
 // Parse FRONTEND_URL to support multiple origins
-const allowedOrigins = process.env.FRONTEND_URL 
-  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-  : ['http://localhost:3000'];
+const allowedOrigins = process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+    : ['http://localhost:3000'];
 
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps, Postman, curl)
         if (!origin) return callback(null, true);
-        
+
         // Check if origin is in allowed list
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
@@ -85,7 +85,7 @@ app.get('/health', async (req, res) => {
 
         // Check Socket.IO
         health.services.socketio = global.io ? true : false;
-        
+
         // Add Socket.IO connection count
         if (global.io) {
             health.socketConnections = global.io.engine.clientsCount;
@@ -116,11 +116,11 @@ app.get('/debug/connections', async (req, res) => {
     if (process.env.NODE_ENV !== 'development') {
         return res.status(403).json({ error: 'Only available in development' });
     }
-    
+
     try {
         const redis = require('./config/redis');
         const serverId = redis.getServerId();
-        
+
         // Get all connected sockets on this server
         const sockets = await global.io?.fetchSockets() || [];
         const connectedUsers = sockets.map(s => ({
@@ -128,7 +128,7 @@ app.get('/debug/connections', async (req, res) => {
             socketId: s.id,
             rooms: Array.from(s.rooms)
         }));
-        
+
         res.json({
             serverId,
             connectionCount: sockets.length,
@@ -223,26 +223,28 @@ setTimeout(() => {
     if (redis.isConnected()) {
         console.log('Starting batch DB writer service...');
         startBatchWriter(); // Runs every 30 seconds, processes 5 messages per batch
-        
+
         // Start presence cleanup job
-        console.log('Starting presence cleanup job...');
+        console.log('Starting presence cleanup job (High-Scale O(log N))...');
         setInterval(async () => {
             try {
-                // Get all users marked as online in Redis
-                const onlineUserIds = await redis.getOnlineUsers();
-                
-                if (onlineUserIds.length === 0) return;
-                
-                console.log(`Checking ${onlineUserIds.length} online users for stale connections...`);
-                
-                // Check each user to see if they actually have active connections
-                for (const userId of onlineUserIds) {
-                    const isActuallyOnline = await redis.isUserOnline(userId);
-                    
-                    if (!isActuallyOnline) {
-                        // User is in Redis but has no active connection - clean up
-                        console.log(`Cleaning up stale user: ${userId}`);
-                        
+                // Find users whose heartbeat is older than 6 minutes
+                // (5 min TTL + 1 min buffer)
+                const sixMinutesAgo = Date.now() - (6 * 60 * 1000);
+                const staleUserIds = await redis.getStaleUsers(sixMinutesAgo, 100);
+
+                if (staleUserIds.length === 0) return;
+
+                console.log(`Cleaning up ${staleUserIds.length} stale sessions...`);
+
+                // Process in parallel with Promise.all for speed,
+                // but limited to the batch size retrieved from Redis
+                await Promise.all(staleUserIds.map(async (userId) => {
+                    try {
+                        // Double check if they are still stale (atomic check)
+                        const isActuallyConnected = await redis.isActuallyConnected(userId);
+                        if (isActuallyConnected) return;
+
                         // Update database
                         await db.user.update({
                             where: { id: userId },
@@ -250,11 +252,11 @@ setTimeout(() => {
                                 status: "offline",
                                 lastSeen: new Date()
                             }
-                        }).catch(err => console.error(`Error updating user ${userId}:`, err));
-                        
-                        // Remove from Redis
-                        await redis.trackUserOffline(userId);
-                        
+                        });
+
+                        // Remove from all Redis tracking
+                        await redis.removeFromOnline(userId);
+
                         // Broadcast offline status
                         if (global.io) {
                             global.io.emit("user_status_change", {
@@ -263,8 +265,10 @@ setTimeout(() => {
                                 lastSeen: new Date().toISOString()
                             });
                         }
+                    } catch (itemError) {
+                        console.error(`Error cleaning up user ${userId}:`, itemError.message);
                     }
-                }
+                }));
             } catch (error) {
                 console.error("Error in presence cleanup job:", error);
             }
@@ -396,4 +400,4 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 
-console.log("node env" , process.env.NODE_ENV)
+console.log("node env", process.env.NODE_ENV)

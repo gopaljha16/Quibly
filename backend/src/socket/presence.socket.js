@@ -54,7 +54,7 @@ module.exports = (io, socket) => {
       // Check if user has any other active connections
       if (redis.isConnected()) {
         const isStillOnline = await redis.isUserOnline(userId);
-        
+
         // If user still has other connections, don't mark as offline
         if (isStillOnline) {
           console.log(`User ${userId} still has other active connections`);
@@ -389,9 +389,9 @@ module.exports = (io, socket) => {
           }
         }
 
-        // Check if user is actually connected (has active socket)
-        const isConnected = redis.isConnected() 
-          ? await redis.isUserOnline(user.id)
+        // Check if user is actually connected (has active connection key)
+        const isConnected = redis.isConnected()
+          ? await redis.isActuallyConnected(user.id)
           : false;
 
         // If user is not connected, mark as offline
@@ -438,6 +438,14 @@ module.exports = (io, socket) => {
   socket.on("update_custom_status", handleCustomStatusUpdate);
   socket.on("clear_custom_status", handleCustomStatusClear);
   socket.on("get_server_online_users", getServerOnlineUsers);
+
+  // Presence Heartbeat to keep the session alive in Redis
+  socket.on("presence:heartbeat", async () => {
+    const userId = getSocketUserId();
+    if (userId && redis.isConnected()) {
+      await redis.refreshConnection(userId);
+    }
+  });
 
   // Handle disconnect
   socket.on("disconnect", () => {
