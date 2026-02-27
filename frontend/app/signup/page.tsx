@@ -94,8 +94,7 @@ function SignupContent() {
       const response = await apiPost<any>('/auth/register', { ...formData, interests: selectedInterests })
 
       if (!response?.token) throw new Error('Token missing in signup response')
-      // Store token in localStorage FIRST so apiRequest can attach Bearer header
-      // This is critical for cross-domain production (Vercel -> Render)
+      // Store token in localStorage (also auto-stored by apiRequest)
       if (typeof window !== 'undefined') {
         localStorage.setItem('token', response.token)
       }
@@ -105,7 +104,7 @@ function SignupContent() {
         setRecommendedChannels(response.recommendedChannels)
         setShowRecommendations(true)
       } else {
-        router.push(redirect)
+        window.location.href = redirect
       }
     } catch (error) {
       if (error instanceof ApiError) {
@@ -360,13 +359,11 @@ function SignupContent() {
                               googleToken: credentialResponse.credential 
                             })
                             if (!response?.token) throw new Error('Token missing in Google signup response')
-                            // Store token in localStorage FIRST for cross-domain Bearer header
                             if (typeof window !== 'undefined') {
                               localStorage.setItem('token', response.token)
                             }
                             setAuthTokenCookie(response.token)
-                            router.push(redirect)
-                            router.refresh()
+                            window.location.href = redirect
                           } catch (err) {
                             setErrors({ email: 'Google signup failed. Please try again.' })
                           } finally {

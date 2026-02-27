@@ -80,14 +80,13 @@ function LoginContent() {
     try {
       const response = await apiPost<{ user: unknown; token: string }>('/auth/login', formData)
       if (!response?.token) throw new Error('Token missing in login response')
-      // Store token in localStorage FIRST so apiRequest can attach Bearer header
-      // This is critical for cross-domain production (Vercel -> Render)
+      // Store token in localStorage (also auto-stored by apiRequest)
       if (typeof window !== 'undefined') {
         localStorage.setItem('token', response.token)
       }
       setAuthTokenCookie(response.token)
-      router.push(redirect)
-      router.refresh()
+      // Use hard navigation for reliable cross-domain redirect
+      window.location.href = redirect
     } catch (error) {
       if (error instanceof ApiError) {
         setErrors({ email: error.message })
@@ -296,13 +295,11 @@ function LoginContent() {
                               googleToken: credentialResponse.credential 
                             })
                             if (!response?.token) throw new Error('Token missing in Google login response')
-                            // Store token in localStorage FIRST for cross-domain Bearer header
                             if (typeof window !== 'undefined') {
                               localStorage.setItem('token', response.token)
                             }
                             setAuthTokenCookie(response.token)
-                            router.push(redirect)
-                            router.refresh()
+                            window.location.href = redirect
                           } catch (err) {
                             setErrors({ email: 'Google login failed. Please try again.' })
                           } finally {

@@ -85,7 +85,28 @@ export async function apiRequest<T>(
     return (undefined as unknown) as T
   }
 
-  return (await res.json()) as T
+  const data = (await res.json()) as T
+
+  // AUTO-STORE: If this is an auth response with a token, store it in localStorage immediately
+  // This is the centralized fix for cross-domain production (Vercel → Render)  
+  if (typeof window !== 'undefined' && data && typeof data === 'object' && 'token' in data) {
+    const tokenValue = (data as any).token
+    if (typeof tokenValue === 'string' && tokenValue.length > 0) {
+      const isAuthEndpoint = path.includes('/auth/login') ||
+        path.includes('/auth/register') ||
+        path.includes('/auth/google-login')
+      if (isAuthEndpoint) {
+        try {
+          window.localStorage.setItem('token', tokenValue)
+          console.log('[API] Auto-stored auth token in localStorage')
+        } catch (e) {
+          console.error('[API] Failed to store token:', e)
+        }
+      }
+    }
+  }
+
+  return data
 }
 
 export function apiGet<T>(path: string): Promise<T> {
