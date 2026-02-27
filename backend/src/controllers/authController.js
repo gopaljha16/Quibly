@@ -311,6 +311,12 @@ exports.googleLogin = async (req, res) => {
                     status: 'online',
                 }
             });
+        } else if (!user.isVerified) {
+            // If user exists but is not verified, mark as verified
+            user = await db.user.update({
+                where: { id: user.id },
+                data: { isVerified: true }
+            });
         }
 
         // Generate JWT

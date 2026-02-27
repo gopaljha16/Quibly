@@ -368,7 +368,9 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
   }
 
   const shouldShowVerificationBanner =
-    !verificationBannerDismissed && !!currentUser.email && currentUser.isVerified === false
+    !verificationBannerDismissed && 
+    !!currentUser?.email && 
+    currentUser?.isVerified === false
 
   const handleResendVerification = async () => {
     if (!currentUser?.email || resendingVerification) return
