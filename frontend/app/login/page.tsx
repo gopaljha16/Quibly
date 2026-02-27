@@ -33,10 +33,12 @@ function LoginContent() {
   // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
-      const hasToken =
+      // Check both cookie and localStorage for token
+      const hasCookieToken =
         typeof document !== 'undefined' &&
         document.cookie.split(';').some((cookie) => cookie.trim().startsWith('token='))
-      if (!hasToken) return
+      const hasLocalToken = typeof window !== 'undefined' && !!localStorage.getItem('token')
+      if (!hasCookieToken && !hasLocalToken) return
 
       try {
         // Try to fetch user profile to check if logged in
@@ -78,8 +80,12 @@ function LoginContent() {
     try {
       const response = await apiPost<{ user: unknown; token: string }>('/auth/login', formData)
       if (!response?.token) throw new Error('Token missing in login response')
+      // Store token in localStorage FIRST so apiRequest can attach Bearer header
+      // This is critical for cross-domain production (Vercel -> Render)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', response.token)
+      }
       setAuthTokenCookie(response.token)
-      await apiGet('/auth/profile')
       router.push(redirect)
       router.refresh()
     } catch (error) {
@@ -290,8 +296,11 @@ function LoginContent() {
                               googleToken: credentialResponse.credential 
                             })
                             if (!response?.token) throw new Error('Token missing in Google login response')
+                            // Store token in localStorage FIRST for cross-domain Bearer header
+                            if (typeof window !== 'undefined') {
+                              localStorage.setItem('token', response.token)
+                            }
                             setAuthTokenCookie(response.token)
-                            await apiGet('/auth/profile')
                             router.push(redirect)
                             router.refresh()
                           } catch (err) {

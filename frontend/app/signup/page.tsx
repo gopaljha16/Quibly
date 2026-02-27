@@ -39,10 +39,12 @@ function SignupContent() {
   // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
-      const hasToken =
+      // Check both cookie and localStorage for token
+      const hasCookieToken =
         typeof document !== 'undefined' &&
         document.cookie.split(';').some((cookie) => cookie.trim().startsWith('token='))
-      if (!hasToken) return
+      const hasLocalToken = typeof window !== 'undefined' && !!localStorage.getItem('token')
+      if (!hasCookieToken && !hasLocalToken) return
 
       try {
         // Try to fetch user profile to check if logged in
@@ -92,8 +94,12 @@ function SignupContent() {
       const response = await apiPost<any>('/auth/register', { ...formData, interests: selectedInterests })
 
       if (!response?.token) throw new Error('Token missing in signup response')
+      // Store token in localStorage FIRST so apiRequest can attach Bearer header
+      // This is critical for cross-domain production (Vercel -> Render)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', response.token)
+      }
       setAuthTokenCookie(response.token)
-      await apiGet('/auth/profile')
 
       if (response.recommendedChannels?.length > 0) {
         setRecommendedChannels(response.recommendedChannels)
@@ -354,8 +360,11 @@ function SignupContent() {
                               googleToken: credentialResponse.credential 
                             })
                             if (!response?.token) throw new Error('Token missing in Google signup response')
+                            // Store token in localStorage FIRST for cross-domain Bearer header
+                            if (typeof window !== 'undefined') {
+                              localStorage.setItem('token', response.token)
+                            }
                             setAuthTokenCookie(response.token)
-                            await apiGet('/auth/profile')
                             router.push(redirect)
                             router.refresh()
                           } catch (err) {
