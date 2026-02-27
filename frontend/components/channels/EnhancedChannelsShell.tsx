@@ -8,6 +8,7 @@ import { useProfile, useDMConversations, useMembers, useRoles } from '@/hooks/qu
 
 import { usePresenceContext } from '@/components/PresenceProvider'
 import { ApiError, apiPost } from '@/lib/api'
+import { logout as performLogout } from '@/lib/auth'
 import CreateServerModal from './CreateServerModal'
 import MemberProfileModal from './MemberProfileModal'
 import CreateChannelModal from './CreateChannelModal'
@@ -249,9 +250,13 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       console.error('❌ No user profile, redirecting to login')
       setRedirecting(true)
       
-      // Clear token
+      // Clear all token storage
       if (typeof document !== 'undefined') {
         document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token')
+        localStorage.removeItem('auth-storage')
       }
       
       // Wait a bit then redirect
@@ -269,8 +274,13 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       if (profileLoading && !currentUser) {
         console.error('❌ Profile loading timeout, redirecting to login')
         setRedirecting(true)
+        // Clear all token storage
         if (typeof document !== 'undefined') {
           document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token')
+          localStorage.removeItem('auth-storage')
         }
         router.push('/login')
       }
@@ -655,9 +665,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                     type="button"
                     onClick={async () => {
                       try {
-                        await apiPost('/auth/logout')
-                        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-                        router.push('/')
+                        await performLogout()
                       } catch (err) {
                         console.error('Logout failed:', err)
                       }
