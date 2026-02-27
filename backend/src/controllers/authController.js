@@ -53,9 +53,7 @@ exports.register = async (req, res) => {
             });
         }
 
-        // NEW: Validate interests (optional)
-        // Skip interest validation for now - interests are optional
-        // TODO: Sync frontend interest IDs with database or fetch from API
+        // Interests are optional - they'll be saved after user creation if provided
 
         // Check if email already exists
         const existingUser = await db.user.findUnique({
@@ -75,7 +73,7 @@ exports.register = async (req, res) => {
         // Generate verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
-        // Create user (interests skipped for now)
+        // Create user
         const user = await db.user.create({
             data: {
                 username,
@@ -85,6 +83,65 @@ exports.register = async (req, res) => {
                 status: 'offline',
             }
         });
+
+        // Save user interests if provided
+        let recommendedChannels = [];
+        if (Array.isArray(interests) && interests.length > 0) {
+            try {
+                // Determine if we're dealing with CUIDs or names (names from legacy static lists, CUIDs from new dynamic list)
+                const isCuid = interests[0] && interests[0].length > 20;
+
+                // Look up interests by both ID and name for compatibility
+                const foundInterests = await db.interest.findMany({
+                    where: isCuid
+                        ? { id: { in: interests } }
+                        : { name: { in: interests } }
+                });
+
+                if (foundInterests.length > 0) {
+                    // Create UserInterest records
+                    await db.userInterest.createMany({
+                        data: foundInterests.map(interest => ({
+                            userId: user.id,
+                            interestId: interest.id
+                        })),
+                        skipDuplicates: true
+                    });
+
+                    // Find recommended servers matching user interests
+                    const matchingServers = await db.server.findMany({
+                        where: {
+                            isPublic: true,
+                            serverInterests: {
+                                some: {
+                                    interestId: { in: foundInterests.map(i => i.id) }
+                                }
+                            }
+                        },
+                        select: {
+                            id: true,
+                            name: true,
+                            icon: true,
+                            membersCount: true,
+                            description: true
+                        },
+                        take: 5,
+                        orderBy: { membersCount: 'desc' }
+                    });
+
+                    recommendedChannels = matchingServers.map(s => ({
+                        _id: s.id,
+                        name: s.name,
+                        icon: s.icon,
+                        membersCount: s.membersCount,
+                        description: s.description
+                    }));
+                }
+            } catch (interestError) {
+                // Don't fail registration if interest saving fails
+                console.error('Error saving user interests:', interestError);
+            }
+        }
 
         // Store verification token in Redis (expires in 24 hours)
         await redis.set(`verify:${verificationToken}`, user.id, 86400);
@@ -116,7 +173,8 @@ exports.register = async (req, res) => {
                 email: user.email,
                 avatar: user.avatar,
                 isVerified: user.isVerified
-            }
+            },
+            recommendedChannels
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -186,7 +244,7 @@ exports.login = async (req, res) => {
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
-        console.log("node env" , process.env.NODE_ENV)
+        console.log("node env", process.env.NODE_ENV)
 
         res.status(200).json({
             success: true,
@@ -577,7 +635,14 @@ exports.getProfile = async (req, res) => {
             select: {
                 id: true, username: true, discriminator: true, email: true,
                 avatar: true, banner: true, bio: true, status: true, customStatus: true,
-                isVerified: true, createdAt: true, lastSeen: true
+                isVerified: true, createdAt: true, lastSeen: true,
+                userInterests: {
+                    include: {
+                        interest: {
+                            select: { id: true, name: true }
+                        }
+                    }
+                }
             }
         });
 

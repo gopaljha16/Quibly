@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Sparkles, ChevronDown, ChevronUp } from 'lucide-react'
+import { Sparkles, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import InterestAutocomplete from './interest/InterestAutocomplete'
 import SelectedInterests from './interest/SelectedInterests'
-import { INTERESTS_LIST } from '@/lib/interests'
+import { useAllInterests } from '@/hooks/queries/useServerDiscovery'
 
 interface Interest {
     id: string
@@ -26,7 +26,8 @@ export default function InterestSelector({
     error,
     allowSkip = true
 }: InterestSelectorProps) {
-    const interests = INTERESTS_LIST // Use static list instead of fetching
+    const { data: interestsData, isLoading } = useAllInterests()
+    const interests = interestsData?.interests || []
     const [expanded, setExpanded] = useState(false)
 
     console.log('InterestSelector: Loaded', interests.length, 'interests from static list')
@@ -48,20 +49,27 @@ export default function InterestSelector({
         onChange(selectedInterests.filter(id => id !== interestId))
     }
 
-    const selectedInterestObjects = interests.filter(i => selectedInterests.includes(i.id))
+    const selectedInterestObjects = interests.filter((i: Interest) => selectedInterests.includes(i.id))
 
 
     return (
         <div
-            className={`space-y-4 p-6 border border-[#f3c178]/30 rounded-xl bg-[#030305]/60 transition-all duration-500 ${expanded ? 'ring-2 ring-cyan-500/20 shadow-lg shadow-[#f3c178]/10' : ''
+            className={`space-y-4 p-6 border border-[#f3c178]/30 rounded-xl bg-[#030305]/60 transition-all duration-500 min-h-[140px] flex flex-col justify-center ${expanded ? 'ring-2 ring-cyan-500/20 shadow-lg shadow-[#f3c178]/10' : ''
                 }`}
         >
-            <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-cyan-400 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Select Your Interests
-                </Label>
-            </div>
+            {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-6 gap-3">
+                    <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+                    <p className="text-sm text-[#bdb9b6]">Tailoring interests for you...</p>
+                </div>
+            ) : (
+                <>
+                    <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold text-cyan-400 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4" />
+                            Select Your Interests
+                        </Label>
+                    </div>
 
 
             <div onClick={() => setExpanded(true)}>
@@ -109,10 +117,12 @@ export default function InterestSelector({
                 </div>
             )}
 
-            {!expanded && selectedInterests.length === 0 && (
-                <p className="text-xs text-[#bdb9b6] text-center">
-                    Click above to explore interests or continue with no interests
-                </p>
+                    {!expanded && selectedInterests.length === 0 && (
+                        <p className="text-xs text-[#bdb9b6] text-center">
+                            Click above to explore interests or continue with no interests
+                        </p>
+                    )}
+                </>
             )}
         </div>
     )

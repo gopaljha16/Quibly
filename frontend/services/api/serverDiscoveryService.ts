@@ -35,7 +35,7 @@ export const serverDiscoveryService = {
     // Discover public servers
     discoverServers: async (params?: DiscoverServersParams) => {
         const queryParams = new URLSearchParams();
-        
+
         if (params?.interests && params.interests.length > 0) {
             queryParams.append('interests', params.interests.join(','));
         }
@@ -70,6 +70,12 @@ export const serverDiscoveryService = {
     // Remove interest from server
     removeServerInterest: async (serverId: string, interestId: string) => {
         const response = await apiDelete<any>(`/server/${serverId}/interests/${interestId}`);
+        return response;
+    },
+
+    // Get all interests
+    getAllInterests: async () => {
+        const response = await apiGet<any>('/interest');
         return response;
     }
 };

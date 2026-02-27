@@ -16,6 +16,7 @@ import ServerVanityTab from './ServerVanityTab'
 import ServerBadgesTab from './ServerBadgesTab'
 import { useChannelsData } from '@/hooks/useChannelsData'
 import ServerInterestSelector from '../discovery/ServerInterestSelector'
+import ChannelsTab from './ChannelsTab'
 import { useProfile } from '@/hooks/queries'
 import { useMembers, useRoles } from '@/hooks/queries'
 import { calculateUserPermissions, getAccessibleSettingsTabs, canAccessServerSettings } from '@/lib/permissions'
@@ -547,10 +548,17 @@ export default function ServerSettingsModal({
                         </div>
                      )}
 
-                     {(activeTab === 'channels' || activeTab === 'integrations') && (
+                     {activeTab === 'channels' && (
+                        <div className="h-full">
+                           <h2 className="text-xl font-bold text-[#F2F3F5] mb-5">Server Channels</h2>
+                           <ChannelsTab serverId={server._id} />
+                        </div>
+                     )}
+
+                     {activeTab === 'integrations' && (
                         <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-4">
                            <div className="text-4xl">🚧</div>
-                           <p>The {tabs.find(t => t.id === activeTab)?.name} tab is coming soon!</p>
+                           <p>The Integrations tab is coming soon!</p>
                         </div>
                      )}
                   </div>

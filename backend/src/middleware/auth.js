@@ -23,7 +23,7 @@ exports.authenticate = async (req, res, next) => {
                 message: "Not authorized"
             });
         }
-        console.log("token :- ", token)
+        
 
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);

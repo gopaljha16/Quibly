@@ -236,6 +236,10 @@ exports.getDMToken = async (req, res) => {
             select: { username: true, discriminator: true, avatar: true }
         });
 
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
         // Generate token
         const token = await generateToken(
             roomId,

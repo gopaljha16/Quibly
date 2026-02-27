@@ -5,8 +5,7 @@ import { Sparkles, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import InterestAutocomplete from '../interest/InterestAutocomplete';
-import { INTERESTS_LIST } from '@/lib/interests';
-import { useServerInterests } from '@/hooks/queries/useServerDiscovery';
+import { useServerInterests, useAllInterests } from '@/hooks/queries/useServerDiscovery';
 import { useAddServerInterests, useRemoveServerInterest } from '@/hooks/mutations/useServerInterestMutations';
 
 interface ServerInterestSelectorProps {
@@ -16,11 +15,13 @@ interface ServerInterestSelectorProps {
 export default function ServerInterestSelector({ serverId }: ServerInterestSelectorProps) {
     const [isAdding, setIsAdding] = useState(false);
     
-    const { data: interestsData, isLoading } = useServerInterests(serverId);
+    const { data: interestsData, isLoading: interestsLoading } = useServerInterests(serverId);
+    const { data: allInterestsData, isLoading: allInterestsLoading } = useAllInterests();
     const addInterestsMutation = useAddServerInterests();
     const removeInterestMutation = useRemoveServerInterest();
 
     const serverInterests = interestsData?.interests || [];
+    const allInterests = allInterestsData?.interests || [];
     const selectedInterestIds = serverInterests.map((i: any) => i.id);
 
     const handleAddInterest = async (interestId: string) => {
@@ -46,7 +47,7 @@ export default function ServerInterestSelector({ serverId }: ServerInterestSelec
         });
     };
 
-    if (isLoading) {
+    if (interestsLoading || allInterestsLoading) {
         return (
             <div className="p-4 text-center text-[#bdb9b6]">
                 Loading interests...
@@ -96,7 +97,7 @@ export default function ServerInterestSelector({ serverId }: ServerInterestSelec
             {isAdding ? (
                 <div className="space-y-2">
                     <InterestAutocomplete
-                        interests={INTERESTS_LIST}
+                        interests={allInterests}
                         selectedInterests={selectedInterestIds}
                         onSelect={handleAddInterest}
                     />

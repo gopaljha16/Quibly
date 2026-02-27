@@ -392,23 +392,17 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
 
   // Direct call initiation function (don't use useCall hook here to avoid duplicate listeners)
   const initiateCall = (targetUser: any, dmRoomId: string, hasVideo: boolean) => {
-    console.log('🔵 Initiating call:', { targetUser, dmRoomId, hasVideo })
-    
-    if (!targetUser || !targetUser.id) {
-      console.error('❌ Cannot initiate call: Invalid target user', targetUser)
+    if (!targetUser || (!targetUser.id && !targetUser._id)) {
       return
     }
     
     const socket = connectSocket()
     
     if (!socket.connected) {
-      console.warn('⚠️ Socket not connected, waiting for connection...')
       socket.once('connect', () => {
-        console.log('✅ Socket connected, emitting call:initiate')
         emitCallInitiate()
       })
     } else {
-      console.log('✅ Socket already connected, emitting call:initiate')
       emitCallInitiate()
     }
     
@@ -417,18 +411,17 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
       setCalling(targetUser, dmRoomId, hasVideo)
       
       const callData = {
-        toUserId: targetUser.id,
+        toUserId: targetUser.id || targetUser._id,
         dmRoomId,
         hasVideo,
         fromUser: {
-          id: currentUser?._id,
+          id: currentUser?._id || currentUser?.id,
           username: currentUser?.username || 'Unknown',
           avatar: currentUser?.avatar,
           discriminator: currentUser?.discriminator
         }
       }
       
-      console.log('📤 Emitting call:initiate:', callData)
       socket.emit('call:initiate', callData)
     }
   }

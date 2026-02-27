@@ -300,6 +300,7 @@ export default function CallOverlay() {
               connect={true}
               style={{ height: '100%' }}
               onDisconnected={endCall}
+              onError={endCall}
               data-lk-theme="default"
             >
               <VideoConference />
