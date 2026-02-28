@@ -48,7 +48,7 @@ export default function MyProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#313338] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] flex items-center justify-center">
         <div className="text-white">Loading your profile...</div>
       </div>
     )
@@ -56,18 +56,18 @@ export default function MyProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#313338] flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] flex items-center justify-center">
         <div className="text-white">Please log in to view your profile</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#313338] py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-white mb-2">My Profile</h1>
-          <p className="text-[#949ba4]">View and customize your Discord profile with tabs!</p>
+          <p className="text-gray-400">View and customize your profile with tabs!</p>
         </div>
 
         <UserProfileView 

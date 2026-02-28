@@ -31,6 +31,7 @@ import { calculateUserPermissions, canAccessServerSettings } from '@/lib/permiss
 
 
 
+
 // Status badge with tooltip
 const StatusBadge = ({ status }: { status?: 'online' | 'idle' | 'dnd' | 'offline' }) => {
   const statusInfo = {
@@ -944,7 +945,7 @@ export default function EnhancedChannelsShell({ children }: { children: React.Re
                             setRenameChannelValue(c.name)
                             setRenameSlowModeValue((c as any).slowMode || 0)
                           }}
-                          className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#f3c178] text-slate-400 hover:text-white rounded-[2px]"
+                          className="w-full text-left px-2 py-1.5 text-sm hover:bg-[#5865F2] text-slate-400 hover:text-white rounded-[2px]"
                         >
                           Edit Channel
                         </button>

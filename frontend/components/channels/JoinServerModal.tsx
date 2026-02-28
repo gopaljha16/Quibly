@@ -36,7 +36,7 @@ export default function JoinServerModal({
         }}
       />
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <form onSubmit={handleSubmit} className="w-full max-w-[440px] rounded-[4px] bg-[#12131a] shadow-2xl overflow-hidden animate-scale-in text-center">
+        <form onSubmit={handleSubmit} className="w-full max-w-[440px] rounded-lg bg-[#1a1a1c] border border-white/10 shadow-2xl overflow-hidden animate-scale-in text-center">
           <div className="px-6 pt-6 pb-2">
             <h2 className="text-2xl font-bold text-[#F2F3F5] mb-2">Join a Server</h2>
             <p className="text-slate-400 text-sm mb-4">
@@ -70,7 +70,7 @@ export default function JoinServerModal({
               <input
                 value={inviteCode}
                 onChange={(e) => handleChange(e.target.value)}
-                className="w-full rounded-[3px] bg-[#12131a] p-2.5 text-slate-50 outline-none font-medium placeholder-[#87898C]"
+                className="w-full rounded-md bg-white/5 border border-white/10 p-2.5 text-slate-50 outline-none font-medium placeholder-[#87898C] focus:border-[#5865F2] focus:ring-2 focus:ring-[#5865F2]/20 transition-all"
                 placeholder="https://discord.gg/hTKzmak"
                 disabled={isLoading}
                 autoFocus
@@ -81,7 +81,7 @@ export default function JoinServerModal({
             </div>
           </div>
 
-          <div className="bg-[#12131a] p-4 flex justify-between items-center">
+          <div className="bg-[#111214] p-4 flex justify-between items-center">
             <button
               type="button"
               onClick={() => {
@@ -94,7 +94,7 @@ export default function JoinServerModal({
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-[3px] text-sm font-medium bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-[#0b0500] font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 rounded-md text-sm font-medium bg-[#5865F2] hover:bg-[#4752C4] text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading || !inviteCode.trim()}
             >
               {isLoading ? 'Joining...' : 'Join Server'}

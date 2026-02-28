@@ -44,7 +44,7 @@ export default function CreateServerModal({
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center p-4">
-          <div className="w-full max-w-[440px] rounded-[4px] bg-[#313338] shadow-2xl overflow-hidden animate-scale-in">
+          <div className="w-full max-w-[440px] rounded-lg bg-[#1a1a1c] border border-white/10 shadow-2xl overflow-hidden animate-scale-in">
             <div className="px-6 pt-6 pb-2 text-center">
               <h2 className="text-2xl font-bold text-[#F2F3F5] mb-2">Create Your Server</h2>
               <p className="text-slate-400 text-sm mb-4">
@@ -69,7 +69,7 @@ export default function CreateServerModal({
               <button
                 type="button"
                 onClick={() => setShowTemplates(true)}
-                className="w-full mb-3 p-4 bg-[#2B2D31] hover:bg-[#35373C] rounded-lg transition-colors text-left group border-2 border-transparent hover:border-[#5865F2]"
+                className="w-full mb-3 p-4 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-left group border-2 border-transparent hover:border-[#5865F2]"
               >
                 <div className="flex items-center gap-3">
                   <div className="text-3xl">📋</div>
@@ -88,7 +88,7 @@ export default function CreateServerModal({
               </button>
 
               <div className="flex items-center gap-2 mb-3">
-                <div className="flex-1 h-px bg-[#3F4147]" />
+                <div className="flex-1 h-px bg-white/10" />
                 <span className="text-xs text-slate-500 uppercase font-bold">Or</span>
                 <div className="flex-1 h-px bg-[#3F4147]" />
               </div>
@@ -107,7 +107,7 @@ export default function CreateServerModal({
                   <input
                     value={serverName}
                     onChange={(e) => handleChange(e.target.value)}
-                    className="w-full rounded-[3px] bg-[#1E1F22] p-2.5 text-slate-50 outline-none font-medium placeholder-[#87898C]"
+                    className="w-full rounded-md bg-white/5 border border-white/10 p-2.5 text-slate-50 outline-none font-medium placeholder-[#87898C] focus:border-[#5865F2] focus:ring-2 focus:ring-[#5865F2]/20 transition-all"
                     placeholder="My Server"
                     disabled={isLoading}
                     autoFocus

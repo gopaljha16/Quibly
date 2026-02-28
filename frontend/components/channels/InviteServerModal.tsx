@@ -60,7 +60,7 @@ export default function InviteServerModal({
       <div className="absolute inset-0 bg-black/70" onClick={onClose} />
 
       <div className="absolute inset-0 flex items-center justify-center p-4">
-        <div className="w-full max-w-[440px] rounded-[4px] bg-[#12131a] shadow-2xl overflow-hidden animate-scale-in">
+        <div className="w-full max-w-[440px] rounded-lg bg-[#1a1a1c] border border-white/10 shadow-2xl overflow-hidden animate-scale-in">
           <div className="p-4">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold text-[#F2F3F5] uppercase truncate pr-4">Invite friends to {server.name || 'Server'}</h2>
@@ -83,13 +83,13 @@ export default function InviteServerModal({
                   type="text"
                   value={inviteLink}
                   readOnly
-                  className="flex-1 px-3 py-2.5 rounded-[3px] bg-[#12131a] text-slate-50 text-sm outline-none font-medium"
+                  className="flex-1 px-3 py-2.5 rounded-md bg-white/5 border border-white/10 text-slate-50 text-sm outline-none font-medium focus:border-[#5865F2] focus:ring-2 focus:ring-[#5865F2]/20 transition-all"
                 />
                 <button
                   onClick={copyToClipboard}
-                  className={`px-6 py-2.5 rounded-[3px] text-sm font-medium transition-all duration-200 min-w-[75px] ${copied
+                  className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 min-w-[75px] ${copied
                     ? 'bg-[#23A559] text-white'
-                    : 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-[#0b0500] font-bold'
+                    : 'bg-[#5865F2] hover:bg-[#4752C4] text-white'
                     }`}
                 >
                   {copied ? 'Copied' : 'Copy'}
@@ -97,9 +97,9 @@ export default function InviteServerModal({
               </div>
             </div>
 
-            <div className="border-t border-[#3F4147] pt-4 mt-4">
+            <div className="border-t border-white/10 pt-4 mt-4">
               <div className="text-xs text-slate-400">
-                Your invite link expires in 7 days. <a href="#" className="text-cyan-400 hover:underline">Edit invite link</a>.
+                Your invite link expires in 7 days. <a href="#" className="text-[#5865f2] hover:underline">Edit invite link</a>.
               </div>
             </div>
           </div>
