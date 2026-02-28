@@ -17,7 +17,7 @@ export default function DeleteMessageModal({
         <>
             <div className="fixed inset-0 bg-black/80 z-50" onClick={onClose} />
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md">
-                <div className="bg-[#313338] rounded-lg shadow-xl">
+                <div className="bg-[#1a1a1c] border border-white/10 rounded-lg shadow-xl">
                     <div className="p-4">
                         <h2 className="text-xl font-bold text-white mb-2">
                             Delete Message
@@ -27,7 +27,7 @@ export default function DeleteMessageModal({
                         </p>
                     </div>
 
-                    <div className="p-4 bg-[#2b2d31] flex justify-end gap-2 rounded-b-lg">
+                    <div className="p-4 bg-[#111214] flex justify-end gap-2 rounded-b-lg">
                         <button
                             onClick={onClose}
                             className="px-4 py-2 rounded-[3px] text-sm font-medium text-white hover:underline transition-colors"

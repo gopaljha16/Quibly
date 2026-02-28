@@ -45,7 +45,7 @@ export default function LeaveServerModal({
         className="absolute inset-0" 
         onClick={() => !loading && onClose()} 
       />
-      <div className="w-full max-w-[440px] rounded-[8px] bg-[#313338] shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 relative">
+      <div className="w-full max-w-[440px] rounded-lg bg-[#1a1a1c] border border-white/10 shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 relative">
         <div className="p-4 pt-6">
           <h2 className="text-xl font-bold text-white mb-2">
             {isDelete ? 'Delete Server' : 'Leave Server'}
@@ -56,7 +56,7 @@ export default function LeaveServerModal({
           </p>
         </div>
 
-        <div className="bg-[#2b2d31] p-4 flex justify-end items-center gap-3">
+        <div className="bg-[#111214] p-4 flex justify-end items-center gap-3">
           <button
             type="button"
             onClick={onClose}

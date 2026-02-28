@@ -50,10 +50,16 @@ export default function LoadingScreen() {
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-[#313338] flex flex-col items-center justify-center z-[9999]">
+    <div className="fixed inset-0 bg-gradient-to-b from-[#0a0a0c] via-[#111114] to-[#0a0a0c] flex flex-col items-center justify-center z-[9999]">
+      {/* Background glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[30%] left-[40%] w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[20%] right-[30%] w-[300px] h-[300px] bg-fuchsia-500/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+
       {/* Logo */}
-      <div className="relative mb-8 animate-bounce">
-        <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative mb-8 animate-bounce z-10">
+        <div className="w-24 h-24 rounded-2xl overflow-hidden shadow-2xl shadow-purple-500/20">
           <Image 
             src="/logo.png" 
             alt="Quibly Logo" 
@@ -66,25 +72,25 @@ export default function LoadingScreen() {
       </div>
 
       {/* App Name */}
-      <h1 className="text-4xl font-black text-white mb-4 tracking-wider uppercase italic">
+      <h1 className="text-4xl font-black text-white mb-4 tracking-wider uppercase italic z-10">
         Quibly
       </h1>
 
       {/* Quote */}
-      <p className="text-[#b5bac1] text-sm mb-8 max-w-md text-center px-4 font-medium animate-fade-in">
+      <p className="text-gray-400 text-sm mb-8 max-w-md text-center px-4 font-medium animate-fade-in z-10">
         {quote}
       </p>
 
       {/* Loading Bar */}
-      <div className="w-64 h-2 bg-[#1e1f22] rounded-full overflow-hidden">
+      <div className="w-64 h-1.5 bg-white/5 rounded-full overflow-hidden z-10">
         <div 
-          className="h-full bg-gradient-to-r from-[#5865f2] to-cyan-500 rounded-full transition-all duration-300 ease-out"
+          className="h-full bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-full transition-all duration-300 ease-out"
           style={{ width: `${Math.min(progress, 100)}%` }}
         />
       </div>
 
       {/* Loading Text */}
-      <p className="text-[#949ba4] text-xs mt-4 font-semibold uppercase tracking-widest">
+      <p className="text-gray-500 text-[10px] mt-4 font-black uppercase tracking-[0.2em] z-10">
         Loading...
       </p>
     </div>
