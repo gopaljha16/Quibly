@@ -150,13 +150,13 @@ function SectionHeading({
   center?: boolean;
 }) {
   return (
-    <div className={center ? "mb-12 text-center" : "mb-10"}>
-      <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">{eyebrow}</p>
-      <h2 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl [font-family:var(--font-geist-sans)]">
+    <div className={center ? "mb-10 text-center sm:mb-12" : "mb-8 sm:mb-10"}>
+      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] sm:text-xs">{eyebrow}</p>
+      <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight sm:mt-3 sm:text-3xl md:text-4xl [font-family:var(--font-geist-sans)]">
         {title}
       </h2>
       {subtitle ? (
-        <p className={`${center ? "mx-auto" : ""} mt-4 max-w-3xl text-[var(--text-soft)]`}>{subtitle}</p>
+        <p className={`${center ? "mx-auto" : ""} mt-3 max-w-3xl text-sm text-[var(--text-soft)] sm:mt-4 sm:text-base`}>{subtitle}</p>
       ) : null}
     </div>
   );
@@ -206,9 +206,9 @@ export default function HomePage() {
       }
     >
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-[-8%] top-20 h-80 w-80 rounded-full bg-purple-500/20 blur-3xl animate-float-soft" />
-        <div className="absolute right-[-5%] top-16 h-72 w-72 rounded-full bg-fuchsia-500/16 blur-3xl animate-float-soft [animation-delay:0.9s]" />
-        <div className="absolute bottom-[-18%] left-1/3 h-[26rem] w-[26rem] rounded-full bg-pink-500/10 blur-[100px] animate-gradient-drift" />
+        <div className="absolute -left-20 top-20 h-64 w-64 rounded-full bg-purple-500/20 blur-3xl animate-float-soft sm:h-80 sm:w-80" />
+        <div className="absolute -right-16 top-16 h-56 w-56 rounded-full bg-fuchsia-500/16 blur-3xl animate-float-soft sm:h-72 sm:w-72 [animation-delay:0.9s]" />
+        <div className="absolute bottom-[-18%] left-1/3 h-64 w-64 rounded-full bg-pink-500/10 blur-[80px] animate-gradient-drift sm:h-96 sm:w-96 md:h-[26rem] md:w-[26rem] md:blur-[100px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,rgba(255,255,255,0.22),transparent_30%),radial-gradient(circle_at_88%_10%,rgba(168,85,247,0.2),transparent_32%)]" />
       </div>
 
@@ -288,15 +288,15 @@ export default function HomePage() {
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setTheme((v) => (v === "light" ? "dark" : "light"))}
-                  className="rounded-full border border-[var(--card-border)] px-3 py-2 text-sm text-[var(--text-soft)]"
+                  onClick={() => { setTheme((v) => (v === "light" ? "dark" : "light")); setIsMenuOpen(false); }}
+                  className="rounded-full border border-[var(--card-border)] px-3 py-2 text-sm text-[var(--text-soft)] transition hover:border-[var(--accent-soft)]"
                 >
                   {isLight ? "Dark Theme" : "Light Theme"}
                 </button>
                 <Link
                   href="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="rounded-full border border-[var(--card-border)] px-3 py-2 text-center text-sm text-[var(--text-soft)]"
+                  className="rounded-full border border-[var(--card-border)] px-3 py-2 text-center text-sm text-[var(--text-soft)] transition hover:border-[var(--accent-soft)] hover:text-[var(--accent)]"
                 >
                   Login
                 </Link>
@@ -304,7 +304,7 @@ export default function HomePage() {
               <Link
                 href="/signup"
                 onClick={() => setIsMenuOpen(false)}
-                className="mt-1 rounded-full py-2.5 text-center text-sm font-semibold text-white"
+                className="mt-1 rounded-full py-2.5 text-center text-sm font-semibold text-white shadow-md transition hover:brightness-105"
                 style={{ background: "var(--cta-grad)" }}
               >
                 Start Free
@@ -315,22 +315,22 @@ export default function HomePage() {
       </header>
 
       <main>
-        <section className="mx-auto max-w-7xl px-4 pb-16 pt-36 sm:px-6 md:pt-44 md:pb-20">
-          <div className="grid items-center gap-10 lg:grid-cols-[1.02fr_0.98fr]">
+        <section className="mx-auto max-w-7xl px-4 pb-12 pt-28 sm:px-6 sm:pt-32 sm:pb-16 md:pt-44 md:pb-20">
+          <div className="grid items-center gap-8 sm:gap-10 lg:grid-cols-[1.02fr_0.98fr]">
             <div>
               <span className="reveal-up inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--pill)] px-4 py-1 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
                 <Sparkles size={13} /> Built for high-retention communities
               </span>
 
-              <h1 className="reveal-up mt-6 text-4xl font-semibold leading-[1.04] tracking-tight sm:text-6xl [animation-delay:80ms] [font-family:var(--font-geist-sans)]">
+              <h1 className="reveal-up mt-4 text-3xl font-semibold leading-[1.06] tracking-tight sm:mt-6 sm:text-5xl md:text-6xl [animation-delay:80ms] [font-family:var(--font-geist-sans)]">
                 A cleaner way to chat, collaborate, and grow your community.
               </h1>
 
-              <p className="reveal-up mt-5 max-w-xl text-base leading-relaxed text-[var(--text-soft)] sm:text-lg [animation-delay:160ms]">
+              <p className="reveal-up mt-4 max-w-xl text-sm leading-relaxed text-[var(--text-soft)] sm:mt-5 sm:text-base md:text-lg [animation-delay:160ms]">
                 Qubily combines channel messaging, voice rooms, moderation, and discovery into one product teams can manage without complexity.
               </p>
 
-              <div className="reveal-up mt-8 flex flex-col gap-3 sm:flex-row [animation-delay:230ms]">
+              <div className="reveal-up mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row [animation-delay:230ms]">
                 <Link
                   href="/signup"
                   className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:brightness-105"
@@ -346,7 +346,7 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <div className="reveal-up mt-7 flex flex-wrap items-center gap-3 text-xs text-[var(--text-soft)] [animation-delay:290ms]">
+              <div className="reveal-up mt-5 flex flex-wrap items-center gap-2 text-xs text-[var(--text-soft)] sm:mt-7 sm:gap-3 [animation-delay:290ms]">
                 <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">No installation needed</span>
                 <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">LiveKit voice + video</span>
                 <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">Redis + Kafka infrastructure</span>
@@ -354,18 +354,18 @@ export default function HomePage() {
             </div>
 
             <div className="reveal-up relative [animation-delay:180ms]">
-              <div className="absolute -left-4 top-10 h-16 w-16 rounded-2xl bg-purple-500/40 blur-sm" />
-              <div className="absolute -right-5 bottom-8 h-12 w-12 rounded-full border-4 border-[var(--accent-soft)]" />
+              <div className="absolute -left-4 top-10 h-14 w-14 rounded-2xl bg-purple-500/40 blur-sm sm:h-16 sm:w-16" />
+              <div className="absolute -right-3 bottom-8 h-10 w-10 rounded-full border-4 border-[var(--accent-soft)] sm:-right-5 sm:h-12 sm:w-12" />
 
-              <article className="rounded-[1.75rem] border border-[var(--card-border)] bg-[var(--card)] p-4 shadow-2xl backdrop-blur-sm">
-                <div className="grid grid-cols-[0.34fr_0.66fr] gap-3">
+              <article className="rounded-[1.5rem] border border-[var(--card-border)] bg-[var(--card)] p-3 shadow-2xl backdrop-blur-sm sm:rounded-[1.75rem] sm:p-4">
+                <div className="flex flex-col gap-3 sm:grid sm:grid-cols-[0.34fr_0.66fr]">
                   <aside className="rounded-2xl border border-[var(--card-border)] bg-[var(--pill)] p-3">
                     <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">Channels</p>
-                    <div className="mt-3 space-y-2 text-xs text-[var(--text-soft)]">
+                    <div className="mt-2 flex flex-row flex-wrap gap-1.5 text-xs text-[var(--text-soft)] sm:mt-3 sm:flex-col sm:gap-0 sm:space-y-2">
                       <p className="rounded-md bg-[var(--card)] px-2 py-1 text-[var(--accent)]"># announcements</p>
-                      <p># product-launch</p>
-                      <p># support</p>
-                      <p># events</p>
+                      <p className="rounded-md px-2 py-1"># product-launch</p>
+                      <p className="hidden rounded-md px-2 py-1 sm:block"># support</p>
+                      <p className="hidden rounded-md px-2 py-1 sm:block"># events</p>
                     </div>
                   </aside>
 
@@ -376,7 +376,7 @@ export default function HomePage() {
                     </div>
                     <div className="space-y-2 text-xs text-[var(--text-soft)]">
                       <p className="rounded-lg bg-[var(--pill)] p-2">Weekly update is live. Check rollout notes.</p>
-                      <p className="rounded-lg bg-[var(--pill)] p-2">Voice room opens in 10 minutes for Q&A.</p>
+                      <p className="hidden rounded-lg bg-[var(--pill)] p-2 sm:block">Voice room opens in 10 minutes for Q&A.</p>
                       <div className="rounded-lg bg-gradient-to-r from-pink-500/20 via-fuchsia-400/10 to-transparent p-2 ring-1 ring-pink-400/30">
                         <p className="font-semibold text-[var(--warm)]">Moderator insight</p>
                         <p className="mt-1">Spam pattern detected and auto-filtered.</p>
@@ -399,7 +399,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-12 grid gap-4 sm:grid-cols-3">
+          <div className="mt-8 grid gap-3 sm:mt-12 sm:grid-cols-3 sm:gap-4">
             {quickStats.map((item, idx) => (
               <article
                 key={item.label}
@@ -417,7 +417,7 @@ export default function HomePage() {
         </section>
 
         <section id="features" className="scroll-mt-28 border-y border-[var(--card-border)] bg-[var(--pill)]/45">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
             <SectionHeading
               eyebrow="Features"
               title="Focused tools that keep communities active"
@@ -444,14 +444,14 @@ export default function HomePage() {
         </section>
 
         <section id="workflow" className="scroll-mt-28 border-b border-[var(--card-border)]">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
             <SectionHeading
               eyebrow="Workflow"
               title="A launch path your team can follow"
               subtitle="Move from setup to scale with a clear operating model."
             />
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
               {workflowSteps.map((step, idx) => (
                 <article
                   key={step.title}
@@ -470,7 +470,7 @@ export default function HomePage() {
         </section>
 
         <section id="safety" className="scroll-mt-28 border-b border-[var(--card-border)] bg-[var(--pill)]/45">
-          <div className="mx-auto grid max-w-7xl gap-6 px-4 py-16 sm:px-6 md:grid-cols-[1.1fr_0.9fr] md:py-24">
+          <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 sm:px-6 sm:py-16 md:grid-cols-[1.1fr_0.9fr] md:py-24">
             <article className="reveal-up rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-6 md:p-8">
               <SectionHeading
                 eyebrow="Safety"
@@ -524,7 +524,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="pricing" className="scroll-mt-28 mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+        <section id="pricing" className="scroll-mt-24 mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
           <SectionHeading
             eyebrow="Pricing"
             title="Simple plans that scale with your server"
@@ -532,7 +532,7 @@ export default function HomePage() {
             center
           />
 
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 sm:gap-5">
             {plans.map((plan, idx) => (
               <article
                 key={plan.name}
@@ -579,8 +579,8 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="faq" className="scroll-mt-28 border-y border-[var(--card-border)] bg-[var(--pill)]/45">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24">
+        <section id="faq" className="scroll-mt-24 border-y border-[var(--card-border)] bg-[var(--pill)]/45">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
             <SectionHeading
               eyebrow="FAQ"
               title="Common questions before launch"
@@ -605,11 +605,11 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer id="support" className="border-t border-[var(--card-border)] bg-[var(--card)]/70 px-4 pb-8 pt-14 sm:px-6">
+      <footer id="support" className="border-t border-[var(--card-border)] bg-[var(--card)]/70 px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-6 md:p-8">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Ready to launch</p>
-            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl [font-family:var(--font-geist-sans)]">
+          <div className="mb-8 rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-5 sm:mb-10 sm:p-6 md:p-8">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] sm:text-xs">Ready to launch</p>
+            <h2 className="mt-2 text-2xl font-semibold sm:mt-3 sm:text-3xl md:text-4xl [font-family:var(--font-geist-sans)]">
               Build a community your members actually return to
             </h2>
             <p className="mt-4 max-w-2xl text-[var(--text-soft)]">
@@ -632,7 +632,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="grid gap-8 border-b border-[var(--card-border)] pb-10 md:grid-cols-4">
+          <div className="grid gap-6 border-b border-[var(--card-border)] pb-8 sm:grid-cols-2 sm:gap-8 sm:pb-10 md:grid-cols-4">
             <div>
               <Link href="/" className="inline-flex items-center gap-3">
                 <Image src="/logo.png" alt="Qubily logo" width={32} height={32} className="rounded-md" />
