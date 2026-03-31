@@ -41,32 +41,38 @@ const quickStats = [
 const coreFeatures = [
   {
     title: "Conversation-first channels",
-    description: "Organize text, voice, and video into clean spaces people understand immediately.",
+    description:
+      "Organize text, voice, and video into clean spaces people understand immediately.",
     icon: MessageSquare,
   },
   {
     title: "Reliable voice rooms",
-    description: "Crisp voice and screen sharing backed by your LiveKit infrastructure.",
+    description:
+      "Crisp voice and screen sharing backed by your LiveKit infrastructure.",
     icon: Video,
   },
   {
     title: "Role-aware moderation",
-    description: "Permissions, onboarding checks, and audit trails built for growing teams.",
+    description:
+      "Permissions, onboarding checks, and audit trails built for growing teams.",
     icon: ShieldCheck,
   },
   {
     title: "Smart discovery",
-    description: "Interest matching helps users find relevant communities and channels faster.",
+    description:
+      "Interest matching helps users find relevant communities and channels faster.",
     icon: Compass,
   },
   {
     title: "Presence and activity",
-    description: "Live status signals keep members aware of who is available and active.",
+    description:
+      "Live status signals keep members aware of who is available and active.",
     icon: Activity,
   },
   {
     title: "Actionable analytics",
-    description: "Track engagement, growth, and health with practical weekly reporting.",
+    description:
+      "Track engagement, growth, and health with practical weekly reporting.",
     icon: BarChart3,
   },
 ];
@@ -74,15 +80,18 @@ const coreFeatures = [
 const workflowSteps = [
   {
     title: "Launch a server in minutes",
-    description: "Use templates and starter roles so your structure is ready on day one.",
+    description:
+      "Use templates and starter roles so your structure is ready on day one.",
   },
   {
     title: "Onboard members safely",
-    description: "Enable screening rules and automod before inviting large audiences.",
+    description:
+      "Enable screening rules and automod before inviting large audiences.",
   },
   {
     title: "Scale with confidence",
-    description: "Use analytics, discovery, and moderation insights to improve retention.",
+    description:
+      "Use analytics, discovery, and moderation insights to improve retention.",
   },
 ];
 
@@ -98,24 +107,39 @@ const moderationItems = [
 const plans = [
   {
     name: "Starter",
-    price: "$0",
+    price: "₹0",
     period: "/month",
     highlight: false,
-    perks: ["Core chat + voice", "Basic moderation", "Community templates", "Email support"],
+    perks: [
+      "Core chat + voice",
+      "Basic moderation",
+      "Community templates",
+      "Email support",
+    ],
   },
   {
     name: "Growth",
-    price: "$8",
+    price: "₹599",
     period: "/month",
     highlight: true,
-    perks: ["HD streaming", "Advanced moderation", "AI summaries", "Priority support"],
+    perks: [
+      "HD streaming",
+      "Advanced moderation",
+      "AI summaries",
+      "Priority support",
+    ],
   },
   {
     name: "Scale",
-    price: "$19",
+    price: "₹1,499",
     period: "/month",
     highlight: false,
-    perks: ["Large upload limits", "Analytics exports", "Team admin roles", "Early feature access"],
+    perks: [
+      "Large upload limits",
+      "Analytics exports",
+      "Team admin roles",
+      "Early feature access",
+    ],
   },
 ];
 
@@ -151,12 +175,18 @@ function SectionHeading({
 }) {
   return (
     <div className={center ? "mb-10 text-center sm:mb-12" : "mb-8 sm:mb-10"}>
-      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] sm:text-xs">{eyebrow}</p>
+      <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] sm:text-xs">
+        {eyebrow}
+      </p>
       <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-tight sm:mt-3 sm:text-3xl md:text-4xl [font-family:var(--font-geist-sans)]">
         {title}
       </h2>
       {subtitle ? (
-        <p className={`${center ? "mx-auto" : ""} mt-3 max-w-3xl text-sm text-[var(--text-soft)] sm:mt-4 sm:text-base`}>{subtitle}</p>
+        <p
+          className={`${center ? "mx-auto" : ""} mt-3 max-w-3xl text-sm text-[var(--text-soft)] sm:mt-4 sm:text-base`}
+        >
+          {subtitle}
+        </p>
       ) : null}
     </div>
   );
@@ -185,22 +215,38 @@ export default function HomePage() {
             ? "linear-gradient(180deg,#f8f7fa 0%,#f0edf4 40%,#faf9fc 100%)"
             : "linear-gradient(180deg,#0a0a0c 0%,#111114 40%,#0a0a0c 100%)",
           color: isLight ? "#1a1820" : "#eceaf2",
-          ["--card" as string]: isLight ? "rgba(255,255,255,0.88)" : "rgba(24,24,28,0.72)",
-          ["--card-border" as string]: isLight ? "rgba(147,112,219,0.18)" : "rgba(147,112,219,0.28)",
-          ["--text-soft" as string]: isLight ? "#4a465a" : "rgba(224,222,240,0.82)",
+          ["--card" as string]: isLight
+            ? "rgba(255,255,255,0.88)"
+            : "rgba(24,24,28,0.72)",
+          ["--card-border" as string]: isLight
+            ? "rgba(147,112,219,0.18)"
+            : "rgba(147,112,219,0.28)",
+          ["--text-soft" as string]: isLight
+            ? "#4a465a"
+            : "rgba(224,222,240,0.82)",
           ["--muted" as string]: isLight ? "#7a6b97" : "#a291de",
-          ["--pill" as string]: isLight ? "rgba(147,112,219,0.1)" : "rgba(147,112,219,0.16)",
+          ["--pill" as string]: isLight
+            ? "rgba(147,112,219,0.1)"
+            : "rgba(147,112,219,0.16)",
           ["--accent" as string]: isLight ? "#9333ea" : "#a855f7",
           ["--accent-2" as string]: isLight ? "#a855f7" : "#c084fc",
-          ["--accent-soft" as string]: isLight ? "rgba(147,112,219,0.26)" : "rgba(168,85,247,0.34)",
+          ["--accent-soft" as string]: isLight
+            ? "rgba(147,112,219,0.26)"
+            : "rgba(168,85,247,0.34)",
           ["--accent-strong" as string]: isLight ? "#7e22ce" : "#9333ea",
           ["--warm" as string]: isLight ? "#db2777" : "#f472b6",
           ["--cta-grad" as string]: isLight
             ? "linear-gradient(135deg,#7e22ce 0%,#a855f7 100%)"
             : "linear-gradient(135deg,#9333ea 0%,#c084fc 100%)",
-          ["--header-bg" as string]: isLight ? "rgba(245,243,248,0.85)" : "rgba(17,17,20,0.82)",
-          ["--header-border" as string]: isLight ? "rgba(147,112,219,0.18)" : "rgba(147,112,219,0.25)",
-          ["--header-shadow" as string]: isLight ? "0 10px 28px rgba(30,20,50,0.08)" : "0 10px 30px rgba(7,7,10,0.45)",
+          ["--header-bg" as string]: isLight
+            ? "rgba(245,243,248,0.85)"
+            : "rgba(17,17,20,0.82)",
+          ["--header-border" as string]: isLight
+            ? "rgba(147,112,219,0.18)"
+            : "rgba(147,112,219,0.25)",
+          ["--header-shadow" as string]: isLight
+            ? "0 10px 28px rgba(30,20,50,0.08)"
+            : "0 10px 30px rgba(7,7,10,0.45)",
           ["--danger" as string]: isLight ? "#dc2626" : "#ef4444",
         } as React.CSSProperties
       }
@@ -228,13 +274,25 @@ export default function HomePage() {
       >
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-3">
-            <Image src="/logo.png" alt="Qubily logo" width={36} height={36} className="rounded-md" />
-            <span className="text-lg font-semibold tracking-tight [font-family:var(--font-geist-sans)]">Qubily</span>
+            <Image
+              src="/logo.png"
+              alt="Qubily logo"
+              width={36}
+              height={36}
+              className="rounded-md"
+            />
+            <span className="text-lg font-semibold tracking-tight [font-family:var(--font-geist-sans)]">
+              Qubily
+            </span>
           </Link>
 
           <nav className="hidden items-center gap-7 text-sm lg:flex">
             {navItems.map((item) => (
-              <a key={item.label} href={item.href} className="text-[var(--text-soft)] transition hover:text-[var(--accent)]">
+              <a
+                key={item.label}
+                href={item.href}
+                className="text-[var(--text-soft)] transition hover:text-[var(--accent)]"
+              >
                 {item.label}
               </a>
             ))}
@@ -243,10 +301,13 @@ export default function HomePage() {
           <div className="hidden items-center gap-3 lg:flex">
             <button
               type="button"
-              onClick={() => setTheme((v) => (v === "light" ? "dark" : "light"))}
+              onClick={() =>
+                setTheme((v) => (v === "light" ? "dark" : "light"))
+              }
               className="inline-flex items-center gap-2 rounded-full border border-[var(--card-border)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--text-soft)] transition hover:border-[var(--accent-soft)]"
             >
-              {isLight ? <Moon size={14} /> : <Sun size={14} />} {isLight ? "Dark" : "Light"}
+              {isLight ? <Moon size={14} /> : <Sun size={14} />}{" "}
+              {isLight ? "Dark" : "Light"}
             </button>
             <Link
               href="/login"
@@ -288,7 +349,10 @@ export default function HomePage() {
               <div className="mt-2 grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => { setTheme((v) => (v === "light" ? "dark" : "light")); setIsMenuOpen(false); }}
+                  onClick={() => {
+                    setTheme((v) => (v === "light" ? "dark" : "light"));
+                    setIsMenuOpen(false);
+                  }}
                   className="rounded-full border border-[var(--card-border)] px-3 py-2 text-sm text-[var(--text-soft)] transition hover:border-[var(--accent-soft)]"
                 >
                   {isLight ? "Dark Theme" : "Light Theme"}
@@ -327,7 +391,8 @@ export default function HomePage() {
               </h1>
 
               <p className="reveal-up mt-4 max-w-xl text-sm leading-relaxed text-[var(--text-soft)] sm:mt-5 sm:text-base md:text-lg [animation-delay:160ms]">
-                Qubily combines channel messaging, voice rooms, moderation, and discovery into one product teams can manage without complexity.
+                Qubily combines channel messaging, voice rooms, moderation, and
+                discovery into one product teams can manage without complexity.
               </p>
 
               <div className="reveal-up mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row [animation-delay:230ms]">
@@ -347,9 +412,15 @@ export default function HomePage() {
               </div>
 
               <div className="reveal-up mt-5 flex flex-wrap items-center gap-2 text-xs text-[var(--text-soft)] sm:mt-7 sm:gap-3 [animation-delay:290ms]">
-                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">No installation needed</span>
-                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">LiveKit voice + video</span>
-                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">Redis + Kafka infrastructure</span>
+                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">
+                  No installation needed
+                </span>
+                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">
+                  LiveKit voice + video
+                </span>
+                <span className="rounded-full bg-[var(--pill)] px-3 py-1 font-semibold text-[var(--muted)]">
+                  Redis + Kafka infrastructure
+                </span>
               </div>
             </div>
 
@@ -360,26 +431,46 @@ export default function HomePage() {
               <article className="rounded-[1.5rem] border border-[var(--card-border)] bg-[var(--card)] p-3 shadow-2xl backdrop-blur-sm sm:rounded-[1.75rem] sm:p-4">
                 <div className="flex flex-col gap-3 sm:grid sm:grid-cols-[0.34fr_0.66fr]">
                   <aside className="rounded-2xl border border-[var(--card-border)] bg-[var(--pill)] p-3">
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">Channels</p>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">
+                      Channels
+                    </p>
                     <div className="mt-2 flex flex-row flex-wrap gap-1.5 text-xs text-[var(--text-soft)] sm:mt-3 sm:flex-col sm:gap-0 sm:space-y-2">
-                      <p className="rounded-md bg-[var(--card)] px-2 py-1 text-[var(--accent)]"># announcements</p>
+                      <p className="rounded-md bg-[var(--card)] px-2 py-1 text-[var(--accent)]">
+                        # announcements
+                      </p>
                       <p className="rounded-md px-2 py-1"># product-launch</p>
-                      <p className="hidden rounded-md px-2 py-1 sm:block"># support</p>
-                      <p className="hidden rounded-md px-2 py-1 sm:block"># events</p>
+                      <p className="hidden rounded-md px-2 py-1 sm:block">
+                        # support
+                      </p>
+                      <p className="hidden rounded-md px-2 py-1 sm:block">
+                        # events
+                      </p>
                     </div>
                   </aside>
 
                   <div className="rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-3">
                     <div className="mb-3 flex items-center justify-between">
-                      <p className="text-xs font-semibold text-[var(--accent)]"># product-launch</p>
-                      <span className="rounded-full bg-[var(--pill)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">42 online</span>
+                      <p className="text-xs font-semibold text-[var(--accent)]">
+                        # product-launch
+                      </p>
+                      <span className="rounded-full bg-[var(--pill)] px-2 py-1 text-[10px] font-semibold text-[var(--muted)]">
+                        42 online
+                      </span>
                     </div>
                     <div className="space-y-2 text-xs text-[var(--text-soft)]">
-                      <p className="rounded-lg bg-[var(--pill)] p-2">Weekly update is live. Check rollout notes.</p>
-                      <p className="hidden rounded-lg bg-[var(--pill)] p-2 sm:block">Voice room opens in 10 minutes for Q&A.</p>
+                      <p className="rounded-lg bg-[var(--pill)] p-2">
+                        Weekly update is live. Check rollout notes.
+                      </p>
+                      <p className="hidden rounded-lg bg-[var(--pill)] p-2 sm:block">
+                        Voice room opens in 10 minutes for Q&A.
+                      </p>
                       <div className="rounded-lg bg-gradient-to-r from-pink-500/20 via-fuchsia-400/10 to-transparent p-2 ring-1 ring-pink-400/30">
-                        <p className="font-semibold text-[var(--warm)]">Moderator insight</p>
-                        <p className="mt-1">Spam pattern detected and auto-filtered.</p>
+                        <p className="font-semibold text-[var(--warm)]">
+                          Moderator insight
+                        </p>
+                        <p className="mt-1">
+                          Spam pattern detected and auto-filtered.
+                        </p>
                       </div>
                     </div>
                     <div className="mt-3 grid grid-cols-3 gap-2 text-[10px]">
@@ -389,7 +480,10 @@ export default function HomePage() {
                       <button className="rounded-md border border-[var(--card-border)] bg-[var(--card)] py-2 transition hover:-translate-y-0.5">
                         <Video size={13} className="mx-auto" />
                       </button>
-                      <button className="rounded-md py-2 text-white transition hover:-translate-y-0.5" style={{ backgroundColor: "var(--danger)" }}>
+                      <button
+                        className="rounded-md py-2 text-white transition hover:-translate-y-0.5"
+                        style={{ backgroundColor: "var(--danger)" }}
+                      >
                         Leave
                       </button>
                     </div>
@@ -408,15 +502,22 @@ export default function HomePage() {
               >
                 <item.icon size={20} className="text-[var(--accent)]" />
                 <div>
-                  <p className="text-2xl font-semibold text-[var(--accent)]">{item.value}</p>
-                  <p className="mt-1 text-sm text-[var(--text-soft)]">{item.label}</p>
+                  <p className="text-2xl font-semibold text-[var(--accent)]">
+                    {item.value}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--text-soft)]">
+                    {item.label}
+                  </p>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section id="features" className="scroll-mt-28 border-y border-[var(--card-border)] bg-[var(--pill)]/45">
+        <section
+          id="features"
+          className="scroll-mt-28 border-y border-[var(--card-border)] bg-[var(--pill)]/45"
+        >
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
             <SectionHeading
               eyebrow="Features"
@@ -435,15 +536,22 @@ export default function HomePage() {
                   <div className="inline-flex rounded-xl bg-gradient-to-br from-purple-500/20 to-fuchsia-500/15 p-2 ring-1 ring-white/20">
                     <feature.icon size={18} className="text-[var(--accent)]" />
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold">{feature.title}</h3>
-                  <p className="mt-2 text-sm text-[var(--text-soft)]">{feature.description}</p>
+                  <h3 className="mt-4 text-lg font-semibold">
+                    {feature.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-[var(--text-soft)]">
+                    {feature.description}
+                  </p>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="workflow" className="scroll-mt-28 border-b border-[var(--card-border)]">
+        <section
+          id="workflow"
+          className="scroll-mt-28 border-b border-[var(--card-border)]"
+        >
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
             <SectionHeading
               eyebrow="Workflow"
@@ -462,14 +570,19 @@ export default function HomePage() {
                     {idx + 1}
                   </span>
                   <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
-                  <p className="mt-2 text-sm text-[var(--text-soft)]">{step.description}</p>
+                  <p className="mt-2 text-sm text-[var(--text-soft)]">
+                    {step.description}
+                  </p>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="safety" className="scroll-mt-28 border-b border-[var(--card-border)] bg-[var(--pill)]/45">
+        <section
+          id="safety"
+          className="scroll-mt-28 border-b border-[var(--card-border)] bg-[var(--pill)]/45"
+        >
           <div className="mx-auto grid max-w-7xl gap-6 px-4 py-12 sm:px-6 sm:py-16 md:grid-cols-[1.1fr_0.9fr] md:py-24">
             <article className="reveal-up rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-6 md:p-8">
               <SectionHeading
@@ -492,13 +605,18 @@ export default function HomePage() {
             </article>
 
             <article className="reveal-up rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-6 md:p-8 [animation-delay:120ms]">
-              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Discovery</p>
-              <h3 className="mt-3 text-2xl font-semibold [font-family:var(--font-geist-sans)]">Help users find the right place faster</h3>
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--muted)]">
+                Discovery
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold [font-family:var(--font-geist-sans)]">
+                Help users find the right place faster
+              </h3>
 
               <ul className="mt-6 space-y-3 text-sm text-[var(--text-soft)]">
                 <li className="flex items-start gap-2">
                   <Check size={14} className="mt-1 text-[var(--accent)]" />
-                  Interest-first recommendations for better first-session retention
+                  Interest-first recommendations for better first-session
+                  retention
                 </li>
                 <li className="flex items-start gap-2">
                   <Check size={14} className="mt-1 text-[var(--accent)]" />
@@ -506,25 +624,35 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <Check size={14} className="mt-1 text-[var(--accent)]" />
-                  Curated discovery cards for events, creators, and learning communities
+                  Curated discovery cards for events, creators, and learning
+                  communities
                 </li>
               </ul>
 
               <div className="mt-7 grid grid-cols-2 gap-3">
                 <div className="rounded-xl border border-[var(--card-border)] bg-[var(--pill)] p-3">
                   <p className="text-xs text-[var(--muted)]">Join conversion</p>
-                  <p className="mt-1 text-xl font-semibold text-[var(--accent)]">+31%</p>
+                  <p className="mt-1 text-xl font-semibold text-[var(--accent)]">
+                    +31%
+                  </p>
                 </div>
                 <div className="rounded-xl border border-[var(--card-border)] bg-[var(--pill)] p-3">
-                  <p className="text-xs text-[var(--muted)]">Week-1 retention</p>
-                  <p className="mt-1 text-xl font-semibold text-[var(--accent)]">+18%</p>
+                  <p className="text-xs text-[var(--muted)]">
+                    Week-1 retention
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-[var(--accent)]">
+                    +18%
+                  </p>
                 </div>
               </div>
             </article>
           </div>
         </section>
 
-        <section id="pricing" className="scroll-mt-24 mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
+        <section
+          id="pricing"
+          className="scroll-mt-24 mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24"
+        >
           <SectionHeading
             eyebrow="Pricing"
             title="Simple plans that scale with your server"
@@ -546,7 +674,10 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-semibold">{plan.name}</h3>
                   {plan.highlight ? (
-                    <span className="rounded-full px-3 py-1 text-xs font-semibold text-white" style={{ backgroundColor: "var(--accent-strong)" }}>
+                    <span
+                      className="rounded-full px-3 py-1 text-xs font-semibold text-white"
+                      style={{ backgroundColor: "var(--accent-strong)" }}
+                    >
                       Best Value
                     </span>
                   ) : null}
@@ -554,12 +685,18 @@ export default function HomePage() {
 
                 <p className="mt-4 text-3xl font-semibold">
                   {plan.price}
-                  <span className="text-base font-normal text-[var(--text-soft)]"> {plan.period}</span>
+                  <span className="text-base font-normal text-[var(--text-soft)]">
+                    {" "}
+                    {plan.period}
+                  </span>
                 </p>
 
                 <ul className="mt-5 space-y-2">
                   {plan.perks.map((perk) => (
-                    <li key={perk} className="flex items-start gap-2 text-sm text-[var(--text-soft)]">
+                    <li
+                      key={perk}
+                      className="flex items-start gap-2 text-sm text-[var(--text-soft)]"
+                    >
                       <Check size={14} className="mt-1 text-[var(--accent)]" />
                       {perk}
                     </li>
@@ -568,9 +705,18 @@ export default function HomePage() {
 
                 <button
                   className={`mt-7 w-full rounded-full py-3 text-sm font-semibold transition hover:brightness-105 ${
-                    plan.highlight ? "text-white" : "border border-[var(--card-border)]"
+                    plan.highlight
+                      ? "text-white"
+                      : "border border-[var(--card-border)]"
                   }`}
-                  style={plan.highlight ? { background: "var(--cta-grad)" } : undefined}
+                  style={
+                    plan.highlight
+                      ? { background: "var(--cta-grad)" }
+                      : undefined
+                  }
+                  onClick={() =>
+                    (window.location.href = "/pricing-coming-soon")
+                  }
                 >
                   Choose {plan.name}
                 </button>
@@ -579,7 +725,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="faq" className="scroll-mt-24 border-y border-[var(--card-border)] bg-[var(--pill)]/45">
+        <section
+          id="faq"
+          className="scroll-mt-24 border-y border-[var(--card-border)] bg-[var(--pill)]/45"
+        >
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 md:py-24">
             <SectionHeading
               eyebrow="FAQ"
@@ -597,7 +746,9 @@ export default function HomePage() {
                   <summary className="cursor-pointer list-none text-sm font-semibold">
                     {item.q}
                   </summary>
-                  <p className="mt-3 text-sm leading-relaxed text-[var(--text-soft)]">{item.a}</p>
+                  <p className="mt-3 text-sm leading-relaxed text-[var(--text-soft)]">
+                    {item.a}
+                  </p>
                 </details>
               ))}
             </div>
@@ -605,15 +756,21 @@ export default function HomePage() {
         </section>
       </main>
 
-      <footer id="support" className="border-t border-[var(--card-border)] bg-[var(--card)]/70 px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
+      <footer
+        id="support"
+        className="border-t border-[var(--card-border)] bg-[var(--card)]/70 px-4 pb-8 pt-10 sm:px-6 sm:pt-14"
+      >
         <div className="mx-auto max-w-7xl">
           <div className="mb-8 rounded-3xl border border-[var(--card-border)] bg-[var(--card)] p-5 sm:mb-10 sm:p-6 md:p-8">
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] sm:text-xs">Ready to launch</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--muted)] sm:text-xs">
+              Ready to launch
+            </p>
             <h2 className="mt-2 text-2xl font-semibold sm:mt-3 sm:text-3xl md:text-4xl [font-family:var(--font-geist-sans)]">
               Build a community your members actually return to
             </h2>
             <p className="mt-4 max-w-2xl text-[var(--text-soft)]">
-              Move from setup to daily engagement with cleaner channels, stronger moderation, and better discovery.
+              Move from setup to daily engagement with cleaner channels,
+              stronger moderation, and better discovery.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
@@ -635,38 +792,92 @@ export default function HomePage() {
           <div className="grid gap-6 border-b border-[var(--card-border)] pb-8 sm:grid-cols-2 sm:gap-8 sm:pb-10 md:grid-cols-4">
             <div>
               <Link href="/" className="inline-flex items-center gap-3">
-                <Image src="/logo.png" alt="Qubily logo" width={32} height={32} className="rounded-md" />
-                <span className="text-lg font-semibold [font-family:var(--font-geist-sans)]">Qubily</span>
+                <Image
+                  src="/logo.png"
+                  alt="Qubily logo"
+                  width={32}
+                  height={32}
+                  className="rounded-md"
+                />
+                <span className="text-lg font-semibold [font-family:var(--font-geist-sans)]">
+                  Qubily
+                </span>
               </Link>
               <p className="mt-3 max-w-sm text-sm text-[var(--text-soft)]">
-                Community infrastructure for teams that care about quality conversations.
+                Community infrastructure for teams that care about quality
+                conversations.
               </p>
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Product</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+                Product
+              </p>
               <div className="mt-3 space-y-2 text-sm text-[var(--text-soft)]">
-                <a href="#features" className="block hover:text-[var(--accent)]">Features</a>
-                <a href="#pricing" className="block hover:text-[var(--accent)]">Pricing</a>
-                <a href="#faq" className="block hover:text-[var(--accent)]">FAQ</a>
+                <a
+                  href="#features"
+                  className="block hover:text-[var(--accent)]"
+                >
+                  Features
+                </a>
+                <a href="#pricing" className="block hover:text-[var(--accent)]">
+                  Pricing
+                </a>
+                <a href="#faq" className="block hover:text-[var(--accent)]">
+                  FAQ
+                </a>
               </div>
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Explore</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+                Explore
+              </p>
               <div className="mt-3 space-y-2 text-sm text-[var(--text-soft)]">
-                <a href="#workflow" className="inline-flex items-center gap-1 hover:text-[var(--accent)]"><Search size={13} /> Workflow</a>
-                <a href="#safety" className="inline-flex items-center gap-1 hover:text-[var(--accent)]"><ShieldCheck size={13} /> Safety</a>
-                <a href="#features" className="inline-flex items-center gap-1 hover:text-[var(--accent)]"><Globe size={13} /> Discovery</a>
+                <a
+                  href="#workflow"
+                  className="inline-flex items-center gap-1 hover:text-[var(--accent)]"
+                >
+                  <Search size={13} /> Workflow
+                </a>
+                <a
+                  href="#safety"
+                  className="inline-flex items-center gap-1 hover:text-[var(--accent)]"
+                >
+                  <ShieldCheck size={13} /> Safety
+                </a>
+                <a
+                  href="#features"
+                  className="inline-flex items-center gap-1 hover:text-[var(--accent)]"
+                >
+                  <Globe size={13} /> Discovery
+                </a>
               </div>
             </div>
 
             <div>
-              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Account</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+                Account
+              </p>
               <div className="mt-3 space-y-2 text-sm text-[var(--text-soft)]">
-                <Link href="/signup" className="block hover:text-[var(--accent)]">Create Account</Link>
-                <Link href="/login" className="block hover:text-[var(--accent)]">Sign In</Link>
-                <Link href="/me/profile" className="block hover:text-[var(--accent)]">Profile</Link>
+                <Link
+                  href="/signup"
+                  className="block hover:text-[var(--accent)]"
+                >
+                  Create Account
+                </Link>
+                <Link
+                  href="/login"
+                  className="block hover:text-[var(--accent)]"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/me/profile"
+                  className="block hover:text-[var(--accent)]"
+                >
+                  Profile
+                </Link>
               </div>
             </div>
           </div>
@@ -674,9 +885,15 @@ export default function HomePage() {
           <div className="flex flex-col gap-3 pt-6 text-xs text-[var(--text-soft)] sm:flex-row sm:items-center sm:justify-between">
             <p>Copyright 2026 Qubily. All rights reserved.</p>
             <div className="flex flex-wrap gap-4">
-              <a href="#support" className="hover:text-[var(--accent)]">Privacy</a>
-              <a href="#support" className="hover:text-[var(--accent)]">Terms</a>
-              <a href="#support" className="hover:text-[var(--accent)]">Support</a>
+              <a href="#support" className="hover:text-[var(--accent)]">
+                Privacy
+              </a>
+              <a href="#support" className="hover:text-[var(--accent)]">
+                Terms
+              </a>
+              <a href="#support" className="hover:text-[var(--accent)]">
+                Support
+              </a>
             </div>
           </div>
         </div>
